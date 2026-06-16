@@ -136,3 +136,53 @@ document.getElementById("host").style.display="none";
 
 
 }
+window.listenPlayers=function(code){
+
+
+
+db.ref(
+"rooms/"+code+"/players"
+)
+
+.on("value", function(snapshot){
+
+
+let data =
+snapshot.val();
+
+
+
+let html="👥 Người chơi:<br>";
+
+
+
+if(data){
+
+
+Object.values(data)
+
+.forEach(function(p,index){
+
+
+html +=
+
+(index+1)+". "+p.name+"<br>";
+
+
+});
+
+
+}
+
+
+
+document.getElementById("playerList")
+
+.innerHTML=html;
+
+
+
+});
+
+
+}
