@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+
+<title>Ăn Ý ❤️</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<link rel="stylesheet" href="style.css">
+
+</head>
+
+
+<body>
+
+
+<div class="container">
+
+
+<h1>
+Ăn Ý ❤️
+</h1>
+
+
+<div id="home">
+
+
+<input id="name"
+placeholder="Tên của bạn">
+
+
+<input id="room"
+placeholder="Mã phòng">
+
+
+<button onclick="joinRoom()">
+Vào phòng
+</button>
+
+
+</div>
+
+
+
+<div id="game" style="display:none">
+
+
+<h2 id="question">
+
+Đang chờ host...
+
+</h2>
+
+
+<div id="answers"></div>
+
+
+</div>
+
+
+</div>
+
+
+
+<script src="https://www.gstatic.com/firebasejs/12.14.0/firebase-app-compat.js"></script>
+
+<script src="https://www.gstatic.com/firebasejs/12.14.0/firebase-database-compat.js"></script>
+
+
+<script src="firebase.js"></script>
+
+<script src="app.js"></script>
+
+
+</body>
+
+
+</html>
