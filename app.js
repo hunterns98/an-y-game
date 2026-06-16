@@ -6,7 +6,6 @@ window.joinRoom = function(){
     let room = document.getElementById("room").value;
 
 
-
     if(!name || !room){
 
         alert("Nhập đủ tên và mã phòng");
@@ -32,8 +31,7 @@ window.joinRoom = function(){
 
 
 
-    alert(
-        "Đã vào phòng " + room
-    );
+    alert("Đã vào phòng " + room);
+
 
 }
