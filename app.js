@@ -1,15 +1,9 @@
-const db = firebase.database();
-
-
 window.joinRoom = function(){
 
 
-    let name =
-    document.getElementById("name").value;
+    let name = document.getElementById("name").value;
 
-
-    let room =
-    document.getElementById("room").value;
+    let room = document.getElementById("room").value;
 
 
 
@@ -41,6 +35,5 @@ window.joinRoom = function(){
     alert(
         "Đã vào phòng " + room
     );
-
 
 }
