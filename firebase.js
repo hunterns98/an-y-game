@@ -21,4 +21,4 @@ appId: "1:284676671292:web:e21bda6a9dbec485120039"
 firebase.initializeApp(firebaseConfig);
 
 
-const db = firebase.database();
+window.db = firebase.database();
