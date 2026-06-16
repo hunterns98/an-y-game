@@ -35,3 +35,53 @@ window.joinRoom = function(){
 
 
 }
+window.createRoom = function(){
+
+
+
+let hostName =
+document.getElementById("hostName").value;
+
+
+
+if(!hostName){
+
+alert("Nhập tên host");
+
+return;
+
+}
+
+
+
+let code =
+Math.random()
+.toString(36)
+.substring(2,7)
+.toUpperCase();
+
+
+
+db.ref(
+"rooms/"+code
+)
+.set({
+
+host:hostName,
+
+status:"waiting",
+
+question:""
+
+
+});
+
+
+
+document.getElementById("roomCode")
+.innerHTML =
+"Mã phòng: "+code;
+
+
+
+}
