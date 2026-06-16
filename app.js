@@ -242,9 +242,120 @@ window.listenPlayers = function(code){
 window.makeTeams = function(){
 
 
-alert(
-"Chức năng ghép cặp sẽ thêm ở bước tiếp theo"
+
+let roomCode =
+prompt("Nhập mã phòng để ghép cặp");
+
+
+
+if(!roomCode){
+
+return;
+
+}
+
+
+
+db.ref(
+"rooms/"+roomCode+"/players"
+)
+
+.once("value")
+
+.then(function(snapshot){
+
+
+
+let players = snapshot.val();
+
+
+
+if(!players){
+
+alert("Chưa có người chơi");
+
+return;
+
+}
+
+
+
+let list =
+Object.values(players);
+
+
+
+if(list.length < 2){
+
+alert("Cần ít nhất 2 người");
+
+return;
+
+}
+
+
+
+// xáo trộn
+
+list.sort(
+()=>Math.random()-0.5
 );
+
+
+
+let teams = {};
+
+
+
+for(
+let i=0;
+i<list.length;
+i+=2
+){
+
+
+let teamNumber =
+(i/2)+1;
+
+
+
+teams["team"+teamNumber]={
+
+
+player1:
+list[i].name,
+
+
+player2:
+list[i+1]
+?
+list[i+1].name
+:
+"Đang chờ"
+
+
+};
+
+
+}
+
+
+
+db.ref(
+"rooms/"+roomCode+"/teams"
+)
+
+.set(teams);
+
+
+
+alert(
+"Đã ghép "+Object.keys(teams).length+" đội"
+);
+
+
+
+});
 
 
 }
