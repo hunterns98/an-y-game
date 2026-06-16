@@ -1,42 +1,58 @@
+const db = firebase.database();
+
+
+
 window.joinRoom = function(){
 
 
-    let name = document.getElementById("name").value;
+let name =
+document.getElementById("name").value;
 
-    let room = document.getElementById("room").value;
 
-
-    if(!name || !room){
-
-        alert("Nhập đủ tên và mã phòng");
-
-        return;
-
-    }
+let room =
+document.getElementById("room").value;
 
 
 
-    db.ref(
-        "rooms/" + room + "/players/" + name
-    )
-    .set({
+if(!name || !room){
 
-        name:name,
+alert("Nhập đủ tên và mã phòng");
 
-        score:0,
+return;
 
-        answer:""
-
-    });
+}
 
 
 
-    alert("Đã vào phòng " + room);
+db.ref(
+"rooms/" + room + "/players/" + name
+)
+
+.set({
+
+name:name,
+
+score:0,
+
+answer:""
+
+});
+
+
+
+alert(
+"Đã vào phòng " + room
+);
 
 
 }
-window.createRoom = function(){
 
+
+
+
+
+
+window.createRoom = function(){
 
 
 let hostName =
@@ -55,16 +71,21 @@ return;
 
 
 let code =
+
 Math.random()
+
 .toString(36)
+
 .substring(2,7)
+
 .toUpperCase();
 
 
 
 db.ref(
-"rooms/"+code
+"rooms/" + code
 )
+
 .set({
 
 host:hostName,
@@ -73,15 +94,45 @@ status:"waiting",
 
 question:""
 
-
 });
 
 
 
-document.getElementById("roomCode")
-.innerHTML =
-"Mã phòng: "+code;
+document.getElementById("roomCode").innerHTML =
 
+"Mã phòng: " + code;
+
+
+}
+
+
+
+
+
+
+window.showHost=function(){
+
+
+document.getElementById("host").style.display="block";
+
+
+document.getElementById("player").style.display="none";
+
+
+}
+
+
+
+
+
+
+window.showPlayer=function(){
+
+
+document.getElementById("player").style.display="block";
+
+
+document.getElementById("host").style.display="none";
 
 
 }
