@@ -68,5 +68,53 @@ background:#fff;
 color:#222;
 
 border:1px solid #ddd;
+.btnAnswer {
+  width: 95%;
+  padding: 18px;
+  margin: 8px auto;
+  font-size: 18px;
+  border-radius: 12px;
+  background: #fff;
+  color: #222;
+  border: 2px solid #FF4D6D;
+  display: block;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.btnAnswer:hover,
+.btnAnswer:active {
+  background: #FF4D6D;
+  color: white;
+}
+
+#playerRound {
+  font-size: 13px;
+  color: #999;
+  text-align: center;
+  margin-bottom: 4px;
+}
+
+#resultArea {
+  background: #fff0f3;
+  border-radius: 12px;
+  padding: 16px;
+  margin-top: 12px;
+  text-align: center;
+  line-height: 1.8;
+}
+
+#playerStatus {
+  text-align: center;
+  color: #666;
+  padding: 16px;
+  font-size: 16px;
+}
+
+#hostGameArea {
+  margin-top: 16px;
+  padding: 16px;
+  background: #f9f9f9;
+  border-radius: 12px;
+}
 
 }
