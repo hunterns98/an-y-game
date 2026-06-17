@@ -72,7 +72,7 @@ window.joinRoom = function(){
     alert(
         "Đã vào phòng " + room
     );
-
+listenGame(room);
 
 }
 
