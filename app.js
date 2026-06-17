@@ -440,63 +440,141 @@ const questions = [
 {
 text:"Thức uống bạn chọn là:",
 a:"Cà phê",
-b:"Trà"
+b:"Trà",
+special:false
 },
-
 
 {
 text:"Bạn thích phúc lợi:",
 a:"Thêm ngày phép",
-b:"Tiền thưởng nóng"
+b:"Tiền thưởng nóng",
+special:false
 },
-
 
 {
 text:"Thể loại âm nhạc bạn chọn:",
 a:"Ballad thất tình",
-b:"Remix giật giật"
+b:"Remix giật giật",
+special:false
 },
-
 
 {
 text:"Nếu phải chọn nuôi:",
 a:"Chó",
-b:"Mèo"
+b:"Mèo",
+special:false
 },
-
 
 {
 text:"Liên hoan cuối năm bạn chọn:",
 a:"Hát",
-b:"Nhảy"
+b:"Nhảy",
+special:false
 },
-
 
 {
 text:"Sếp bảo tăng ca nhé em:",
 a:"Tìm lý do từ chối",
-b:"Chấp nhận số phận"
+b:"Chấp nhận số phận",
+special:false
 },
-
 
 {
 text:"Môi trường công sở:",
 a:"Lương cao sếp toxic",
-b:"Lương thấp đồng nghiệp vui"
+b:"Lương thấp đồng nghiệp vui",
+special:false
 },
-
 
 {
 text:"Màu yêu thích:",
 a:"Đỏ",
-b:"Xanh Lá"
+b:"Xanh Lá",
+special:false
 },
 
+{
+text:"Bộ môn thể thao nếu phải chọn:",
+a:"Chạy bộ",
+b:"Bơi lội",
+special:false
+},
 
 {
-text:"Thể thao bạn chọn:",
-a:"Chạy bộ",
-b:"Bơi lội"
+text:"Nếu phải chọn đi du lịch:",
+a:"Lên núi",
+b:"Xuống biển",
+special:false
+},
+
+{
+text:"Nếu lựa chọn:",
+a:"Làm sếp công ty bé",
+b:"Nhân viên tập đoàn lớn",
+special:false
+},
+
+{
+text:"Nếu lựa chọn đồ uống unhealthy:",
+a:"Bia",
+b:"Rượu",
+special:false
+},
+
+{
+text:"Đến giờ nạp calo rồi, bạn chọn:",
+a:"Ăn lẩu",
+b:"Ăn nướng",
+special:false
+},
+
+{
+text:"Câu hỏi ăn điểm: Tỉnh nào bắt đầu bằng chữ H?",
+a:"Hà Nội",
+b:"Hải Phòng",
+special:true
+},
+
+{
+text:"Thời tiết ưa thích:",
+a:"Mùa Xuân mát mẻ",
+b:"Mùa Thu se lạnh",
+special:false
+},
+
+{
+text:"Chuông báo thức kêu:",
+a:"Dậy ngay",
+b:"Bấm 5 phút nữa",
+special:false
+},
+
+{
+text:"Kế hoạch cuối tuần:",
+a:"Ngủ nướng",
+b:"Ra ngoài vi vu",
+special:false
+},
+
+{
+text:"Khẩu vị:",
+a:"Cay",
+b:"Chua Ngọt",
+special:false
+},
+
+{
+text:"Dân chơi hệ:",
+a:"Táo IOS",
+b:"Android",
+special:false
+},
+
+{
+text:"Nếu lựa chọn, bạn muốn trở thành:",
+a:"Steve Jobs",
+b:"Elon Musk",
+special:false
 }
 
 ];
