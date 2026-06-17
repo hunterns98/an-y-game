@@ -32,6 +32,57 @@
       radial-gradient(ellipse 60% 40% at 80% 100%, rgba(255,45,120,0.2) 0%, transparent 60%);
     min-height: 100vh;
   }
+  /* ── ANIMATED GRADIENT BACKGROUND (game-show glow, subtle & smooth) ── */
+  .gradient-bg {
+    position: fixed; inset: -10%; z-index: -1; pointer-events: none;
+    background: linear-gradient(
+      120deg,
+      #1a0030 0%,
+      #2a0845 18%,
+      #4a0e5c 35%,
+      #1f0a4a 52%,
+      #3a0a3a 70%,
+      #150535 88%,
+      #1a0030 100%
+    );
+    background-size: 280% 280%;
+    animation: gradientFlow 22s ease-in-out infinite;
+    filter: saturate(1.15);
+  }
+  @keyframes gradientFlow {
+    0%   { background-position: 0% 30%; }
+    25%  { background-position: 60% 70%; }
+    50%  { background-position: 100% 30%; }
+    75%  { background-position: 40% 0%; }
+    100% { background-position: 0% 30%; }
+  }
+  .gradient-bg::after {
+    content: '';
+    position: absolute; inset: 0;
+    background:
+      radial-gradient(ellipse 60% 45% at 20% 15%, rgba(255,45,120,0.16) 0%, transparent 65%),
+      radial-gradient(ellipse 55% 45% at 85% 85%, rgba(0,245,212,0.10) 0%, transparent 65%);
+    mix-blend-mode: screen;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .gradient-bg { animation: none; }
+  }
+  /* ── FOOTER CREDIT ── */
+  .made-by-footer {
+    position: fixed; left: 14px; bottom: 10px; z-index: 5;
+    font-size: 0.7rem; font-weight: 600; color: var(--muted);
+    letter-spacing: 0.02em; pointer-events: none;
+    display: flex; align-items: center; gap: 4px;
+    text-shadow: 0 1px 4px rgba(0,0,0,0.4);
+  }
+  .made-by-footer span {
+    color: var(--pink); display: inline-block;
+    animation: footerHeartBeat 1.3s ease-in-out infinite;
+  }
+  @keyframes footerHeartBeat {
+    0%,100% { transform: scale(1); }
+    50%     { transform: scale(1.25); }
+  }
   /* ── SCROLLING STARS BG ── */
   .stars {
     position: fixed; inset: 0; pointer-events: none; z-index: 0; overflow: hidden;
@@ -359,6 +410,132 @@
   .toast.out { animation: toastOut 0.3s ease forwards; }
   @keyframes toastIn  { from{opacity:0;transform:translateY(-16px)}to{opacity:1;transform:translateY(0)} }
   @keyframes toastOut { from{opacity:1}to{opacity:0;transform:translateY(-10px)} }
+  /* ── TEAM NAME EDITOR ── */
+  .team-name-card {
+    display: flex; flex-direction: column; gap: 10px;
+  }
+  .team-name-display {
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 10px;
+  }
+  .team-name-val {
+    font-size: 1.05rem; font-weight: 900; color: var(--gold);
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+  .btn-edit-name {
+    flex-shrink: 0;
+    background: rgba(255,255,255,0.08); border: 1px solid var(--border);
+    color: var(--text); border-radius: 10px; padding: 7px 12px;
+    font-size: 0.78rem; font-weight: 700; cursor: pointer;
+    -webkit-tap-highlight-color: transparent; transition: border-color 0.2s;
+  }
+  .btn-edit-name:hover { border-color: var(--cyan); }
+  .team-name-edit-row { display: none; gap: 8px; }
+  .team-name-edit-row.show { display: flex; }
+  .team-name-edit-row input {
+    flex: 1; padding: 12px 14px;
+    background: rgba(255,255,255,0.07); border: 1.5px solid var(--border);
+    border-radius: 12px; color: var(--text); font-size: 0.95rem; font-weight: 700;
+    outline: none;
+  }
+  .team-name-edit-row input:focus { border-color: var(--cyan); }
+  .btn-save-name {
+    flex-shrink: 0; background: linear-gradient(135deg, var(--cyan), #00c4aa);
+    color: #0a0015; border: none; border-radius: 12px; padding: 0 16px;
+    font-size: 0.85rem; font-weight: 800; cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+  }
+  /* ── HOW-TO-PLAY GUIDE CARD ── */
+  .howto-card {
+    width: 100%; max-width: 480px;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.14);
+    border-radius: var(--radius-lg);
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+    padding: 20px 18px 18px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.25), inset 0 1px 0 rgba(255,255,255,0.08);
+  }
+  .howto-title {
+    text-align: center; font-size: 1.15rem; font-weight: 900;
+    letter-spacing: 0.02em; margin-bottom: 14px;
+    background: linear-gradient(135deg, var(--gold), var(--pink), var(--cyan));
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    background-clip: text;
+    background-size: 200% auto;
+    animation: howtoShine 4s linear infinite;
+    text-shadow: 0 0 18px rgba(255,214,10,0.25);
+  }
+  @keyframes howtoShine {
+    0% { background-position: 0% center; }
+    100% { background-position: 200% center; }
+  }
+  .howto-tabs {
+    display: grid; grid-template-columns: 1fr 1fr 1fr;
+    gap: 6px; margin-bottom: 14px;
+  }
+  .howto-tab-btn {
+    padding: 9px 4px; border-radius: 10px;
+    background: rgba(255,255,255,0.06); border: 1px solid var(--border);
+    color: var(--muted); font-size: 0.72rem; font-weight: 800;
+    cursor: pointer; text-align: center; transition: all 0.2s;
+    -webkit-tap-highlight-color: transparent; line-height: 1.3;
+  }
+  .howto-tab-btn.active {
+    color: var(--text); border-color: var(--purple);
+    background: rgba(155,93,229,0.18);
+    box-shadow: 0 0 16px rgba(155,93,229,0.25);
+  }
+  .howto-scroll {
+    max-height: 270px; overflow-y: auto; -webkit-overflow-scrolling: touch;
+    padding-right: 4px; scrollbar-width: thin;
+  }
+  .howto-panel { display: none; flex-direction: column; gap: 12px; }
+  .howto-panel.active { display: flex; animation: screenIn 0.3s ease; }
+  .howto-rule-box {
+    background: rgba(255,255,255,0.04); border: 1px solid var(--border);
+    border-radius: 14px; padding: 12px 14px;
+    font-size: 0.82rem; line-height: 1.55; color: var(--text);
+  }
+  .howto-rule-box b { color: var(--gold); }
+  .howto-pts { font-weight: 800; }
+  .howto-pts.good { color: var(--cyan); }
+  .howto-pts.great { color: var(--gold); }
+  .howto-pts.zero { color: var(--muted); }
+  .howto-demo-label {
+    font-size: 0.68rem; letter-spacing: 0.15em; color: var(--muted);
+    text-transform: uppercase; font-weight: 800; margin-top: 2px;
+  }
+  .howto-demo-q {
+    font-size: 0.9rem; font-weight: 700; color: var(--text); margin-bottom: 4px;
+  }
+  .howto-demo-grid {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 8px;
+  }
+  .howto-demo-btn {
+    padding: 13px 10px; border-radius: 12px;
+    border: 1.5px solid var(--border);
+    background: rgba(255,255,255,0.05); color: var(--text);
+    font-size: 0.82rem; font-weight: 700; cursor: pointer;
+    transition: all 0.18s; -webkit-tap-highlight-color: transparent;
+  }
+  .howto-demo-btn:hover { border-color: var(--pink); background: rgba(255,45,120,0.12); transform: scale(1.02); }
+  .howto-demo-btn.picked { border-color: var(--cyan); background: rgba(0,245,212,0.15); }
+  .howto-demo-input-row { display: flex; gap: 8px; }
+  .howto-demo-input-row input {
+    flex: 1; padding: 12px 14px;
+    background: rgba(255,255,255,0.07); border: 1.5px solid var(--border);
+    border-radius: 12px; color: var(--text); font-size: 0.88rem; font-weight: 600;
+    outline: none;
+  }
+  .howto-demo-input-row input:focus { border-color: var(--cyan); }
+  .howto-demo-send {
+    flex-shrink: 0; background: linear-gradient(135deg, var(--pink), #d4006d);
+    color: white; border: none; border-radius: 12px; padding: 0 16px;
+    font-size: 0.85rem; font-weight: 800; cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+  }
+  #howto-card-wrap { display: flex; justify-content: center; width: 100%; }
   /* ── PARTNER TAG ── */
   .partner-tag {
     display: flex; align-items: center; gap: 10px;
@@ -402,8 +579,12 @@
 </style>
 </head>
 <body>
+<!-- Animated gradient background -->
+<div class="gradient-bg"></div>
 <!-- Stars bg -->
 <div class="stars" id="stars"></div>
+<!-- Footer credit -->
+<div class="made-by-footer">Made from Thắng with <span>♥</span></div>
 <!-- Toast -->
 <div id="toast-container"></div>
 <!-- Countdown overlay -->
@@ -472,10 +653,85 @@
         </div>
       </div>
     </div>
+    <!-- TEAM NAME EDITOR -->
+    <div id="team-name-card" class="card team-name-card" style="display:none;">
+      <div class="field-label" style="margin-bottom:2px;">Tên đội của bạn</div>
+      <div class="team-name-display" id="team-name-display-row">
+        <div class="team-name-val" id="team-name-val">Đội 1</div>
+        <button class="btn-edit-name" id="btn-edit-team-name">✏️ Đổi tên</button>
+      </div>
+      <div class="team-name-edit-row" id="team-name-edit-row">
+        <input id="inp-team-name" placeholder="VD: Ahihi cố lên" maxlength="24" autocomplete="off">
+        <button class="btn-save-name" id="btn-save-team-name">Lưu</button>
+      </div>
+    </div>
     <div class="team-score-banner" id="score-banner" style="display:none;">
       <div><div class="tsb-label">Điểm đội</div><div class="tsb-team" id="tsb-team">—</div></div>
       <div class="tsb-score" id="tsb-score">0</div>
     </div>
+    <!-- HOW TO PLAY / DEMO GUIDE -->
+    <div id="howto-card-wrap">
+    <div class="howto-card" id="howto-card">
+      <div class="howto-title">🎮 HƯỚNG DẪN CHƠI NHANH</div>
+      <div class="howto-tabs">
+        <button class="howto-tab-btn active" data-tab="1" onclick="switchHowtoTab(1)">Level 1<br>Thấu Hiểu Nông</button>
+        <button class="howto-tab-btn" data-tab="2" onclick="switchHowtoTab(2)">Level 2<br>Thấu Hiểu Trung</button>
+        <button class="howto-tab-btn" data-tab="3" onclick="switchHowtoTab(3)">Level 3<br>Thấu Hiểu Sâu</button>
+      </div>
+      <div class="howto-scroll">
+        <!-- LEVEL 1 -->
+        <div class="howto-panel active" id="howto-panel-1">
+          <div class="howto-rule-box">
+            <b>Luật chơi:</b> Trả lời câu hỏi lựa chọn <b>A hoặc B</b>.<br>
+            Nếu <b>CẢ HAI</b> thành viên cùng chọn đúng đáp án giống nhau → <span class="howto-pts good">+1 điểm</span>.<br>
+            Chọn lệch nhau → <span class="howto-pts zero">0 điểm</span>.
+          </div>
+          <div>
+            <div class="howto-demo-label">Thử ngay</div>
+            <div class="howto-demo-q">Thức uống bạn chọn là?</div>
+            <div class="howto-demo-grid">
+              <button class="howto-demo-btn" id="demo-l1-a" onclick="demoPickL1('a')">☕ Cà phê</button>
+              <button class="howto-demo-btn" id="demo-l1-b" onclick="demoPickL1('b')">🍵 Trà</button>
+            </div>
+          </div>
+        </div>
+        <!-- LEVEL 2 -->
+        <div class="howto-panel" id="howto-panel-2">
+          <div class="howto-rule-box">
+            <b>Luật chơi:</b> Bí mật gõ tên bạn hoặc đồng đội cho câu hỏi (VD: Ai nóng tính hơn?).<br>
+            Nếu <b>TRÙNG KHỚP</b> (Cùng chọn 1 tên) → <span class="howto-pts good">+2 điểm</span>.<br>
+            Lệch nhau → <span class="howto-pts zero">0 điểm</span>.
+          </div>
+          <div>
+            <div class="howto-demo-label">Thử ngay</div>
+            <div class="howto-demo-q">Ai là người nóng tính hơn?</div>
+            <div class="howto-demo-input-row">
+              <input id="demo-l2-input" placeholder="Gõ tên bạn hoặc đồng đội..." maxlength="20">
+              <button class="howto-demo-send" onclick="demoSendL2()">Gửi</button>
+            </div>
+          </div>
+        </div>
+        <!-- LEVEL 3 -->
+        <div class="howto-panel" id="howto-panel-3">
+          <div class="howto-rule-box">
+            <b>Luật chơi:</b> Câu hỏi tự điền chữ.<br>
+            Điền sai với đồng đội → <span class="howto-pts zero">0 điểm</span>.<br>
+            Điền đúng + trùng câu trả lời với đồng đội → <span class="howto-pts good">+1 điểm</span>.<br>
+            Điền đúng + <b>DUY NHẤT</b> (không đội nào khác trùng) → <span class="howto-pts great">+3 điểm 🌟</span>.
+          </div>
+          <div>
+            <div class="howto-demo-label">Thử ngay</div>
+            <div class="howto-demo-q">Tỉnh nào bắt đầu bằng chữ "T"?</div>
+            <div class="howto-demo-input-row">
+              <input id="demo-l3-input" placeholder="Gõ thử đáp án..." maxlength="30">
+              <button class="howto-demo-send" onclick="demoSendL3()">Gửi thử</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    </div>
+    <!-- /HOW TO PLAY -->
   </div>
   <!-- ── SCREEN: QUESTION ── -->
   <div class="screen" id="screen-question">
@@ -724,8 +980,10 @@ function findMyTeam() {
         const pd = document.getElementById('partner-display');
         pd.style.display = 'block';
         document.getElementById('partner-name-text').textContent = partner || '—';
+        // Team name editor
+        renderTeamNameUI(team, key);
         // Score banner
-        updateScoreBanners(team.score||0, partner);
+        updateScoreBanners(team.score||0, partner, team.teamName);
       }
     });
     // keep updating score
@@ -734,12 +992,13 @@ function findMyTeam() {
       const t = ts.val();
       myTeam = t;
       const partner = t.player1===myName ? t.player2 : t.player1;
-      updateScoreBanners(t.score||0, partner);
+      renderTeamNameUI(t, myTeamKey);
+      updateScoreBanners(t.score||0, partner, t.teamName);
     });
   });
 }
-function updateScoreBanners(score, partnerName) {
-  const teamLabel = myName + ' & ' + (partnerName||'?');
+function updateScoreBanners(score, partnerName, teamName) {
+  const teamLabel = teamName || (myName + ' & ' + (partnerName||'?'));
   ['score-banner','score-banner-q','score-banner-r'].forEach(id => {
     const el = document.getElementById(id);
     if (el) el.style.display = 'flex';
@@ -758,8 +1017,9 @@ function listenGame() {
   db.ref('rooms/' + myRoom + '/game').on('value', snap => {
     const game = snap.val();
     if (!game) return;
-    if (game.status === 'ended') { showEndForPlayer(); return; }
+    if (game.status === 'ended') { hideHowtoGuide(); showEndForPlayer(); return; }
     if (game.status !== 'playing') return;
+    hideHowtoGuide();
     const newRound = game.round || 0;
     const revealed = !!game.revealed;
     // New round
@@ -787,13 +1047,16 @@ function listenGame() {
 let timerInterval;
 function renderQuestion(game) {
   currentRound = game.round || 0;
-  document.getElementById('round-badge').textContent = `Câu ${currentRound+1} / 20`;
+  document.getElementById('round-badge').textContent = `Level ${game.level||1} · Câu ${currentRound+1} / 20`;
   document.getElementById('q-text').textContent = game.question || '...';
   document.getElementById('q-text').classList.remove('animate-in');
   requestAnimationFrame(() => document.getElementById('q-text').classList.add('animate-in'));
   const qType = game.type || 'choice';
   // Special / free-text badge
-  if (qType === 'text') {
+  if (qType === 'who_is') {
+    document.getElementById('special-badge-wrap').style.display = 'block';
+    document.getElementById('special-badge-text').textContent = '🕵️ Ai là ai? · Trùng tên +2 điểm';
+  } else if (qType === 'text') {
     document.getElementById('special-badge-wrap').style.display = 'block';
     document.getElementById('special-badge-text').textContent = '✍️ Câu tự nhập · Trùng ý +1 — Trùng & độc nhất +3';
   } else if (game.special) {
@@ -803,13 +1066,15 @@ function renderQuestion(game) {
     document.getElementById('special-badge-wrap').style.display = 'none';
   }
   // Toggle answer UI by question type
-  if (qType === 'text') {
+  if (qType === 'text' || qType === 'who_is') {
     document.getElementById('answer-grid').style.display = 'none';
     document.getElementById('answer-text-wrap').style.display = 'flex';
     document.getElementById('inp-free-answer').value = '';
     document.getElementById('inp-free-answer').disabled = false;
+    document.getElementById('inp-free-answer').placeholder = qType === 'who_is'
+      ? 'Gõ tên bạn hoặc đồng đội...' : 'Nhập đáp án của bạn...';
     document.getElementById('btn-submit-free').disabled = false;
-    document.getElementById('btn-submit-free').textContent = 'Gửi đáp án 📨';
+    document.getElementById('btn-submit-free').textContent = qType === 'who_is' ? 'Gửi 🕵️' : 'Gửi đáp án 📨';
   } else {
     document.getElementById('answer-grid').style.display = 'grid';
     document.getElementById('answer-text-wrap').style.display = 'none';
@@ -894,7 +1159,12 @@ function showResultForPlayer(game) {
       const pAns  = answers[partner] ? answers[partner].answer : null;
       let match = false, pts = 0, isUnique = false;
 
-      if (qType === 'text') {
+      if (qType === 'who_is') {
+        const n1 = normalizeAnswer(myAns);
+        const n2 = normalizeAnswer(pAns);
+        match = !!(n1 && n2 && n1 === n2);
+        pts = match ? 2 : 0;
+      } else if (qType === 'text') {
         // Chuẩn hoá (bỏ dấu, bỏ khoảng trắng, không phân biệt hoa/thường) trước khi so khớp
         const n1 = normalizeAnswer(myAns);
         const n2 = normalizeAnswer(pAns);
@@ -917,7 +1187,9 @@ function showResultForPlayer(game) {
       document.getElementById('result-match').textContent = match ? '💞' : '😅';
       let title;
       if (match) {
-        if (qType === 'text') {
+        if (qType === 'who_is') {
+          title = '🕵️ Trùng khớp! +2 điểm';
+        } else if (qType === 'text') {
           title = isUnique ? '🌟 Ăn ý độc nhất!' : '💞 Ăn ý rồi!';
         } else {
           title = game.special ? '🌟 Ăn ý đặc biệt!' : '💞 Ăn ý rồi!';
@@ -952,15 +1224,16 @@ function showEndForPlayer() {
     const teams = snap.val() || {};
     const sorted = Object.values(teams).sort((a,b)=>(b.score||0)-(a.score||0));
     const winner = sorted[0];
+    const teamLabel = t => t.teamName || (t.player1+' & '+t.player2);
     const isMyTeam = t => t.player1===myName||t.player2===myName;
-    document.getElementById('ws-name').textContent = winner.player1+' & '+winner.player2;
+    document.getElementById('ws-name').textContent = teamLabel(winner);
     document.getElementById('ws-score').textContent = (winner.score||0)+' điểm';
     const listEl = document.getElementById('ws-list');
     const medals = ['🥇','🥈','🥉'];
     listEl.innerHTML = sorted.map((t,i) => `
       <div class="ws-row ${isMyTeam(t)?'my-team':''}">
         <span class="ws-rank">${medals[i]||'#'+(i+1)}</span>
-        <span class="ws-team-name">${t.player1} & ${t.player2}${isMyTeam(t)?' 👈':''}</span>
+        <span class="ws-team-name">${teamLabel(t)}${isMyTeam(t)?' 👈':''}</span>
         <span class="ws-pts">${t.score||0}</span>
       </div>`).join('');
     const ws = document.getElementById('winner-screen');
@@ -973,7 +1246,107 @@ document.getElementById('btn-ws-back').addEventListener('click', () => {
   document.getElementById('winner-screen').classList.remove('show');
   stopConfetti();
 });
-// Unlock audio on first touch
+// ─────────────────────────────────────────
+// TEAM NAME EDITOR
+// ─────────────────────────────────────────
+function defaultTeamLabel(key) {
+  const num = (key||'').replace(/[^0-9]/g,'') || '?';
+  return 'Đội ' + num;
+}
+function renderTeamNameUI(team, key) {
+  const wrap = document.getElementById('team-name-card');
+  if (!wrap) return;
+  wrap.style.display = 'block';
+  const valEl = document.getElementById('team-name-val');
+  valEl.textContent = team.teamName || defaultTeamLabel(key);
+}
+document.getElementById('btn-edit-team-name').addEventListener('click', () => {
+  document.getElementById('inp-team-name').value =
+    (document.getElementById('team-name-val').textContent || '').trim();
+  document.getElementById('team-name-edit-row').classList.add('show');
+  document.getElementById('inp-team-name').focus();
+});
+document.getElementById('btn-save-team-name').addEventListener('click', saveTeamName);
+document.getElementById('inp-team-name').addEventListener('keypress', e => { if (e.key === 'Enter') saveTeamName(); });
+function saveTeamName() {
+  const val = document.getElementById('inp-team-name').value.trim();
+  if (!val) { toast('⚠️ Nhập tên đội trước đã!'); return; }
+  if (!myTeamKey) return;
+  db.ref('rooms/' + myRoom + '/teams/' + myTeamKey + '/teamName').set(val).then(() => {
+    document.getElementById('team-name-edit-row').classList.remove('show');
+    toast('✅ Đã đổi tên đội thành "' + val + '"');
+    sfxClick();
+  });
+}
+// ─────────────────────────────────────────
+// HOW-TO-PLAY GUIDE (chỉ hiện ở lobby, ẩn khi game bắt đầu)
+// ─────────────────────────────────────────
+window.switchHowtoTab = function(n) {
+  sfxClick();
+  document.querySelectorAll('.howto-tab-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === String(n)));
+  document.querySelectorAll('.howto-panel').forEach(p => p.classList.remove('active'));
+  document.getElementById('howto-panel-' + n).classList.add('active');
+};
+window.demoPickL1 = function(choice) {
+  sfxClick();
+  document.getElementById('demo-l1-a').classList.toggle('picked', choice === 'a');
+  document.getElementById('demo-l1-b').classList.toggle('picked', choice === 'b');
+};
+window.demoSendL2 = function() {
+  const val = document.getElementById('demo-l2-input').value.trim();
+  if (!val) { toast('⚠️ Gõ tên trước đã!'); return; }
+  sfxClick();
+  toast('✅ Đã gửi đáp án thử: ' + val);
+  document.getElementById('demo-l2-input').value = '';
+};
+window.demoSendL3 = function() {
+  const val = document.getElementById('demo-l3-input').value.trim();
+  if (!val) { toast('⚠️ Gõ đáp án trước đã!'); return; }
+  sfxSuccess();
+  floatScore(3);
+  miniConfetti();
+  document.getElementById('demo-l3-input').value = '';
+  toast('🌟 Demo: nếu đây là đáp án độc nhất, bạn ăn +3 điểm!');
+};
+function hideHowtoGuide() {
+  const wrap = document.getElementById('howto-card-wrap');
+  if (wrap) wrap.style.display = 'none';
+}
+// Mini confetti burst for demo — canvas riêng, không đụng tới winner-screen
+function miniConfetti() {
+  let canvas = document.getElementById('demo-confetti-canvas');
+  if (!canvas) {
+    canvas = document.createElement('canvas');
+    canvas.id = 'demo-confetti-canvas';
+    canvas.style.cssText = 'position:fixed;inset:0;z-index:9500;pointer-events:none;';
+    document.body.appendChild(canvas);
+  }
+  canvas.width = window.innerWidth; canvas.height = window.innerHeight;
+  const ctx = canvas.getContext('2d');
+  const particles = Array.from({length:80}, () => ({
+    x: Math.random()*canvas.width, y: -20,
+    r: Math.random()*6+3,
+    color: `hsl(${Math.random()*360},90%,60%)`,
+    vx: (Math.random()-0.5)*4, vy: Math.random()*4+2,
+    tilt: Math.random()*10, tiltV: (Math.random()-0.5)*0.3
+  }));
+  let frames = 0;
+  function draw() {
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    particles.forEach(p => {
+      p.x += p.vx; p.y += p.vy; p.tilt += p.tiltV;
+      ctx.beginPath();
+      ctx.lineWidth = p.r; ctx.strokeStyle = p.color;
+      ctx.moveTo(p.x+p.tilt, p.y);
+      ctx.lineTo(p.x+p.tilt, p.y+p.r*2);
+      ctx.stroke();
+    });
+    frames++;
+    if (frames < 90) requestAnimationFrame(draw);
+    else ctx.clearRect(0,0,canvas.width,canvas.height);
+  }
+  draw();
+}
 document.addEventListener('touchstart', () => { try{ getAC(); }catch(e){} }, { once:true });
 document.addEventListener('click', () => { try{ getAC(); }catch(e){} }, { once:true });
 </script>
