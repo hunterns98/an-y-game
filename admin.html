@@ -1,0 +1,784 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ăn Ý Admin — Game Control</title>
+<style>
+  :root {
+    --bg:       #080012;
+    --card:     rgba(255,255,255,0.055);
+    --card-hi:  rgba(255,255,255,0.09);
+    --border:   rgba(255,255,255,0.1);
+    --pink:     #ff2d78;
+    --cyan:     #00f5d4;
+    --gold:     #ffd60a;
+    --purple:   #9b5de5;
+    --green:    #22c55e;
+    --red:      #ef4444;
+    --text:     #f0e6ff;
+    --muted:    #8870a8;
+    --radius:   16px;
+    --radius-lg:24px;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body {
+    background: var(--bg); color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    min-height: 100vh;
+    background-image:
+      radial-gradient(ellipse 100% 50% at 50% -10%, rgba(155,93,229,0.25) 0%, transparent 60%),
+      radial-gradient(ellipse 50% 40% at 90% 80%, rgba(255,45,120,0.12) 0%, transparent 60%);
+  }
+
+  /* ── AUTH GATE ── */
+  #auth-gate {
+    position: fixed; inset: 0; background: rgba(8,0,18,0.97);
+    backdrop-filter: blur(12px); z-index: 9999;
+    display: flex; align-items: center; justify-content: center; padding: 24px;
+  }
+  .auth-card {
+    background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12);
+    border-radius: var(--radius-lg); padding: 40px 32px;
+    width: 100%; max-width: 360px; text-align: center;
+  }
+  .auth-icon { font-size: 3rem; margin-bottom: 12px; display: block; }
+  .auth-title { font-size: 1.4rem; font-weight: 900; color: var(--gold); margin-bottom: 6px; }
+  .auth-sub { font-size: 0.8rem; color: var(--muted); margin-bottom: 24px; }
+  .auth-input {
+    width: 100%; padding: 16px; text-align: center;
+    background: rgba(255,255,255,0.07); border: 1.5px solid rgba(255,255,255,0.15);
+    border-radius: var(--radius); color: var(--text); font-size: 1.8rem;
+    font-weight: 900; letter-spacing: 0.4em; outline: none; margin-bottom: 16px;
+    transition: border-color 0.2s;
+  }
+  .auth-input:focus { border-color: var(--gold); }
+  .auth-error { color: var(--red); font-size: 0.82rem; margin-top: 10px; min-height: 18px; }
+
+  /* ── LAYOUT ── */
+  #admin-panel { display: none; padding: 0 16px 60px; max-width: 900px; margin: 0 auto; }
+
+  /* ── TOP BAR ── */
+  .top-bar {
+    display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center;
+    padding: 24px 0 18px; gap: 12px; border-bottom: 1px solid var(--border); margin-bottom: 20px;
+  }
+  .top-bar-left h1 {
+    font-size: 1.5rem; font-weight: 900;
+    background: linear-gradient(135deg, var(--pink), var(--gold));
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+  }
+  .top-bar-left p { font-size: 0.75rem; color: var(--muted); margin-top: 2px; }
+  .status-pill {
+    display: inline-flex; align-items: center; gap: 5px;
+    padding: 4px 14px; border-radius: 99px;
+    font-size: 0.7rem; font-weight: 800; letter-spacing: 0.12em;
+  }
+  .status-waiting  { background: rgba(155,93,229,0.2); border: 1px solid rgba(155,93,229,0.5); color: #c4b5fd; }
+  .status-playing  { background: rgba(34,197,94,0.2);  border: 1px solid rgba(34,197,94,0.5);  color: #86efac; }
+  .status-ended    { background: rgba(239,68,68,0.2);  border: 1px solid rgba(239,68,68,0.5);  color: #fca5a5; }
+
+  /* ── SECTION ── */
+  .section { margin-bottom: 16px; }
+  .section-label {
+    font-size: 0.65rem; font-weight: 800; letter-spacing: 0.2em;
+    text-transform: uppercase; color: var(--muted); margin-bottom: 10px;
+  }
+
+  /* ── CARD ── */
+  .card {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: var(--radius-lg); padding: 20px;
+    backdrop-filter: blur(12px);
+  }
+
+  /* ── GRID PANELS ── */
+  .panel-grid {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 14px;
+  }
+  @media (max-width: 600px) { .panel-grid { grid-template-columns: 1fr; } }
+
+  /* ── INPUTS ── */
+  .inp {
+    width: 100%; padding: 12px 16px;
+    background: rgba(255,255,255,0.07); border: 1.5px solid var(--border);
+    border-radius: var(--radius); color: var(--text); font-size: 0.95rem; font-weight: 600;
+    outline: none; transition: border-color 0.2s;
+  }
+  .inp:focus { border-color: var(--cyan); }
+  .inp::placeholder { color: var(--muted); font-weight: 400; }
+  .room-code-inp {
+    letter-spacing: 0.3em; text-align: center; font-size: 1.4rem; text-transform: uppercase;
+  }
+
+  /* ── BUTTONS ── */
+  .btn {
+    padding: 12px 22px; border: none; border-radius: var(--radius);
+    font-size: 0.9rem; font-weight: 800; cursor: pointer;
+    transition: all 0.18s; letter-spacing: 0.04em;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .btn:active { transform: scale(0.96); }
+  .btn:disabled { opacity: 0.45; cursor: not-allowed; transform: none !important; }
+  .btn-full { width: 100%; padding: 15px; font-size: 1rem; }
+
+  .btn-pink   { background: linear-gradient(135deg, var(--pink), #c4006d); color: white; box-shadow: 0 6px 20px rgba(255,45,120,0.35); }
+  .btn-pink:hover:not(:disabled)   { filter: brightness(1.12); box-shadow: 0 8px 28px rgba(255,45,120,0.5); }
+  .btn-cyan   { background: linear-gradient(135deg, var(--cyan), #00c4aa); color: #080012; box-shadow: 0 6px 20px rgba(0,245,212,0.3); }
+  .btn-cyan:hover:not(:disabled)   { filter: brightness(1.08); }
+  .btn-gold   { background: linear-gradient(135deg, var(--gold), #e6b800); color: #080012; box-shadow: 0 6px 20px rgba(255,214,10,0.35); }
+  .btn-gold:hover:not(:disabled)   { filter: brightness(1.1); }
+  .btn-purple { background: linear-gradient(135deg, var(--purple), #7c3aed); color: white; }
+  .btn-purple:hover:not(:disabled) { filter: brightness(1.1); }
+  .btn-ghost  { background: var(--card-hi); border: 1.5px solid var(--border); color: var(--text); }
+  .btn-ghost:hover:not(:disabled)  { border-color: var(--purple); }
+  .btn-red    { background: linear-gradient(135deg, var(--red), #b91c1c); color: white; }
+  .btn-red:hover:not(:disabled)    { filter: brightness(1.1); }
+
+  /* ── ROOM CODE DISPLAY ── */
+  .room-code-badge {
+    display: flex; align-items: center; justify-content: center; gap: 14px;
+    padding: 20px; border-radius: var(--radius);
+    background: rgba(255,214,10,0.08); border: 1.5px dashed rgba(255,214,10,0.4);
+  }
+  .rc-code {
+    font-size: 2.8rem; font-weight: 900; letter-spacing: 0.35em; color: var(--gold);
+    text-shadow: 0 0 24px rgba(255,214,10,0.5);
+  }
+  .rc-copy {
+    background: rgba(255,214,10,0.15); border: 1px solid rgba(255,214,10,0.3);
+    border-radius: 8px; padding: 8px 14px;
+    color: var(--gold); font-size: 0.75rem; font-weight: 800;
+    cursor: pointer; transition: all 0.18s; white-space: nowrap;
+  }
+  .rc-copy:hover { background: rgba(255,214,10,0.25); }
+
+  /* ── PLAYER LIST ── */
+  .player-grid {
+    display: flex; flex-wrap: wrap; gap: 8px; min-height: 44px;
+  }
+  .player-chip {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: rgba(155,93,229,0.15); border: 1px solid rgba(155,93,229,0.3);
+    border-radius: 99px; padding: 6px 14px;
+    font-size: 0.82rem; font-weight: 700; color: var(--text);
+    animation: chipIn 0.3s cubic-bezier(0.34,1.5,0.64,1);
+  }
+  @keyframes chipIn { from{opacity:0;transform:scale(0.8)} to{opacity:1;transform:scale(1)} }
+  .player-count { font-size: 0.7rem; color: var(--muted); margin-top: 8px; }
+
+  /* ── TEAM LIST ── */
+  .team-row {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 12px 16px; border-radius: 12px;
+    background: rgba(255,255,255,0.04); border: 1px solid var(--border);
+    margin-bottom: 8px;
+  }
+  .team-players { font-size: 0.9rem; font-weight: 700; }
+  .team-score-badge {
+    background: rgba(255,214,10,0.15); border: 1px solid rgba(255,214,10,0.3);
+    border-radius: 99px; padding: 3px 12px;
+    font-size: 0.8rem; font-weight: 900; color: var(--gold);
+  }
+
+  /* ── QUESTION PANEL ── */
+  .current-q-card {
+    background: linear-gradient(135deg, rgba(155,93,229,0.12), rgba(255,45,120,0.07));
+    border: 1px solid rgba(155,93,229,0.25);
+    border-radius: var(--radius-lg); padding: 24px;
+    position: relative; overflow: hidden;
+  }
+  .current-q-card::before {
+    content: ''; position: absolute; inset: 0;
+    background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.015'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+    pointer-events: none;
+  }
+  .q-num { font-size: 0.65rem; font-weight: 800; letter-spacing: 0.2em; color: var(--purple); text-transform: uppercase; margin-bottom: 8px; }
+  .q-display { font-size: 1.2rem; font-weight: 800; line-height: 1.4; margin-bottom: 14px; }
+  .q-opts {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 8px;
+  }
+  .q-opt {
+    padding: 10px 14px; border-radius: 10px;
+    background: rgba(255,255,255,0.06); border: 1px solid var(--border);
+    font-size: 0.88rem; font-weight: 700;
+  }
+  .q-opt .opt-tag { font-size: 0.62rem; letter-spacing: 0.15em; color: var(--muted); display: block; margin-bottom: 3px; text-transform: uppercase; }
+  .q-special-flag {
+    display: inline-flex; align-items: center; gap: 5px;
+    background: rgba(255,45,120,0.2); border: 1px solid rgba(255,45,120,0.35);
+    border-radius: 99px; padding: 3px 12px;
+    font-size: 0.7rem; font-weight: 800; color: var(--pink);
+    margin-bottom: 10px;
+  }
+
+  /* ── ANSWER REVEAL PANEL ── */
+  .answer-board { display: flex; flex-direction: column; gap: 8px; }
+  .answer-row {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 10px 14px; border-radius: 10px;
+    background: rgba(255,255,255,0.04); border: 1px solid var(--border);
+    font-size: 0.85rem;
+  }
+  .answer-row.match  { border-color: var(--green); background: rgba(34,197,94,0.08); }
+  .answer-row.nomatch { border-color: rgba(239,68,68,0.4); background: rgba(239,68,68,0.06); }
+  .ar-team { font-weight: 700; flex: 1; }
+  .ar-ans  { font-size: 0.8rem; color: var(--muted); }
+  .ar-result { font-weight: 800; font-size: 0.8rem; }
+  .ar-result.win  { color: var(--green); }
+  .ar-result.lose { color: var(--muted); }
+
+  /* ── ACTION BAR ── */
+  .action-bar {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 14px;
+  }
+  .action-bar.three { grid-template-columns: 1fr 1fr 1fr; }
+
+  /* ── STATS ROW ── */
+  .stats-row { display: grid; grid-template-columns: repeat(3,1fr); gap: 10px; margin-bottom: 16px; }
+  .stat-cell {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 14px;
+    text-align: center;
+  }
+  .stat-val { font-size: 1.6rem; font-weight: 900; color: var(--gold); line-height: 1; }
+  .stat-lbl { font-size: 0.62rem; letter-spacing: 0.15em; color: var(--muted); text-transform: uppercase; margin-top: 4px; }
+
+  /* ── TOAST ── */
+  #toast {
+    position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
+    background: rgba(30,10,60,0.95); border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 14px; padding: 12px 24px;
+    font-size: 0.88rem; font-weight: 700; color: var(--text);
+    z-index: 9998; pointer-events: none;
+    transition: opacity 0.3s, transform 0.3s;
+    opacity: 0; transform: translateX(-50%) translateY(10px);
+    white-space: nowrap; max-width: 90vw;
+  }
+  #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  /* ── DIVIDER ── */
+  .divider { height: 1px; background: var(--border); margin: 16px 0; }
+
+  /* ── TOGGLE ANSWER STATE ── */
+  .toggle-btn {
+    display: flex; align-items: center; gap: 8px; justify-content: center;
+    position: relative;
+  }
+  .toggle-btn .dot {
+    width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0;
+  }
+  .dot-open  { background: var(--green); box-shadow: 0 0 8px rgba(34,197,94,0.7); }
+  .dot-closed{ background: var(--red);   box-shadow: 0 0 8px rgba(239,68,68,0.7); }
+
+  /* ── SCROLLBAR ── */
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: rgba(155,93,229,0.3); border-radius: 3px; }
+</style>
+</head>
+<body>
+
+<!-- AUTH -->
+<div id="auth-gate">
+  <div class="auth-card">
+    <span class="auth-icon">🎮</span>
+    <div class="auth-title">Admin Control</div>
+    <div class="auth-sub">Nhập mã PIN để vào trang quản trị</div>
+    <input type="password" id="auth-input" class="auth-input" placeholder="••••" maxlength="6" autocomplete="off">
+    <button class="btn btn-gold btn-full" id="btn-auth">Xác nhận</button>
+    <div class="auth-error" id="auth-error"></div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div id="toast"></div>
+
+<!-- ADMIN PANEL -->
+<div id="admin-panel">
+
+  <!-- TOP BAR -->
+  <div class="top-bar">
+    <div class="top-bar-left">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:4px;">
+        <h1>❤️ Ăn Ý · Admin</h1>
+        <span class="status-pill status-waiting" id="status-badge">⏳ CHỜ</span>
+      </div>
+      <p>Mã phòng: <strong id="room-code-top" style="color:var(--gold)">—</strong> &nbsp;·&nbsp; Người chơi: <strong id="player-count-top" style="color:var(--cyan)">0</strong></p>
+    </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;">
+      <button class="btn btn-ghost" id="btn-end-game">🏁 Kết thúc</button>
+      <button class="btn btn-red" id="btn-reset">🗑 Reset</button>
+    </div>
+  </div>
+
+  <!-- PHASE 1: SETUP -->
+  <div id="phase-setup">
+    <!-- Stats row -->
+    <div class="stats-row">
+      <div class="stat-cell"><div class="stat-val" id="stat-players">0</div><div class="stat-lbl">Người chơi</div></div>
+      <div class="stat-cell"><div class="stat-val" id="stat-teams">0</div><div class="stat-lbl">Đội</div></div>
+      <div class="stat-cell"><div class="stat-val" id="stat-round">0</div><div class="stat-lbl">Vòng hiện tại</div></div>
+    </div>
+
+    <div class="panel-grid">
+      <!-- Create Room -->
+      <div class="section">
+        <div class="section-label">Tạo phòng mới</div>
+        <div class="card" style="display:flex;flex-direction:column;gap:12px;">
+          <input class="inp" id="inp-host-name" placeholder="Tên host (tùy chọn)..." maxlength="20">
+          <button class="btn btn-gold btn-full" id="btn-create">✨ Tạo phòng</button>
+          <div id="room-code-display" style="display:none;">
+            <div class="room-code-badge">
+              <div class="rc-code" id="rc-code-val">—</div>
+              <button class="rc-copy" id="btn-copy-code">📋 Copy</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Or join existing -->
+      <div class="section">
+        <div class="section-label">Hoặc quản lý phòng cũ</div>
+        <div class="card" style="display:flex;flex-direction:column;gap:12px;">
+          <input class="inp room-code-inp" id="inp-existing-code" placeholder="XXXXX" maxlength="5">
+          <button class="btn btn-ghost btn-full" id="btn-load-room">🔗 Tải phòng</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Players -->
+    <div class="section">
+      <div class="section-label">Người chơi đang chờ</div>
+      <div class="card">
+        <div class="player-grid" id="player-grid">
+          <span style="color:var(--muted);font-size:0.85rem;">Chưa có ai vào phòng...</span>
+        </div>
+        <div class="player-count" id="player-count-lbl">0 người chơi</div>
+        <div class="divider"></div>
+        <div style="display:flex;gap:10px;">
+          <button class="btn btn-purple" style="flex:1;" id="btn-make-teams">💞 Ghép cặp ngẫu nhiên</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Teams -->
+    <div class="section" id="teams-section" style="display:none;">
+      <div class="section-label">Danh sách đội</div>
+      <div class="card">
+        <div id="team-list-display"></div>
+        <div class="divider"></div>
+        <button class="btn btn-cyan btn-full" id="btn-start-game">🎮 BẮT ĐẦU GAME</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- PHASE 2: GAME RUNNING -->
+  <div id="phase-game" style="display:none;">
+
+    <!-- Current Question -->
+    <div class="section">
+      <div class="section-label">Câu hỏi hiện tại</div>
+      <div class="current-q-card" id="current-q-card">
+        <div class="q-num" id="q-num">Câu 1 / 20</div>
+        <div id="q-special-flag" style="display:none;"><div class="q-special-flag">🌟 Câu ăn điểm đặc biệt · +3 điểm</div></div>
+        <div class="q-display" id="q-display">—</div>
+        <div class="q-opts">
+          <div class="q-opt"><span class="opt-tag">Lựa chọn A</span><span id="q-opt-a">—</span></div>
+          <div class="q-opt"><span class="opt-tag">Lựa chọn B</span><span id="q-opt-b">—</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Controls -->
+    <div class="section">
+      <div class="section-label">Điều khiển</div>
+      <div class="card">
+        <div class="action-bar three">
+          <button class="btn btn-cyan" id="btn-reveal">🔓 Reveal đáp án</button>
+          <button class="btn btn-gold" id="btn-next">➡️ Câu tiếp</button>
+          <button class="btn btn-ghost" id="btn-toggle-accept">
+            <span class="dot dot-open"></span> Nhận đáp án
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Answer board -->
+    <div class="section" id="answer-board-section">
+      <div class="section-label">Đáp án các đội <span id="answer-count-badge" style="color:var(--cyan)"></span></div>
+      <div class="card">
+        <div class="answer-board" id="answer-board">
+          <div style="color:var(--muted);font-size:0.85rem;text-align:center;padding:8px;">Chờ người chơi trả lời...</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Scoreboard -->
+    <div class="section">
+      <div class="section-label">Bảng điểm</div>
+      <div class="card">
+        <div id="score-board"></div>
+      </div>
+    </div>
+
+  </div>
+
+</div><!-- /admin-panel -->
+
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/12.14.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/12.14.0/firebase-database-compat.js"></script>
+<script src="firebase.js"></script>
+<script>
+const questions = [
+  { text:"Thức uống bạn chọn là:",            a:"Cà phê",                  b:"Trà",                        special:false },
+  { text:"Bạn thích phúc lợi:",                a:"Thêm ngày phép",           b:"Tiền thưởng nóng",           special:false },
+  { text:"Thể loại âm nhạc bạn chọn:",         a:"Ballad thất tình",         b:"Remix giật giật",            special:false },
+  { text:"Nếu phải chọn nuôi:",                a:"Chó",                      b:"Mèo",                        special:false },
+  { text:"Liên hoan cuối năm bạn chọn:",       a:"Hát",                      b:"Nhảy",                       special:false },
+  { text:"Sếp bảo tăng ca nhé em:",            a:"Tìm lý do từ chối",        b:"Chấp nhận số phận",          special:false },
+  { text:"Môi trường công sở:",                a:"Lương cao sếp toxic",      b:"Lương thấp đồng nghiệp vui", special:false },
+  { text:"Màu yêu thích:",                     a:"Đỏ",                       b:"Xanh Lá",                    special:false },
+  { text:"Bộ môn thể thao nếu phải chọn:",     a:"Chạy bộ",                  b:"Bơi lội",                    special:false },
+  { text:"Nếu phải chọn đi du lịch:",          a:"Lên núi",                  b:"Xuống biển",                 special:false },
+  { text:"Nếu lựa chọn:",                      a:"Làm sếp công ty bé",       b:"Nhân viên tập đoàn lớn",     special:false },
+  { text:"Đồ uống unhealthy bạn chọn:",        a:"Bia",                      b:"Rượu",                       special:false },
+  { text:"Đến giờ nạp calo rồi, bạn chọn:",   a:"Ăn lẩu",                   b:"Ăn nướng",                   special:false },
+  { text:"🌟 CÂU ĂN ĐIỂM: Tỉnh nào bắt đầu bằng chữ H?", a:"Hà Nội",      b:"Hải Phòng",                  special:true  },
+  { text:"Thời tiết ưa thích:",                a:"Mùa Xuân mát mẻ",          b:"Mùa Thu se lạnh",            special:false },
+  { text:"Chuông báo thức kêu:",               a:"Dậy ngay",                 b:"Bấm 5 phút nữa",             special:false },
+  { text:"Kế hoạch cuối tuần:",                a:"Ngủ nướng",                b:"Ra ngoài vi vu",             special:false },
+  { text:"Khẩu vị:",                           a:"Cay",                      b:"Chua Ngọt",                  special:false },
+  { text:"Dân chơi hệ:",                       a:"Táo IOS",                  b:"Android",                    special:false },
+  { text:"Nếu lựa chọn, bạn muốn trở thành:", a:"Steve Jobs",               b:"Elon Musk",                  special:false }
+];
+
+// ── STATE ──
+let roomCode = '';
+let currentRound = 0;
+let acceptingAnswers = true;
+let gamePhase = 'setup'; // setup | playing | ended
+
+// ── TOAST ──
+let toastTimer;
+function toast(msg, dur=2500) {
+  const el = document.getElementById('toast');
+  el.innerHTML = msg; el.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.classList.remove('show'), dur);
+}
+
+// ── AUTH ──
+document.getElementById('btn-auth').addEventListener('click', tryLogin);
+document.getElementById('auth-input').addEventListener('keypress', e => { if(e.key==='Enter') tryLogin(); });
+function tryLogin() {
+  const pin = document.getElementById('auth-input').value;
+  if (pin === '2106') {
+    document.getElementById('auth-gate').style.display = 'none';
+    document.getElementById('admin-panel').style.display = 'block';
+  } else {
+    document.getElementById('auth-error').textContent = 'Sai mã PIN rồi!';
+    document.getElementById('auth-input').value = '';
+    document.getElementById('auth-input').focus();
+  }
+}
+
+// ── CREATE ROOM ──
+document.getElementById('btn-create').addEventListener('click', createRoom);
+function createRoom() {
+  const hostName = document.getElementById('inp-host-name').value.trim() || 'Host';
+  const code = Math.random().toString(36).substring(2,7).toUpperCase();
+  db.ref('rooms/' + code).set({
+    host: hostName,
+    status: 'waiting',
+    currentRound: -1
+  }).then(() => {
+    loadRoom(code);
+    toast('✅ Đã tạo phòng: ' + code);
+  });
+}
+
+// ── LOAD EXISTING ROOM ──
+document.getElementById('btn-load-room').addEventListener('click', () => {
+  const code = document.getElementById('inp-existing-code').value.trim().toUpperCase();
+  if (!code) { toast('⚠️ Nhập mã phòng'); return; }
+  db.ref('rooms/' + code).once('value').then(snap => {
+    if (!snap.exists()) { toast('❌ Phòng không tồn tại'); return; }
+    loadRoom(code);
+    toast('🔗 Đã tải phòng: ' + code);
+  });
+});
+
+// ── LOAD ROOM ──
+function loadRoom(code) {
+  roomCode = code;
+  document.getElementById('room-code-top').textContent = code;
+  document.getElementById('rc-code-val').textContent = code;
+  document.getElementById('room-code-display').style.display = 'block';
+  listenPlayers();
+  listenTeams();
+  listenGame();
+}
+
+// ── COPY CODE ──
+document.getElementById('btn-copy-code').addEventListener('click', () => {
+  navigator.clipboard.writeText(roomCode).then(() => toast('📋 Đã copy mã phòng!'));
+});
+
+// ── LISTEN PLAYERS ──
+function listenPlayers() {
+  db.ref('rooms/' + roomCode + '/players').on('value', snap => {
+    const players = snap.val() || {};
+    const list = Object.values(players);
+    const grid = document.getElementById('player-grid');
+    if (list.length === 0) {
+      grid.innerHTML = '<span style="color:var(--muted);font-size:0.85rem;">Chưa có ai vào phòng...</span>';
+    } else {
+      grid.innerHTML = list.map(p => `<div class="player-chip">👤 ${p.name}</div>`).join('');
+    }
+    document.getElementById('player-count-lbl').textContent = list.length + ' người chơi';
+    document.getElementById('player-count-top').textContent = list.length;
+    document.getElementById('stat-players').textContent = list.length;
+  });
+}
+
+// ── LISTEN TEAMS ──
+function listenTeams() {
+  db.ref('rooms/' + roomCode + '/teams').on('value', snap => {
+    const teams = snap.val() || {};
+    const list = Object.values(teams);
+    document.getElementById('stat-teams').textContent = list.length;
+    if (list.length === 0) {
+      document.getElementById('teams-section').style.display = 'none';
+      return;
+    }
+    document.getElementById('teams-section').style.display = 'block';
+    const container = document.getElementById('team-list-display');
+    container.innerHTML = list.map((t,i) => `
+      <div class="team-row">
+        <div class="team-players">💞 Đội ${i+1}: <strong>${t.player1}</strong> & <strong>${t.player2||'Đang chờ'}</strong></div>
+        <div class="team-score-badge">${t.score||0} điểm</div>
+      </div>`).join('');
+    renderScoreBoard(list);
+  });
+}
+
+// ── LISTEN GAME ──
+function listenGame() {
+  db.ref('rooms/' + roomCode + '/game').on('value', snap => {
+    const g = snap.val();
+    if (!g) return;
+    document.getElementById('stat-round').textContent = (g.round||0)+1;
+    updateStatusBadge(g.status||'waiting');
+    if (g.status === 'playing') {
+      currentRound = g.round || 0;
+    }
+    listenAnswers();
+  });
+}
+
+// ── LISTEN ANSWERS (realtime) ──
+function listenAnswers() {
+  db.ref('rooms/' + roomCode + '/answers').on('value', snap => {
+    const answers = snap.val() || {};
+    const count = Object.keys(answers).length;
+    document.getElementById('answer-count-badge').textContent = count > 0 ? `(${count} đã trả lời)` : '';
+    // Show in answer board (hide actual answers until reveal)
+    db.ref('rooms/' + roomCode + '/teams').once('value').then(ts => {
+      const teams = ts.val() || {};
+      const board = document.getElementById('answer-board');
+      const rows = Object.entries(teams).map(([key, team], i) => {
+        const a1 = answers[team.player1] ? '✅' : '⏳';
+        const a2 = answers[team.player2] ? '✅' : '⏳';
+        return `<div class="answer-row" id="ar-${key}">
+          <div class="ar-team">💞 Đội ${i+1}: ${team.player1} & ${team.player2||'?'}</div>
+          <div class="ar-ans">${team.player1}: ${a1} &nbsp; ${team.player2||'?'}: ${a2}</div>
+          <div class="ar-result" id="ar-res-${key}">—</div>
+        </div>`;
+      });
+      board.innerHTML = rows.join('') || '<div style="color:var(--muted);font-size:0.85rem;text-align:center;padding:8px;">Chờ người chơi trả lời...</div>';
+    });
+  });
+}
+
+// ── STATUS BADGE ──
+function updateStatusBadge(status) {
+  const badge = document.getElementById('status-badge');
+  const map = {
+    waiting: ['⏳ CHỜ',    'status-waiting'],
+    playing: ['🔥 ĐANG CHƠI','status-playing'],
+    ended:   ['🏁 KẾT THÚC','status-ended']
+  };
+  const [text, cls] = map[status] || map.waiting;
+  badge.textContent = text;
+  badge.className = 'status-pill ' + cls;
+}
+
+// ── MAKE TEAMS ──
+document.getElementById('btn-make-teams').addEventListener('click', () => {
+  if (!roomCode) { toast('⚠️ Chưa có phòng!'); return; }
+  db.ref('rooms/' + roomCode + '/players').once('value').then(snap => {
+    const players = snap.val();
+    if (!players) { toast('⚠️ Chưa có người chơi!'); return; }
+    const list = Object.values(players);
+    if (list.length < 2) { toast('⚠️ Cần ít nhất 2 người!'); return; }
+    list.sort(() => Math.random() - 0.5);
+    const teams = {};
+    for (let i = 0; i < list.length; i += 2) {
+      const n = Math.floor(i/2) + 1;
+      teams['team'+n] = {
+        player1: list[i].name,
+        player2: list[i+1] ? list[i+1].name : '',
+        score: 0
+      };
+    }
+    db.ref('rooms/' + roomCode + '/teams').set(teams);
+    toast('💞 Đã ghép ' + Object.keys(teams).length + ' đội!');
+  });
+});
+
+// ── START GAME ──
+document.getElementById('btn-start-game').addEventListener('click', () => {
+  if (!roomCode) { toast('⚠️ Chưa có phòng!'); return; }
+  currentRound = 0;
+  sendQuestion(0);
+  document.getElementById('phase-setup').style.display = 'none';
+  document.getElementById('phase-game').style.display = 'block';
+  gamePhase = 'playing';
+  toast('🎮 Game bắt đầu!');
+});
+
+// ── SEND QUESTION ──
+function sendQuestion(idx) {
+  const q = questions[idx];
+  db.ref('rooms/' + roomCode + '/game').set({
+    status: 'playing',
+    round: idx,
+    question: q.text,
+    optionA: q.a,
+    optionB: q.b,
+    special: q.special,
+    revealed: false
+  });
+  db.ref('rooms/' + roomCode + '/answers').remove();
+  // Update admin UI
+  document.getElementById('q-num').textContent = `Câu ${idx+1} / ${questions.length}`;
+  document.getElementById('q-display').textContent = q.text;
+  document.getElementById('q-opt-a').textContent = q.a;
+  document.getElementById('q-opt-b').textContent = q.b;
+  document.getElementById('q-special-flag').style.display = q.special ? 'block' : 'none';
+  document.getElementById('stat-round').textContent = idx+1;
+  // Reset reveal display
+  document.getElementById('answer-board').innerHTML = '<div style="color:var(--muted);font-size:0.85rem;text-align:center;padding:8px;">Chờ người chơi trả lời...</div>';
+  acceptingAnswers = true;
+  updateToggleBtn();
+}
+
+// ── REVEAL ──
+document.getElementById('btn-reveal').addEventListener('click', revealAnswers);
+function revealAnswers() {
+  if (!roomCode) return;
+  const q = questions[currentRound];
+  db.ref('rooms/' + roomCode + '/answers').once('value').then(aSnap => {
+    const answers = aSnap.val() || {};
+    db.ref('rooms/' + roomCode + '/teams').once('value').then(tSnap => {
+      const teams = tSnap.val() || {};
+      const board = document.getElementById('answer-board');
+      const rows = [];
+      const scoreUpdates = {};
+      Object.entries(teams).forEach(([key, team], i) => {
+        const a1 = answers[team.player1] ? answers[team.player1].answer : null;
+        const a2 = answers[team.player2] ? answers[team.player2].answer : null;
+        const match = a1 && a2 && a1 === a2;
+        const pts = match ? (q.special ? 3 : 1) : 0;
+        if (match) scoreUpdates[key] = (team.score||0) + pts;
+        rows.push(`
+          <div class="answer-row ${match?'match':'nomatch'}">
+            <div class="ar-team">💞 Đội ${i+1}: ${team.player1} & ${team.player2||'?'}</div>
+            <div class="ar-ans">${team.player1}: <strong>${a1||'—'}</strong> &nbsp; ${team.player2||'?'}: <strong>${a2||'—'}</strong></div>
+            <div class="ar-result ${match?'win':'lose'}">${match ? (q.special?'🌟 +3':'💞 +1') : '😅 0'}</div>
+          </div>`);
+      });
+      board.innerHTML = rows.join('') || '<div style="color:var(--muted);">Không có đáp án</div>';
+      Object.entries(scoreUpdates).forEach(([key, score]) => {
+        db.ref('rooms/' + roomCode + '/teams/' + key + '/score').set(score);
+      });
+      db.ref('rooms/' + roomCode + '/game/revealed').set(true);
+      toast('🔓 Đã reveal! ' + Object.keys(scoreUpdates).length + ' đội ăn điểm');
+    });
+  });
+}
+
+// ── NEXT QUESTION ──
+document.getElementById('btn-next').addEventListener('click', () => {
+  currentRound++;
+  if (currentRound >= questions.length) {
+    endGame(); return;
+  }
+  sendQuestion(currentRound);
+  toast(`➡️ Chuyển câu ${currentRound+1}`);
+});
+
+// ── TOGGLE ACCEPT ANSWERS ──
+document.getElementById('btn-toggle-accept').addEventListener('click', () => {
+  acceptingAnswers = !acceptingAnswers;
+  // Could extend to actually block answers via Firebase flag
+  updateToggleBtn();
+  toast(acceptingAnswers ? '✅ Đang nhận đáp án' : '🚫 Đã tắt nhận đáp án');
+});
+function updateToggleBtn() {
+  const btn = document.getElementById('btn-toggle-accept');
+  const dot = btn.querySelector('.dot');
+  if (acceptingAnswers) {
+    dot.className = 'dot dot-open';
+    btn.childNodes[1].textContent = ' Nhận đáp án';
+  } else {
+    dot.className = 'dot dot-closed';
+    btn.childNodes[1].textContent = ' Đóng đáp án';
+  }
+}
+
+// ── END GAME ──
+function endGame() {
+  db.ref('rooms/' + roomCode + '/game/status').set('ended');
+  gamePhase = 'ended';
+  updateStatusBadge('ended');
+  toast('🏁 Game kết thúc!', 4000);
+}
+document.getElementById('btn-end-game').addEventListener('click', () => {
+  if (!confirm('Kết thúc game? Người chơi sẽ thấy màn hình kết quả.')) return;
+  endGame();
+});
+
+// ── RESET ──
+document.getElementById('btn-reset').addEventListener('click', () => {
+  if (!roomCode) { toast('⚠️ Chưa có phòng'); return; }
+  if (!confirm('Xóa tất cả dữ liệu phòng và bắt đầu lại?')) return;
+  db.ref('rooms/' + roomCode).set({
+    host: 'Host', status: 'waiting', currentRound: -1
+  }).then(() => {
+    document.getElementById('phase-setup').style.display = 'block';
+    document.getElementById('phase-game').style.display = 'none';
+    gamePhase = 'setup';
+    currentRound = 0;
+    document.getElementById('team-list-display').innerHTML = '';
+    document.getElementById('teams-section').style.display = 'none';
+    updateStatusBadge('waiting');
+    toast('🗑 Đã reset phòng!');
+  });
+});
+
+// ── SCORE BOARD ──
+function renderScoreBoard(teams) {
+  const sorted = [...teams].sort((a,b)=>(b.score||0)-(a.score||0));
+  const medals = ['🥇','🥈','🥉'];
+  document.getElementById('score-board').innerHTML = sorted.map((t,i)=>`
+    <div class="team-row">
+      <div>${medals[i]||'#'+(i+1)} <span class="team-players" style="display:inline;">${t.player1} & ${t.player2||'?'}</span></div>
+      <div class="team-score-badge">${t.score||0} điểm</div>
+    </div>`).join('') || '<div style="color:var(--muted);font-size:0.85rem;text-align:center;padding:8px;">Chưa có dữ liệu</div>';
+}
+</script>
+</body>
+</html>
