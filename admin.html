@@ -396,26 +396,29 @@
 <script src="firebase.js"></script>
 <script>
 const questions = [
-  { text:"Thức uống bạn chọn là:",            a:"Cà phê",                  b:"Trà",                        special:false },
-  { text:"Bạn thích phúc lợi:",                a:"Thêm ngày phép",           b:"Tiền thưởng nóng",           special:false },
-  { text:"Thể loại âm nhạc bạn chọn:",         a:"Ballad thất tình",         b:"Remix giật giật",            special:false },
-  { text:"Nếu phải chọn nuôi:",                a:"Chó",                      b:"Mèo",                        special:false },
-  { text:"Liên hoan cuối năm bạn chọn:",       a:"Hát",                      b:"Nhảy",                       special:false },
-  { text:"Sếp bảo tăng ca nhé em:",            a:"Tìm lý do từ chối",        b:"Chấp nhận số phận",          special:false },
-  { text:"Môi trường công sở:",                a:"Lương cao sếp toxic",      b:"Lương thấp đồng nghiệp vui", special:false },
-  { text:"Màu yêu thích:",                     a:"Đỏ",                       b:"Xanh Lá",                    special:false },
-  { text:"Bộ môn thể thao nếu phải chọn:",     a:"Chạy bộ",                  b:"Bơi lội",                    special:false },
-  { text:"Nếu phải chọn đi du lịch:",          a:"Lên núi",                  b:"Xuống biển",                 special:false },
-  { text:"Nếu lựa chọn:",                      a:"Làm sếp công ty bé",       b:"Nhân viên tập đoàn lớn",     special:false },
-  { text:"Đồ uống unhealthy bạn chọn:",        a:"Bia",                      b:"Rượu",                       special:false },
-  { text:"Đến giờ nạp calo rồi, bạn chọn:",   a:"Ăn lẩu",                   b:"Ăn nướng",                   special:false },
-  { text:"🌟 CÂU ĂN Ý: Tỉnh nào bắt đầu bằng chữ H?", type:"text", special:true },
-  { text:"Thời tiết ưa thích:",                a:"Mùa Xuân mát mẻ",          b:"Mùa Thu se lạnh",            special:false },
-  { text:"Chuông báo thức kêu:",               a:"Dậy ngay",                 b:"Bấm 5 phút nữa",             special:false },
-  { text:"Kế hoạch cuối tuần:",                a:"Ngủ nướng",                b:"Ra ngoài vi vu",             special:false },
-  { text:"Khẩu vị:",                           a:"Cay",                      b:"Chua Ngọt",                  special:false },
-  { text:"Dân chơi hệ:",                       a:"Táo IOS",                  b:"Android",                    special:false },
-  { text:"Nếu lựa chọn, bạn muốn trở thành:", a:"Steve Jobs",               b:"Elon Musk",                  special:false }
+  // ── LEVEL 1: Thấu Hiểu Nông (A/B) ──
+  { level:1, text:"Thức uống bạn chọn là:", a:"Cà phê", b:"Trà", special:false },
+  { level:1, text:"Thể loại âm nhạc bạn chọn:", a:"Ballad thất tình", b:"Remix giật giật", special:false },
+  { level:1, text:"Nếu phải chọn nuôi, bạn chọn:", a:"Chó", b:"Mèo", special:false },
+  { level:1, text:"Liên hoan cuối năm bạn chọn:", a:"Hát", b:"Nhảy", special:false },
+  { level:1, text:"Bộ môn thể thao nếu phải chọn:", a:"Chạy bộ", b:"Bơi lội", special:false },
+  { level:1, text:"Nếu phải chọn đi du lịch:", a:"Lên núi", b:"Xuống biển", special:false },
+  { level:1, text:"Nếu lựa chọn đồ uống unhealthy:", a:"Bia", b:"Rượu", special:false },
+  { level:1, text:"Đến giờ nạp calo rồi, bạn chọn:", a:"Ăn lẩu", b:"Ăn nướng", special:false },
+  { level:1, text:"Chuông báo thức kêu:", a:"Dậy ngay", b:"5 phút nữa", special:false },
+  // ── LEVEL 2: Thấu Hiểu Trung (Ai là ai?) ──
+  { level:2, text:"Ai là người nóng tính hơn?", type:"who_is" },
+  { level:2, text:"Ai là người xinh gái hơn?", type:"who_is" },
+  { level:2, text:"Ai là người nói nhiều hơn?", type:"who_is" },
+  { level:2, text:"Ai là người hay quên hơn?", type:"who_is" },
+  { level:2, text:"Ai là người có tháng sinh nhỏ hơn?", type:"who_is" },
+  { level:2, text:"Ai là người hay quan tâm người khác hơn?", type:"who_is" },
+  // ── LEVEL 3: Thấu Hiểu Sâu (Ăn Điểm Cao) ──
+  { level:3, text:"Tỉnh nào bắt đầu bằng chữ 'T'?", type:"text", special:true },
+  { level:3, text:"Món ăn nào dễ thấy trong ngày Tết?", type:"text", special:true },
+  { level:3, text:"Kể tên một loài động vật sống dưới nước?", type:"text", special:true },
+  { level:3, text:"Từ số 1-4, bạn đang nghĩ đến số?", type:"text", special:true },
+  { level:3, text:"Một quốc gia đến từ châu Á?", type:"text", special:true }
 ];
 // ── STATE ──
 let roomCode = '';
@@ -512,7 +515,7 @@ function listenTeams() {
     const container = document.getElementById('team-list-display');
     container.innerHTML = list.map((t,i) => `
       <div class="team-row">
-        <div class="team-players">💞 Đội ${i+1}: <strong>${t.player1}</strong> & <strong>${t.player2||'Đang chờ'}</strong></div>
+        <div class="team-players">💞 ${t.teamName ? '<strong>'+t.teamName+'</strong> · ' : 'Đội '+(i+1)+': '}<strong>${t.player1}</strong> & <strong>${t.player2||'Đang chờ'}</strong></div>
         <div class="team-score-badge">${t.score||0} điểm</div>
       </div>`).join('');
     renderScoreBoard(list);
@@ -544,8 +547,9 @@ function listenAnswers() {
       const rows = Object.entries(teams).map(([key, team], i) => {
         const a1 = answers[team.player1] ? '✅' : '⏳';
         const a2 = answers[team.player2] ? '✅' : '⏳';
+        const label = team.teamName || `Đội ${i+1}: ${team.player1} & ${team.player2||'?'}`;
         return `<div class="answer-row" id="ar-${key}">
-          <div class="ar-team">💞 Đội ${i+1}: ${team.player1} & ${team.player2||'?'}</div>
+          <div class="ar-team">💞 ${label}</div>
           <div class="ar-ans">${team.player1}: ${a1} &nbsp; ${team.player2||'?'}: ${a2}</div>
           <div class="ar-result" id="ar-res-${key}">—</div>
         </div>`;
@@ -605,6 +609,7 @@ function sendQuestion(idx) {
   const payload = {
     status: 'playing',
     round: idx,
+    level: q.level || 1,
     question: q.text,
     type: qType,
     special: !!q.special,
@@ -617,18 +622,26 @@ function sendQuestion(idx) {
   db.ref('rooms/' + roomCode + '/game').set(payload);
   db.ref('rooms/' + roomCode + '/answers').remove();
   // Update admin UI
-  document.getElementById('q-num').textContent = `Câu ${idx+1} / ${questions.length}`;
+  document.getElementById('q-num').textContent = `Level ${q.level||1} · Câu ${idx+1} / ${questions.length}`;
   document.getElementById('q-display').textContent = q.text;
   if (qType === 'choice') {
     document.getElementById('q-opts').style.display = 'grid';
     document.getElementById('q-freetext-note').style.display = 'none';
     document.getElementById('q-opt-a').textContent = q.a;
     document.getElementById('q-opt-b').textContent = q.b;
+  } else if (qType === 'who_is') {
+    document.getElementById('q-opts').style.display = 'none';
+    document.getElementById('q-freetext-note').style.display = 'block';
+    document.getElementById('q-freetext-note').textContent = '🕵️ Người chơi gõ tên (bản thân hoặc đồng đội) — trùng tên là ăn ý!';
   } else {
     document.getElementById('q-opts').style.display = 'none';
     document.getElementById('q-freetext-note').style.display = 'block';
+    document.getElementById('q-freetext-note').textContent = '✍️ Người chơi tự nhập đáp án — không có lựa chọn mẫu, chỉ cần đồng đội nghĩ giống nhau!';
   }
-  if (qType === 'text') {
+  if (qType === 'who_is') {
+    document.getElementById('q-special-flag').style.display = 'block';
+    document.getElementById('q-special-flag-text').textContent = '🕵️ Ai là ai? · Trùng tên +2 điểm';
+  } else if (qType === 'text') {
     document.getElementById('q-special-flag').style.display = 'block';
     document.getElementById('q-special-flag-text').textContent = '✍️ Câu tự do · Trùng ý +1 — Trùng & độc nhất +3';
   } else if (q.special) {
@@ -656,8 +669,25 @@ function revealAnswers() {
       const board = document.getElementById('answer-board');
       const rows = [];
       const scoreUpdates = {};
+      const teamLabel = (team, i) => team.teamName ? team.teamName : `Đội ${i+1}: ${team.player1} & ${team.player2||'?'}`;
 
-      if (qType === 'text') {
+      if (qType === 'who_is') {
+        Object.entries(teams).forEach(([key, team], i) => {
+          const a1 = answers[team.player1] ? answers[team.player1].answer : '';
+          const a2 = answers[team.player2] ? answers[team.player2].answer : '';
+          const n1 = normalizeAnswer(a1);
+          const n2 = normalizeAnswer(a2);
+          const match = !!(n1 && n2 && n1 === n2);
+          const pts = match ? 2 : 0;
+          if (match) scoreUpdates[key] = (team.score||0) + pts;
+          rows.push(`
+            <div class="answer-row ${match?'match':'nomatch'}">
+              <div class="ar-team">💞 ${teamLabel(team,i)}</div>
+              <div class="ar-ans">${team.player1}: <strong>${a1||'—'}</strong> &nbsp; ${team.player2||'?'}: <strong>${a2||'—'}</strong></div>
+              <div class="ar-result ${match?'win':'lose'}">${match ? '🕵️ +2' : '😅 0'}</div>
+            </div>`);
+        });
+      } else if (qType === 'text') {
         // Chuẩn hoá đáp án (bỏ dấu, bỏ khoảng trắng, không phân biệt hoa/thường)
         // rồi đếm xem có bao nhiêu đội cùng "ăn ý" với 1 đáp án giống nhau
         const teamInfo = {};
@@ -682,7 +712,7 @@ function revealAnswers() {
           }
           rows.push(`
             <div class="answer-row ${info.match?'match':'nomatch'}">
-              <div class="ar-team">💞 Đội ${i+1}: ${team.player1} & ${team.player2||'?'}</div>
+              <div class="ar-team">💞 ${teamLabel(team,i)}</div>
               <div class="ar-ans">${team.player1}: <strong>${info.a1||'—'}</strong> &nbsp; ${team.player2||'?'}: <strong>${info.a2||'—'}</strong></div>
               <div class="ar-result ${info.match?'win':'lose'}">${label}</div>
             </div>`);
@@ -696,7 +726,7 @@ function revealAnswers() {
           if (match) scoreUpdates[key] = (team.score||0) + pts;
           rows.push(`
             <div class="answer-row ${match?'match':'nomatch'}">
-              <div class="ar-team">💞 Đội ${i+1}: ${team.player1} & ${team.player2||'?'}</div>
+              <div class="ar-team">💞 ${teamLabel(team,i)}</div>
               <div class="ar-ans">${team.player1}: <strong>${a1||'—'}</strong> &nbsp; ${team.player2||'?'}: <strong>${a2||'—'}</strong></div>
               <div class="ar-result ${match?'win':'lose'}">${match ? (q.special?'🌟 +3':'💞 +1') : '😅 0'}</div>
             </div>`);
@@ -773,7 +803,7 @@ function renderScoreBoard(teams) {
   const medals = ['🥇','🥈','🥉'];
   document.getElementById('score-board').innerHTML = sorted.map((t,i)=>`
     <div class="team-row">
-      <div>${medals[i]||'#'+(i+1)} <span class="team-players" style="display:inline;">${t.player1} & ${t.player2||'?'}</span></div>
+      <div>${medals[i]||'#'+(i+1)} <span class="team-players" style="display:inline;">${t.teamName ? t.teamName+' · ' : ''}${t.player1} & ${t.player2||'?'}</span></div>
       <div class="team-score-badge">${t.score||0} điểm</div>
     </div>`).join('') || '<div style="color:var(--muted);font-size:0.85rem;text-align:center;padding:8px;">Chưa có dữ liệu</div>';
 }
