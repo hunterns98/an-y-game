@@ -32,7 +32,6 @@
       radial-gradient(ellipse 60% 40% at 80% 100%, rgba(255,45,120,0.2) 0%, transparent 60%);
     min-height: 100vh;
   }
-
   /* ── SCROLLING STARS BG ── */
   .stars {
     position: fixed; inset: 0; pointer-events: none; z-index: 0; overflow: hidden;
@@ -46,7 +45,6 @@
     0%,100% { opacity:0; transform:scale(0.5); }
     50% { opacity: var(--op, 0.6); transform:scale(1); }
   }
-
   /* ── LAYOUT ── */
   #app {
     position: relative; z-index: 1;
@@ -54,7 +52,6 @@
     display: flex; flex-direction: column; align-items: center;
     padding: 0 16px 40px;
   }
-
   /* ── HEADER ── */
   .game-header {
     width: 100%; max-width: 480px;
@@ -73,7 +70,6 @@
     font-size: 0.75rem; letter-spacing: 0.25em; color: var(--muted);
     text-transform: uppercase; margin-top: 6px;
   }
-
   /* ── CARD BASE ── */
   .card {
     background: var(--card);
@@ -84,7 +80,6 @@
     padding: 28px 24px;
     width: 100%; max-width: 480px;
   }
-
   /* ── SCREEN MANAGEMENT ── */
   .screen { display: none; flex-direction: column; align-items: center; width: 100%; max-width: 480px; gap: 16px; }
   .screen.active { display: flex; animation: screenIn 0.4s cubic-bezier(0.34,1.56,0.64,1); }
@@ -92,7 +87,6 @@
     from { opacity:0; transform:translateY(24px) scale(0.97); }
     to   { opacity:1; transform:translateY(0) scale(1); }
   }
-
   /* ── INPUTS ── */
   .field-label {
     font-size: 0.7rem; font-weight: 700; letter-spacing: 0.18em;
@@ -112,13 +106,11 @@
     box-shadow: 0 0 0 3px rgba(0,245,212,0.15);
   }
   .field-input::placeholder { color: var(--muted); font-weight: 400; }
-
   /* ── ROOM CODE INPUT ── */
   .room-input {
     letter-spacing: 0.3em; text-align: center; font-size: 1.5rem;
     text-transform: uppercase;
   }
-
   /* ── BUTTONS ── */
   .btn {
     width: 100%; padding: 18px;
@@ -129,28 +121,24 @@
     -webkit-tap-highlight-color: transparent;
   }
   .btn:active { transform: scale(0.96); }
-
   .btn-primary {
     background: linear-gradient(135deg, var(--pink), #d4006d);
     color: white;
     box-shadow: 0 8px 24px rgba(255,45,120,0.4);
   }
   .btn-primary:hover { filter: brightness(1.1); box-shadow: 0 10px 30px rgba(255,45,120,0.55); }
-
   .btn-ghost {
     background: var(--card);
     border: 1.5px solid var(--border);
     color: var(--text);
   }
   .btn-ghost:hover { border-color: var(--purple); }
-
   /* ── ANSWER BUTTONS ── */
   .answer-grid {
     display: grid; grid-template-columns: 1fr 1fr;
     gap: 12px; width: 100%;
   }
   .answer-grid.single-col { grid-template-columns: 1fr; }
-
   .btn-answer {
     padding: 22px 16px;
     border: 2px solid var(--border);
@@ -181,7 +169,6 @@
     box-shadow: 0 0 24px rgba(255,45,120,0.3);
   }
   .btn-answer:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
-
   /* ── QUESTION DISPLAY ── */
   .question-card {
     text-align: center; padding: 32px 24px;
@@ -220,7 +207,6 @@
     from { opacity:0; transform:scale(0.9) translateY(10px); }
     to   { opacity:1; transform:scale(1) translateY(0); }
   }
-
   /* ── WAITING STATE ── */
   .waiting-pulse {
     display: flex; flex-direction: column; align-items: center; gap: 16px;
@@ -236,7 +222,6 @@
     50%      { transform:scale(1.08); opacity:0.8; box-shadow:0 0 0 16px rgba(155,93,229,0); }
   }
   .waiting-text { color: var(--muted); font-size: 0.9rem; font-weight: 600; }
-
   /* ── STATUS CHOSEN ── */
   .status-chosen {
     text-align: center; padding: 24px;
@@ -250,7 +235,6 @@
     font-size: 1.3rem; font-weight: 900; color: var(--cyan);
   }
   .chosen-sub { font-size: 0.85rem; color: var(--muted); margin-top: 6px; }
-
   /* ── RESULT CARD ── */
   .result-card {
     text-align: center; padding: 28px 24px;
@@ -288,7 +272,6 @@
     font-size: 0.9rem; font-weight: 800; color: var(--gold);
   }
   .result-wait { font-size: 0.8rem; color: var(--muted); margin-top: 12px; }
-
   /* ── SCORE DISPLAY ── */
   .team-score-banner {
     width: 100%; max-width: 480px;
@@ -301,7 +284,6 @@
   .tsb-label { font-size: 0.65rem; letter-spacing: 0.2em; color: var(--muted); text-transform: uppercase; }
   .tsb-score { font-size: 1.6rem; font-weight: 900; color: var(--gold); }
   .tsb-team  { font-size: 0.85rem; font-weight: 700; color: var(--text); }
-
   /* ── FLOATING SCORE ── */
   .float-score {
     position: fixed; pointer-events: none; z-index: 9999;
@@ -313,7 +295,6 @@
     from { opacity:1; transform:translateY(0) scale(1); }
     to   { opacity:0; transform:translateY(-100px) scale(1.4); }
   }
-
   /* ── COUNTDOWN OVERLAY ── */
   #countdown-overlay {
     display: none; position: fixed; inset: 0; z-index: 8000;
@@ -333,7 +314,6 @@
     to   { transform: scale(1);   opacity:1; }
   }
   .countdown-label { font-size: 0.8rem; letter-spacing: 0.3em; color: var(--muted); margin-top: 12px; text-transform: uppercase; }
-
   /* ── WINNER SCREEN ── */
   #winner-screen {
     display: none; position: fixed; inset: 0; z-index: 9000;
@@ -360,10 +340,8 @@
   .ws-rank { width: 24px; font-size: 1.1rem; }
   .ws-team-name { flex: 1; text-align: left; padding: 0 10px; font-size: 0.85rem; font-weight: 700; }
   .ws-pts { font-weight: 900; color: var(--gold); }
-
   /* ── CONFETTI ── */
   /* (drawn via canvas) */
-
   /* ── TOAST ── */
   #toast-container {
     position: fixed; top: 16px; left: 50%; transform: translateX(-50%);
@@ -381,7 +359,6 @@
   .toast.out { animation: toastOut 0.3s ease forwards; }
   @keyframes toastIn  { from{opacity:0;transform:translateY(-16px)}to{opacity:1;transform:translateY(0)} }
   @keyframes toastOut { from{opacity:1}to{opacity:0;transform:translateY(-10px)} }
-
   /* ── PARTNER TAG ── */
   .partner-tag {
     display: flex; align-items: center; gap: 10px;
@@ -393,7 +370,6 @@
   .partner-info { text-align: left; }
   .partner-lbl { font-size: 0.62rem; letter-spacing: 0.15em; color: var(--muted); text-transform: uppercase; }
   .partner-name { font-size: 0.95rem; font-weight: 800; color: var(--purple); }
-
   /* ── ROOM JOIN SCREEN ── */
   .join-hero { padding: 10px 0 4px; text-align: center; }
   .join-heart { font-size: 3rem; animation: heartbeat 1.4s ease-in-out infinite; display: block; }
@@ -401,12 +377,10 @@
     0%,100%{transform:scale(1)} 14%{transform:scale(1.3)} 28%{transform:scale(1)} 42%{transform:scale(1.15)} 56%{transform:scale(1)}
   }
   .join-tagline { font-size: 0.75rem; letter-spacing: 0.18em; color: var(--muted); text-transform: uppercase; margin-top: 6px; }
-
   /* ── MISC ── */
   .divider { height: 1px; background: var(--border); margin: 4px 0; }
   .text-center { text-align: center; }
   .text-muted { color: var(--muted); font-size: 0.82rem; }
-
   /* ── TIMER ── */
   .timer-wrap { display: flex; align-items: center; justify-content: center; gap: 8px; }
   .timer-circle {
@@ -419,7 +393,6 @@
   }
   .timer-circle.urgent { border-color: var(--gold); color: var(--gold); animation: urgentPulse 0.5s ease-in-out infinite; }
   @keyframes urgentPulse { 50% { box-shadow: 0 0 20px rgba(255,214,10,0.6); } }
-
   /* RESPONSIVE */
   @media (max-width: 360px) {
     .logo-text { font-size: 2.2rem; }
@@ -429,19 +402,15 @@
 </style>
 </head>
 <body>
-
 <!-- Stars bg -->
 <div class="stars" id="stars"></div>
-
 <!-- Toast -->
 <div id="toast-container"></div>
-
 <!-- Countdown overlay -->
 <div id="countdown-overlay">
   <span class="countdown-num" id="count-num">3</span>
   <span class="countdown-label">Chuẩn bị!</span>
 </div>
-
 <!-- Winner Screen -->
 <div id="winner-screen">
   <canvas id="confetti-canvas"></canvas>
@@ -455,25 +424,21 @@
     <button class="btn btn-ghost" style="max-width:280px;" id="btn-ws-back">📊 Xem lại</button>
   </div>
 </div>
-
 <!-- MAIN APP -->
 <div id="app">
-
   <!-- HEADER -->
   <div class="game-header">
     <div class="logo-text">❤️ Ăn Ý</div>
     <div class="logo-sub">Bạn hiểu đồng đội đến đâu?</div>
   </div>
-
   <!-- ── SCREEN: JOIN ── -->
   <div class="screen active" id="screen-join">
     <div class="card">
       <div class="join-hero">
-        <span class="join-heart">💑</span>
+        <span class="join-heart">👫</span>
         <div class="join-tagline">Nhập thông tin để vào phòng</div>
       </div>
     </div>
-
     <div class="card" style="display:flex;flex-direction:column;gap:16px;">
       <div>
         <div class="field-label">Tên của bạn</div>
@@ -486,7 +451,6 @@
       <button class="btn btn-primary" id="btn-join">Vào phòng 🚀</button>
     </div>
   </div>
-
   <!-- ── SCREEN: LOBBY ── -->
   <div class="screen" id="screen-lobby">
     <div class="card text-center">
@@ -513,7 +477,6 @@
       <div class="tsb-score" id="tsb-score">0</div>
     </div>
   </div>
-
   <!-- ── SCREEN: QUESTION ── -->
   <div class="screen" id="screen-question">
     <div style="width:100%;max-width:480px;display:flex;justify-content:space-between;align-items:center;padding:0 4px;">
@@ -521,13 +484,11 @@
       <div class="timer-wrap"><div class="timer-circle" id="timer-circle">—</div></div>
     </div>
     <div id="special-badge-wrap" style="display:none;width:100%;max-width:480px;">
-      <div class="q-special-badge">🌟 Câu ăn điểm đặc biệt · +3 điểm</div>
+      <div class="q-special-badge" id="special-badge-text">🌟 Câu ăn điểm đặc biệt · +3 điểm</div>
     </div>
-
     <div class="card question-card">
       <div class="q-text" id="q-text">...</div>
     </div>
-
     <div class="answer-grid" id="answer-grid">
       <button class="btn-answer" id="btn-a" onclick="chooseAnswer('A')">
         <span class="option-label">Lựa chọn A</span>
@@ -538,20 +499,21 @@
         <span id="opt-b-text">—</span>
       </button>
     </div>
-
+    <div class="card" id="answer-text-wrap" style="display:none;flex-direction:column;gap:12px;">
+      <input class="field-input" id="inp-free-answer" placeholder="Nhập đáp án của bạn..." maxlength="60" autocomplete="off">
+      <button class="btn btn-primary" id="btn-submit-free">Gửi đáp án 📨</button>
+    </div>
     <div class="card status-chosen" id="status-chosen" style="display:none;">
       <span class="chosen-emoji">✅</span>
       <div class="chosen-label">Bạn đã chọn</div>
       <div class="chosen-answer" id="chosen-display">—</div>
       <div class="chosen-sub">Đang chờ đồng đội trả lời...</div>
     </div>
-
     <div class="team-score-banner" id="score-banner-q">
       <div><div class="tsb-label">Đội của bạn</div><div class="tsb-team" id="tsb-q-team">—</div></div>
       <div class="tsb-score" id="tsb-q-score">0</div>
     </div>
   </div>
-
   <!-- ── SCREEN: RESULT ── -->
   <div class="screen" id="screen-result">
     <div class="card result-card" id="result-card">
@@ -566,9 +528,7 @@
       <div class="tsb-score" id="tsb-r-score">0</div>
     </div>
   </div>
-
 </div><!-- /app -->
-
 <!-- Firebase -->
 <script src="https://www.gstatic.com/firebasejs/12.14.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/12.14.0/firebase-database-compat.js"></script>
@@ -593,7 +553,6 @@
     c.appendChild(s);
   }
 })();
-
 // ─────────────────────────────────────────
 // AUDIO ENGINE (Web Audio API — no files needed)
 // ─────────────────────────────────────────
@@ -626,7 +585,6 @@ function sfxWin()    {
   const freqs = [523,659,784,1047,1318];
   freqs.forEach((f,i)=>setTimeout(()=>playTone(f,'triangle',0.5,0.4),i*120));
 }
-
 // ─────────────────────────────────────────
 // TOAST
 // ─────────────────────────────────────────
@@ -639,7 +597,6 @@ function toast(msg, duration=2600) {
     el.addEventListener('animationend', () => el.remove());
   }, duration);
 }
-
 // ─────────────────────────────────────────
 // SCREEN MANAGEMENT
 // ─────────────────────────────────────────
@@ -647,7 +604,6 @@ function showScreen(id) {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   document.getElementById('screen-' + id).classList.add('active');
 }
-
 // ─────────────────────────────────────────
 // CONFETTI
 // ─────────────────────────────────────────
@@ -679,7 +635,6 @@ function startConfetti() {
   draw();
 }
 function stopConfetti() { if (confettiRAF) cancelAnimationFrame(confettiRAF); }
-
 // ─────────────────────────────────────────
 // FLOAT SCORE
 // ─────────────────────────────────────────
@@ -692,7 +647,6 @@ function floatScore(pts) {
   document.body.appendChild(el);
   el.addEventListener('animationend', () => el.remove());
 }
-
 // ─────────────────────────────────────────
 // COUNTDOWN
 // ─────────────────────────────────────────
@@ -717,21 +671,18 @@ function runCountdown(cb) {
   };
   tick();
 }
-
 // ─────────────────────────────────────────
 // STATE
 // ─────────────────────────────────────────
 let myName='', myRoom='', myTeam='', myTeamKey='';
 let hasAnswered=false, currentRound=0;
 let prevRound=-1, prevRevealed=false, prevStatus='';
-
 // ─────────────────────────────────────────
 // JOIN
 // ─────────────────────────────────────────
 document.getElementById('btn-join').addEventListener('click', joinRoom);
 document.getElementById('inp-room').addEventListener('keypress', e => { if(e.key==='Enter') joinRoom(); });
 document.getElementById('inp-name').addEventListener('keypress', e => { if(e.key==='Enter') document.getElementById('inp-room').focus(); });
-
 function joinRoom() {
   sfxClick();
   myName = document.getElementById('inp-name').value.trim();
@@ -740,7 +691,6 @@ function joinRoom() {
   if (!myRoom) { toast('⚠️ Nhập mã phòng!'); return; }
   const btn = document.getElementById('btn-join');
   btn.textContent = '⏳ Đang kết nối...'; btn.disabled = true;
-
   db.ref('rooms/' + myRoom).once('value').then(snap => {
     if (!snap.exists()) {
       toast('❌ Phòng không tồn tại!');
@@ -758,7 +708,6 @@ function joinRoom() {
     btn.textContent = 'Vào phòng 🚀'; btn.disabled = false;
   });
 }
-
 // ─────────────────────────────────────────
 // FIND TEAM
 // ─────────────────────────────────────────
@@ -789,7 +738,6 @@ function findMyTeam() {
     });
   });
 }
-
 function updateScoreBanners(score, partnerName) {
   const teamLabel = myName + ' & ' + (partnerName||'?');
   ['score-banner','score-banner-q','score-banner-r'].forEach(id => {
@@ -803,7 +751,6 @@ function updateScoreBanners(score, partnerName) {
   document.getElementById('tsb-r-team')&&(document.getElementById('tsb-r-team').textContent = teamLabel);
   document.getElementById('tsb-r-score')&&(document.getElementById('tsb-r-score').textContent = score);
 }
-
 // ─────────────────────────────────────────
 // LISTEN GAME
 // ─────────────────────────────────────────
@@ -813,10 +760,8 @@ function listenGame() {
     if (!game) return;
     if (game.status === 'ended') { showEndForPlayer(); return; }
     if (game.status !== 'playing') return;
-
     const newRound = game.round || 0;
     const revealed = !!game.revealed;
-
     // New round
     if (newRound !== prevRound) {
       prevRound = newRound; prevRevealed = false;
@@ -829,7 +774,6 @@ function listenGame() {
         showScreen('question');
       }
     }
-
     // Reveal
     if (revealed && !prevRevealed) {
       prevRevealed = true;
@@ -837,7 +781,6 @@ function listenGame() {
     }
   });
 }
-
 // ─────────────────────────────────────────
 // RENDER QUESTION
 // ─────────────────────────────────────────
@@ -848,15 +791,35 @@ function renderQuestion(game) {
   document.getElementById('q-text').textContent = game.question || '...';
   document.getElementById('q-text').classList.remove('animate-in');
   requestAnimationFrame(() => document.getElementById('q-text').classList.add('animate-in'));
-  document.getElementById('opt-a-text').textContent = game.optionA || '—';
-  document.getElementById('opt-b-text').textContent = game.optionB || '—';
-  // Special badge
-  document.getElementById('special-badge-wrap').style.display = game.special ? 'block' : 'none';
-  // Reset answer buttons
-  document.getElementById('btn-a').disabled = false;
-  document.getElementById('btn-b').disabled = false;
-  document.getElementById('btn-a').className = 'btn-answer';
-  document.getElementById('btn-b').className = 'btn-answer';
+  const qType = game.type || 'choice';
+  // Special / free-text badge
+  if (qType === 'text') {
+    document.getElementById('special-badge-wrap').style.display = 'block';
+    document.getElementById('special-badge-text').textContent = '✍️ Câu tự nhập · Trùng ý +1 — Trùng & độc nhất +3';
+  } else if (game.special) {
+    document.getElementById('special-badge-wrap').style.display = 'block';
+    document.getElementById('special-badge-text').textContent = '🌟 Câu ăn điểm đặc biệt · +3 điểm';
+  } else {
+    document.getElementById('special-badge-wrap').style.display = 'none';
+  }
+  // Toggle answer UI by question type
+  if (qType === 'text') {
+    document.getElementById('answer-grid').style.display = 'none';
+    document.getElementById('answer-text-wrap').style.display = 'flex';
+    document.getElementById('inp-free-answer').value = '';
+    document.getElementById('inp-free-answer').disabled = false;
+    document.getElementById('btn-submit-free').disabled = false;
+    document.getElementById('btn-submit-free').textContent = 'Gửi đáp án 📨';
+  } else {
+    document.getElementById('answer-grid').style.display = 'grid';
+    document.getElementById('answer-text-wrap').style.display = 'none';
+    document.getElementById('opt-a-text').textContent = game.optionA || '—';
+    document.getElementById('opt-b-text').textContent = game.optionB || '—';
+    document.getElementById('btn-a').disabled = false;
+    document.getElementById('btn-b').disabled = false;
+    document.getElementById('btn-a').className = 'btn-answer';
+    document.getElementById('btn-b').className = 'btn-answer';
+  }
   document.getElementById('status-chosen').style.display = 'none';
   // Timer
   clearInterval(timerInterval);
@@ -871,9 +834,8 @@ function renderQuestion(game) {
   tick();
   timerInterval = setInterval(tick, 1000);
 }
-
 // ─────────────────────────────────────────
-// CHOOSE ANSWER
+// CHOOSE ANSWER (câu trắc nghiệm A/B)
 // ─────────────────────────────────────────
 window.chooseAnswer = function(choice) {
   if (hasAnswered) return;
@@ -885,38 +847,86 @@ window.chooseAnswer = function(choice) {
   btnSel.classList.add('selected-' + choice.toLowerCase());
   document.getElementById('btn-a').disabled = true;
   document.getElementById('btn-b').disabled = true;
-
   setTimeout(() => {
     document.getElementById('status-chosen').style.display = 'block';
     document.getElementById('chosen-display').textContent = choice + ' — ' +
       (choice==='A' ? document.getElementById('opt-a-text').textContent : document.getElementById('opt-b-text').textContent);
   }, 300);
-
   db.ref('rooms/' + myRoom + '/answers/' + myName).set({
     answer: choice, round: currentRound, timestamp: Date.now()
   });
 };
-
+// ─────────────────────────────────────────
+// SUBMIT FREE-TEXT ANSWER (câu tự nhập)
+// ─────────────────────────────────────────
+document.getElementById('btn-submit-free').addEventListener('click', submitFreeAnswer);
+document.getElementById('inp-free-answer').addEventListener('keypress', e => { if (e.key === 'Enter') submitFreeAnswer(); });
+function submitFreeAnswer() {
+  if (hasAnswered) return;
+  const val = document.getElementById('inp-free-answer').value.trim();
+  if (!val) { toast('⚠️ Nhập đáp án trước đã!'); return; }
+  hasAnswered = true;
+  sfxClick();
+  clearInterval(timerInterval);
+  document.getElementById('inp-free-answer').disabled = true;
+  document.getElementById('btn-submit-free').disabled = true;
+  document.getElementById('btn-submit-free').textContent = '✅ Đã gửi';
+  setTimeout(() => {
+    document.getElementById('status-chosen').style.display = 'block';
+    document.getElementById('chosen-display').textContent = val;
+  }, 250);
+  db.ref('rooms/' + myRoom + '/answers/' + myName).set({
+    answer: val, round: currentRound, timestamp: Date.now()
+  });
+}
 // ─────────────────────────────────────────
 // RESULT
 // ─────────────────────────────────────────
 function showResultForPlayer(game) {
+  const qType = game.type || 'choice';
   db.ref('rooms/' + myRoom + '/answers').once('value').then(aSnap => {
     const answers = aSnap.val() || {};
-    db.ref('rooms/' + myRoom + '/teams/' + myTeamKey).once('value').then(tSnap => {
-      const team = tSnap.val(); if (!team) return;
+    db.ref('rooms/' + myRoom + '/teams').once('value').then(tSnap => {
+      const teams = tSnap.val() || {};
+      const team = teams[myTeamKey]; if (!team) return;
       const partner = team.player1===myName ? team.player2 : team.player1;
       const myAns = answers[myName]  ? answers[myName].answer  : null;
       const pAns  = answers[partner] ? answers[partner].answer : null;
-      const match = myAns && pAns && myAns === pAns;
-      const pts = match ? (game.special ? 3 : 1) : 0;
+      let match = false, pts = 0, isUnique = false;
+
+      if (qType === 'text') {
+        // Chuẩn hoá (bỏ dấu, bỏ khoảng trắng, không phân biệt hoa/thường) trước khi so khớp
+        const n1 = normalizeAnswer(myAns);
+        const n2 = normalizeAnswer(pAns);
+        match = !!(n1 && n2 && n1 === n2);
+        if (match) {
+          let sameCount = 0;
+          Object.values(teams).forEach(t => {
+            const ta1 = normalizeAnswer(answers[t.player1] ? answers[t.player1].answer : '');
+            const ta2 = normalizeAnswer(answers[t.player2] ? answers[t.player2].answer : '');
+            if (ta1 && ta2 && ta1 === ta2 && ta1 === n1) sameCount++;
+          });
+          isUnique = sameCount === 1;
+          pts = isUnique ? 3 : 1;
+        }
+      } else {
+        match = !!(myAns && pAns && myAns === pAns);
+        pts = match ? (game.special ? 3 : 1) : 0;
+      }
 
       document.getElementById('result-match').textContent = match ? '💞' : '😅';
-      document.getElementById('result-title').textContent = match
-        ? (game.special ? '🌟 Ăn ý đặc biệt!' : '💞 Ăn ý rồi!')
-        : 'Chưa ăn ý lần này...';
+      let title;
+      if (match) {
+        if (qType === 'text') {
+          title = isUnique ? '🌟 Ăn ý độc nhất!' : '💞 Ăn ý rồi!';
+        } else {
+          title = game.special ? '🌟 Ăn ý đặc biệt!' : '💞 Ăn ý rồi!';
+        }
+      } else {
+        title = 'Chưa ăn ý lần này...';
+      }
+      document.getElementById('result-title').textContent = title;
       document.getElementById('result-title').className = 'result-title ' + (match?'win':'lose');
-
       document.getElementById('result-answers').innerHTML = `
         <div class="result-ans-box">
           <div class="rab-label">Bạn</div>
@@ -926,17 +936,14 @@ function showResultForPlayer(game) {
           <div class="rab-label">${partner}</div>
           <div class="rab-val">${pAns||'—'}</div>
         </div>`;
-
       document.getElementById('result-points-wrap').innerHTML = match
-        ? `<div class="result-points">+${pts} điểm cho đội</div>` : '';
-
+        ? `<div class="result-points">+${pts} điểm cho đội${qType==='text' && !isUnique ? ' (đội khác cũng đoán giống)' : ''}</div>` : '';
       showScreen('result');
       if (match) { sfxSuccess(); floatScore(pts); }
       else sfxFail();
     });
   });
 }
-
 // ─────────────────────────────────────────
 // END GAME
 // ─────────────────────────────────────────
@@ -946,10 +953,8 @@ function showEndForPlayer() {
     const sorted = Object.values(teams).sort((a,b)=>(b.score||0)-(a.score||0));
     const winner = sorted[0];
     const isMyTeam = t => t.player1===myName||t.player2===myName;
-
     document.getElementById('ws-name').textContent = winner.player1+' & '+winner.player2;
     document.getElementById('ws-score').textContent = (winner.score||0)+' điểm';
-
     const listEl = document.getElementById('ws-list');
     const medals = ['🥇','🥈','🥉'];
     listEl.innerHTML = sorted.map((t,i) => `
@@ -958,19 +963,16 @@ function showEndForPlayer() {
         <span class="ws-team-name">${t.player1} & ${t.player2}${isMyTeam(t)?' 👈':''}</span>
         <span class="ws-pts">${t.score||0}</span>
       </div>`).join('');
-
     const ws = document.getElementById('winner-screen');
     ws.classList.add('show');
     sfxWin();
     startConfetti();
   });
 }
-
 document.getElementById('btn-ws-back').addEventListener('click', () => {
   document.getElementById('winner-screen').classList.remove('show');
   stopConfetti();
 });
-
 // Unlock audio on first touch
 document.addEventListener('touchstart', () => { try{ getAC(); }catch(e){} }, { once:true });
 document.addEventListener('click', () => { try{ getAC(); }catch(e){} }, { once:true });
