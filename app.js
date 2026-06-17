@@ -353,9 +353,80 @@ alert(
 "Đã ghép "+Object.keys(teams).length+" đội"
 );
 
+listenTeams(roomCode);
+
+});
+
+
+}
+window.listenTeams = function(roomCode){
+
+
+
+db.ref(
+"rooms/"+roomCode+"/teams"
+)
+
+.on(
+"value",
+
+function(snapshot){
+
+
+let teams = snapshot.val();
+
+
+
+if(!teams){
+
+return;
+
+}
+
+
+
+let html =
+"🎉 Đội chơi:<br><br>";
+
+
+
+Object.values(teams)
+
+.forEach(function(team,index){
+
+
+html +=
+
+"❤️ Team "
+
++(index+1)
+
++" : "
+
++team.player1
+
++" + "
+
++team.player2
+
++"<br>";
 
 
 });
+
+
+
+document.getElementById("teamList")
+
+.innerHTML = html;
+
+
+
+}
+
+
+);
+
 
 
 }
