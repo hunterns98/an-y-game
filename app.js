@@ -137,7 +137,7 @@ window.createRoom = function(){
     // bắt đầu nghe người chơi
 
     listenPlayers(code);
-
+listenGame(code);
 
 
 }
@@ -423,6 +423,199 @@ document.getElementById("teamList")
 
 
 }
+
+
+);
+
+
+
+}
+// =======================
+// CÂU HỎI ĂN Ý
+// =======================
+
+
+const questions = [
+
+{
+text:"Thức uống bạn chọn là:",
+a:"Cà phê",
+b:"Trà"
+},
+
+
+{
+text:"Bạn thích phúc lợi:",
+a:"Thêm ngày phép",
+b:"Tiền thưởng nóng"
+},
+
+
+{
+text:"Thể loại âm nhạc bạn chọn:",
+a:"Ballad thất tình",
+b:"Remix giật giật"
+},
+
+
+{
+text:"Nếu phải chọn nuôi:",
+a:"Chó",
+b:"Mèo"
+},
+
+
+{
+text:"Liên hoan cuối năm bạn chọn:",
+a:"Hát",
+b:"Nhảy"
+},
+
+
+{
+text:"Sếp bảo tăng ca nhé em:",
+a:"Tìm lý do từ chối",
+b:"Chấp nhận số phận"
+},
+
+
+{
+text:"Môi trường công sở:",
+a:"Lương cao sếp toxic",
+b:"Lương thấp đồng nghiệp vui"
+},
+
+
+{
+text:"Màu yêu thích:",
+a:"Đỏ",
+b:"Xanh Lá"
+},
+
+
+{
+text:"Thể thao bạn chọn:",
+a:"Chạy bộ",
+b:"Bơi lội"
+}
+
+];
+
+
+
+
+
+// =======================
+// HOST BẮT ĐẦU GAME
+// =======================
+
+
+window.startGame=function(){
+
+
+let roomCode =
+prompt("Nhập mã phòng");
+
+
+if(!roomCode){
+
+return;
+
+}
+
+
+
+let q =
+questions[
+Math.floor(
+Math.random()*questions.length
+)
+];
+
+
+
+db.ref(
+"rooms/"+roomCode+"/game"
+)
+
+.set({
+
+question:q.text,
+
+optionA:q.a,
+
+optionB:q.b,
+
+status:"playing"
+
+});
+
+
+
+listenGame(roomCode);
+
+
+}
+
+
+
+
+
+
+
+// =======================
+// NGHE CÂU HỎI REALTIME
+// =======================
+
+
+window.listenGame=function(roomCode){
+
+
+
+db.ref(
+"rooms/"+roomCode+"/game"
+)
+
+.on(
+"value",
+
+function(snapshot){
+
+
+let game =
+snapshot.val();
+
+
+
+if(!game){
+
+return;
+
+}
+
+
+
+document.getElementById("gameArea")
+
+.innerHTML =
+
+
+"<h2>🎯 Câu hỏi</h2>"+
+
+game.question+
+
+"<br><br>"+
+
+"A. "+game.optionA+
+
+"<br>"+
+
+"B. "+game.optionB;
+
+
+
+}
+
 
 
 );
