@@ -121,13 +121,11 @@
     font-size: 0.75rem; letter-spacing: 0.25em; color: var(--muted);
     text-transform: uppercase; margin-top: 6px;
   }
-  /* ── CARD BASE ── */
+  /* ── CARD BASE (giả kính bằng gradient + viền, không dùng backdrop-filter để nhẹ GPU) ── */
   .card {
-    background: var(--card);
+    background: linear-gradient(135deg, rgba(255,255,255,0.09), rgba(255,255,255,0.03));
     border: 1px solid var(--border);
     border-radius: var(--radius-lg);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
     padding: 28px 24px;
     width: 100%; max-width: 480px;
   }
@@ -335,12 +333,13 @@
   .tsb-label { font-size: 0.65rem; letter-spacing: 0.2em; color: var(--muted); text-transform: uppercase; }
   .tsb-score { font-size: 1.6rem; font-weight: 900; color: var(--gold); }
   .tsb-team  { font-size: 0.85rem; font-weight: 700; color: var(--text); }
-  /* ── FLOATING SCORE ── */
+  /* ── FLOATING SCORE (transform + opacity, will-change ép GPU compositing cho mượt) ── */
   .float-score {
     position: fixed; pointer-events: none; z-index: 9999;
     font-size: 2rem; font-weight: 900; color: var(--gold);
     text-shadow: 0 0 24px rgba(255,214,10,0.8);
     animation: floatUp 1.2s ease forwards;
+    will-change: transform, opacity;
   }
   @keyframes floatUp {
     from { opacity:1; transform:translateY(0) scale(1); }
@@ -349,7 +348,7 @@
   /* ── COUNTDOWN OVERLAY ── */
   #countdown-overlay {
     display: none; position: fixed; inset: 0; z-index: 8000;
-    background: rgba(10,0,21,0.92); backdrop-filter: blur(8px);
+    background: rgba(10,0,21,0.92);
     align-items: center; justify-content: center; flex-direction: column;
   }
   #countdown-overlay.show { display: flex; }
@@ -400,7 +399,7 @@
     pointer-events: none; width: 90%; max-width: 420px;
   }
   .toast {
-    background: rgba(30,10,60,0.95); backdrop-filter: blur(12px);
+    background: rgba(30,10,60,0.95);
     border: 1px solid rgba(255,255,255,0.15); border-radius: 14px;
     padding: 12px 20px; font-size: 0.88rem; font-weight: 700;
     color: var(--text); text-align: center;
@@ -445,14 +444,12 @@
     font-size: 0.85rem; font-weight: 800; cursor: pointer;
     -webkit-tap-highlight-color: transparent;
   }
-  /* ── HOW-TO-PLAY GUIDE CARD ── */
+  /* ── HOW-TO-PLAY GUIDE CARD (giả kính bằng gradient, không blur để nhẹ GPU) ── */
   .howto-card {
     width: 100%; max-width: 480px;
-    background: rgba(255,255,255,0.05);
-    border: 1px solid rgba(255,255,255,0.14);
+    background: linear-gradient(160deg, rgba(255,255,255,0.10), rgba(255,255,255,0.025));
+    border: 1px solid rgba(255,255,255,0.16);
     border-radius: var(--radius-lg);
-    backdrop-filter: blur(18px);
-    -webkit-backdrop-filter: blur(18px);
     padding: 20px 18px 18px;
     box-shadow: 0 8px 32px rgba(0,0,0,0.25), inset 0 1px 0 rgba(255,255,255,0.08);
   }
@@ -688,10 +685,10 @@
           </div>
           <div>
             <div class="howto-demo-label">Thử ngay</div>
-            <div class="howto-demo-q">Thức uống bạn chọn là?</div>
+            <div class="howto-demo-q">Nếu mẹ và người yêu cùng rơi xuống nước, bạn sẽ cứu?</div>
             <div class="howto-demo-grid">
-              <button class="howto-demo-btn" id="demo-l1-a" onclick="demoPickL1('a')">☕ Cà phê</button>
-              <button class="howto-demo-btn" id="demo-l1-b" onclick="demoPickL1('b')">🍵 Trà</button>
+              <button class="howto-demo-btn" id="demo-l1-a" onclick="demoPickL1('a')">👩 Cứu Mẹ</button>
+              <button class="howto-demo-btn" id="demo-l1-b" onclick="demoPickL1('b')">💑 Cứu Người Yêu</button>
             </div>
           </div>
         </div>
@@ -704,7 +701,7 @@
           </div>
           <div>
             <div class="howto-demo-label">Thử ngay</div>
-            <div class="howto-demo-q">Ai là người nóng tính hơn?</div>
+            <div class="howto-demo-q">Ai là người có khả năng bùng kèo đi chơi vào phút chót cao hơn?</div>
             <div class="howto-demo-input-row">
               <input id="demo-l2-input" placeholder="Gõ tên bạn hoặc đồng đội..." maxlength="20">
               <button class="howto-demo-send" onclick="demoSendL2()">Gửi</button>
@@ -721,7 +718,7 @@
           </div>
           <div>
             <div class="howto-demo-label">Thử ngay</div>
-            <div class="howto-demo-q">Tỉnh nào bắt đầu bằng chữ "T"?</div>
+            <div class="howto-demo-q">Hãy điền tên 1 môn thể thao sử dụng tay?</div>
             <div class="howto-demo-input-row">
               <input id="demo-l3-input" placeholder="Gõ thử đáp án..." maxlength="30">
               <button class="howto-demo-send" onclick="demoSendL3()">Gửi thử</button>
@@ -861,20 +858,26 @@ function showScreen(id) {
   document.getElementById('screen-' + id).classList.add('active');
 }
 // ─────────────────────────────────────────
-// CONFETTI
+// CONFETTI (tối ưu: tối đa 60 hạt, tự dừng & dọn sạch sau ~3s để tránh tích tụ khi mở nhiều tab)
 // ─────────────────────────────────────────
-let confettiRAF;
+let confettiRAF, confettiStopTimer;
 function startConfetti() {
   const canvas = document.getElementById('confetti-canvas');
   const ctx = canvas.getContext('2d');
   canvas.width = window.innerWidth; canvas.height = window.innerHeight;
-  const particles = Array.from({length:130}, () => ({
+  // Dọn timer/RAF cũ nếu còn sót (gọi liên tiếp)
+  if (confettiRAF) cancelAnimationFrame(confettiRAF);
+  if (confettiStopTimer) clearTimeout(confettiStopTimer);
+  const PARTICLE_COUNT = 60;
+  const DURATION_MS = 2800;
+  const particles = Array.from({length:PARTICLE_COUNT}, () => ({
     x: Math.random()*canvas.width, y: -20,
     r: Math.random()*7+3,
     color: `hsl(${Math.random()*360},90%,60%)`,
     vx: (Math.random()-0.5)*4, vy: Math.random()*4+2,
     tilt: Math.random()*10, tiltV: (Math.random()-0.5)*0.3
   }));
+  const startTime = performance.now();
   function draw() {
     ctx.clearRect(0,0,canvas.width,canvas.height);
     particles.forEach(p => {
@@ -886,13 +889,26 @@ function startConfetti() {
       ctx.lineTo(p.x+p.tilt, p.y+p.r*2);
       ctx.stroke();
     });
-    confettiRAF = requestAnimationFrame(draw);
+    if (performance.now() - startTime < DURATION_MS) {
+      confettiRAF = requestAnimationFrame(draw);
+    } else {
+      // Hết thời gian: tự dừng và xoá sạch canvas, không để RAF/hạt tồn đọng
+      stopConfetti();
+    }
   }
   draw();
 }
-function stopConfetti() { if (confettiRAF) cancelAnimationFrame(confettiRAF); }
+function stopConfetti() {
+  if (confettiRAF) { cancelAnimationFrame(confettiRAF); confettiRAF = null; }
+  if (confettiStopTimer) { clearTimeout(confettiStopTimer); confettiStopTimer = null; }
+  const canvas = document.getElementById('confetti-canvas');
+  if (canvas) {
+    const ctx = canvas.getContext('2d');
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+  }
+}
 // ─────────────────────────────────────────
-// FLOAT SCORE
+// FLOAT SCORE (dùng transform + opacity, ép GPU compositing để mượt hơn)
 // ─────────────────────────────────────────
 function floatScore(pts) {
   const el = document.createElement('div');
@@ -1312,25 +1328,31 @@ function hideHowtoGuide() {
   const wrap = document.getElementById('howto-card-wrap');
   if (wrap) wrap.style.display = 'none';
 }
-// Mini confetti burst for demo — canvas riêng, không đụng tới winner-screen
+// Mini confetti burst for demo — canvas riêng, không đụng tới winner-screen.
+// Tối ưu: tối đa 60 hạt, tự xoá hẳn canvas khỏi DOM sau ~2.5s (không để tích tụ).
+let miniConfettiRAF = null;
 function miniConfetti() {
-  let canvas = document.getElementById('demo-confetti-canvas');
-  if (!canvas) {
-    canvas = document.createElement('canvas');
-    canvas.id = 'demo-confetti-canvas';
-    canvas.style.cssText = 'position:fixed;inset:0;z-index:9500;pointer-events:none;';
-    document.body.appendChild(canvas);
-  }
+  // Nếu đang có 1 lượt chạy, dọn sạch trước khi bắt đầu lượt mới (tránh chồng RAF khi bấm liên tục)
+  if (miniConfettiRAF) { cancelAnimationFrame(miniConfettiRAF); miniConfettiRAF = null; }
+  const oldCanvas = document.getElementById('demo-confetti-canvas');
+  if (oldCanvas) oldCanvas.remove();
+
+  const canvas = document.createElement('canvas');
+  canvas.id = 'demo-confetti-canvas';
+  canvas.style.cssText = 'position:fixed;inset:0;z-index:9500;pointer-events:none;';
+  document.body.appendChild(canvas);
   canvas.width = window.innerWidth; canvas.height = window.innerHeight;
   const ctx = canvas.getContext('2d');
-  const particles = Array.from({length:80}, () => ({
+  const PARTICLE_COUNT = 60;
+  const DURATION_MS = 2500;
+  const particles = Array.from({length:PARTICLE_COUNT}, () => ({
     x: Math.random()*canvas.width, y: -20,
     r: Math.random()*6+3,
     color: `hsl(${Math.random()*360},90%,60%)`,
     vx: (Math.random()-0.5)*4, vy: Math.random()*4+2,
     tilt: Math.random()*10, tiltV: (Math.random()-0.5)*0.3
   }));
-  let frames = 0;
+  const startTime = performance.now();
   function draw() {
     ctx.clearRect(0,0,canvas.width,canvas.height);
     particles.forEach(p => {
@@ -1341,9 +1363,13 @@ function miniConfetti() {
       ctx.lineTo(p.x+p.tilt, p.y+p.r*2);
       ctx.stroke();
     });
-    frames++;
-    if (frames < 90) requestAnimationFrame(draw);
-    else ctx.clearRect(0,0,canvas.width,canvas.height);
+    if (performance.now() - startTime < DURATION_MS) {
+      miniConfettiRAF = requestAnimationFrame(draw);
+    } else {
+      // Xong: dừng RAF và xoá hẳn phần tử canvas khỏi DOM, không để tồn đọng trong bộ nhớ
+      miniConfettiRAF = null;
+      canvas.remove();
+    }
   }
   draw();
 }
