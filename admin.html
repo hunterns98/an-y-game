@@ -30,7 +30,6 @@
       radial-gradient(ellipse 100% 50% at 50% -10%, rgba(155,93,229,0.25) 0%, transparent 60%),
       radial-gradient(ellipse 50% 40% at 90% 80%, rgba(255,45,120,0.12) 0%, transparent 60%);
   }
-
   /* ── AUTH GATE ── */
   #auth-gate {
     position: fixed; inset: 0; background: rgba(8,0,18,0.97);
@@ -54,10 +53,8 @@
   }
   .auth-input:focus { border-color: var(--gold); }
   .auth-error { color: var(--red); font-size: 0.82rem; margin-top: 10px; min-height: 18px; }
-
   /* ── LAYOUT ── */
   #admin-panel { display: none; padding: 0 16px 60px; max-width: 900px; margin: 0 auto; }
-
   /* ── TOP BAR ── */
   .top-bar {
     display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center;
@@ -77,27 +74,23 @@
   .status-waiting  { background: rgba(155,93,229,0.2); border: 1px solid rgba(155,93,229,0.5); color: #c4b5fd; }
   .status-playing  { background: rgba(34,197,94,0.2);  border: 1px solid rgba(34,197,94,0.5);  color: #86efac; }
   .status-ended    { background: rgba(239,68,68,0.2);  border: 1px solid rgba(239,68,68,0.5);  color: #fca5a5; }
-
   /* ── SECTION ── */
   .section { margin-bottom: 16px; }
   .section-label {
     font-size: 0.65rem; font-weight: 800; letter-spacing: 0.2em;
     text-transform: uppercase; color: var(--muted); margin-bottom: 10px;
   }
-
   /* ── CARD ── */
   .card {
     background: var(--card); border: 1px solid var(--border);
     border-radius: var(--radius-lg); padding: 20px;
     backdrop-filter: blur(12px);
   }
-
   /* ── GRID PANELS ── */
   .panel-grid {
     display: grid; grid-template-columns: 1fr 1fr; gap: 14px;
   }
   @media (max-width: 600px) { .panel-grid { grid-template-columns: 1fr; } }
-
   /* ── INPUTS ── */
   .inp {
     width: 100%; padding: 12px 16px;
@@ -110,7 +103,6 @@
   .room-code-inp {
     letter-spacing: 0.3em; text-align: center; font-size: 1.4rem; text-transform: uppercase;
   }
-
   /* ── BUTTONS ── */
   .btn {
     padding: 12px 22px; border: none; border-radius: var(--radius);
@@ -121,7 +113,6 @@
   .btn:active { transform: scale(0.96); }
   .btn:disabled { opacity: 0.45; cursor: not-allowed; transform: none !important; }
   .btn-full { width: 100%; padding: 15px; font-size: 1rem; }
-
   .btn-pink   { background: linear-gradient(135deg, var(--pink), #c4006d); color: white; box-shadow: 0 6px 20px rgba(255,45,120,0.35); }
   .btn-pink:hover:not(:disabled)   { filter: brightness(1.12); box-shadow: 0 8px 28px rgba(255,45,120,0.5); }
   .btn-cyan   { background: linear-gradient(135deg, var(--cyan), #00c4aa); color: #080012; box-shadow: 0 6px 20px rgba(0,245,212,0.3); }
@@ -134,7 +125,6 @@
   .btn-ghost:hover:not(:disabled)  { border-color: var(--purple); }
   .btn-red    { background: linear-gradient(135deg, var(--red), #b91c1c); color: white; }
   .btn-red:hover:not(:disabled)    { filter: brightness(1.1); }
-
   /* ── ROOM CODE DISPLAY ── */
   .room-code-badge {
     display: flex; align-items: center; justify-content: center; gap: 14px;
@@ -152,7 +142,6 @@
     cursor: pointer; transition: all 0.18s; white-space: nowrap;
   }
   .rc-copy:hover { background: rgba(255,214,10,0.25); }
-
   /* ── PLAYER LIST ── */
   .player-grid {
     display: flex; flex-wrap: wrap; gap: 8px; min-height: 44px;
@@ -166,7 +155,6 @@
   }
   @keyframes chipIn { from{opacity:0;transform:scale(0.8)} to{opacity:1;transform:scale(1)} }
   .player-count { font-size: 0.7rem; color: var(--muted); margin-top: 8px; }
-
   /* ── TEAM LIST ── */
   .team-row {
     display: flex; align-items: center; justify-content: space-between;
@@ -180,7 +168,6 @@
     border-radius: 99px; padding: 3px 12px;
     font-size: 0.8rem; font-weight: 900; color: var(--gold);
   }
-
   /* ── QUESTION PANEL ── */
   .current-q-card {
     background: linear-gradient(135deg, rgba(155,93,229,0.12), rgba(255,45,120,0.07));
@@ -211,7 +198,6 @@
     font-size: 0.7rem; font-weight: 800; color: var(--pink);
     margin-bottom: 10px;
   }
-
   /* ── ANSWER REVEAL PANEL ── */
   .answer-board { display: flex; flex-direction: column; gap: 8px; }
   .answer-row {
@@ -227,13 +213,11 @@
   .ar-result { font-weight: 800; font-size: 0.8rem; }
   .ar-result.win  { color: var(--green); }
   .ar-result.lose { color: var(--muted); }
-
   /* ── ACTION BAR ── */
   .action-bar {
     display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 14px;
   }
   .action-bar.three { grid-template-columns: 1fr 1fr 1fr; }
-
   /* ── STATS ROW ── */
   .stats-row { display: grid; grid-template-columns: repeat(3,1fr); gap: 10px; margin-bottom: 16px; }
   .stat-cell {
@@ -243,7 +227,6 @@
   }
   .stat-val { font-size: 1.6rem; font-weight: 900; color: var(--gold); line-height: 1; }
   .stat-lbl { font-size: 0.62rem; letter-spacing: 0.15em; color: var(--muted); text-transform: uppercase; margin-top: 4px; }
-
   /* ── TOAST ── */
   #toast {
     position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
@@ -256,10 +239,8 @@
     white-space: nowrap; max-width: 90vw;
   }
   #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
-
   /* ── DIVIDER ── */
   .divider { height: 1px; background: var(--border); margin: 16px 0; }
-
   /* ── TOGGLE ANSWER STATE ── */
   .toggle-btn {
     display: flex; align-items: center; gap: 8px; justify-content: center;
@@ -270,7 +251,6 @@
   }
   .dot-open  { background: var(--green); box-shadow: 0 0 8px rgba(34,197,94,0.7); }
   .dot-closed{ background: var(--red);   box-shadow: 0 0 8px rgba(239,68,68,0.7); }
-
   /* ── SCROLLBAR ── */
   ::-webkit-scrollbar { width: 6px; }
   ::-webkit-scrollbar-track { background: transparent; }
@@ -278,7 +258,6 @@
 </style>
 </head>
 <body>
-
 <!-- AUTH -->
 <div id="auth-gate">
   <div class="auth-card">
@@ -290,13 +269,10 @@
     <div class="auth-error" id="auth-error"></div>
   </div>
 </div>
-
 <!-- TOAST -->
 <div id="toast"></div>
-
 <!-- ADMIN PANEL -->
 <div id="admin-panel">
-
   <!-- TOP BAR -->
   <div class="top-bar">
     <div class="top-bar-left">
@@ -311,7 +287,6 @@
       <button class="btn btn-red" id="btn-reset">🗑 Reset</button>
     </div>
   </div>
-
   <!-- PHASE 1: SETUP -->
   <div id="phase-setup">
     <!-- Stats row -->
@@ -320,7 +295,6 @@
       <div class="stat-cell"><div class="stat-val" id="stat-teams">0</div><div class="stat-lbl">Đội</div></div>
       <div class="stat-cell"><div class="stat-val" id="stat-round">0</div><div class="stat-lbl">Vòng hiện tại</div></div>
     </div>
-
     <div class="panel-grid">
       <!-- Create Room -->
       <div class="section">
@@ -336,7 +310,6 @@
           </div>
         </div>
       </div>
-
       <!-- Or join existing -->
       <div class="section">
         <div class="section-label">Hoặc quản lý phòng cũ</div>
@@ -346,7 +319,6 @@
         </div>
       </div>
     </div>
-
     <!-- Players -->
     <div class="section">
       <div class="section-label">Người chơi đang chờ</div>
@@ -361,7 +333,6 @@
         </div>
       </div>
     </div>
-
     <!-- Teams -->
     <div class="section" id="teams-section" style="display:none;">
       <div class="section-label">Danh sách đội</div>
@@ -372,24 +343,22 @@
       </div>
     </div>
   </div>
-
   <!-- PHASE 2: GAME RUNNING -->
   <div id="phase-game" style="display:none;">
-
     <!-- Current Question -->
     <div class="section">
       <div class="section-label">Câu hỏi hiện tại</div>
       <div class="current-q-card" id="current-q-card">
         <div class="q-num" id="q-num">Câu 1 / 20</div>
-        <div id="q-special-flag" style="display:none;"><div class="q-special-flag">🌟 Câu ăn điểm đặc biệt · +3 điểm</div></div>
+        <div id="q-special-flag" style="display:none;"><div class="q-special-flag" id="q-special-flag-text">🌟 Câu ăn điểm đặc biệt · +3 điểm</div></div>
         <div class="q-display" id="q-display">—</div>
-        <div class="q-opts">
+        <div class="q-opts" id="q-opts">
           <div class="q-opt"><span class="opt-tag">Lựa chọn A</span><span id="q-opt-a">—</span></div>
           <div class="q-opt"><span class="opt-tag">Lựa chọn B</span><span id="q-opt-b">—</span></div>
         </div>
+        <div id="q-freetext-note" style="display:none;font-size:0.85rem;color:var(--muted);font-weight:600;margin-top:4px;">✍️ Người chơi tự nhập đáp án — không có lựa chọn mẫu, chỉ cần đồng đội nghĩ giống nhau!</div>
       </div>
     </div>
-
     <!-- Controls -->
     <div class="section">
       <div class="section-label">Điều khiển</div>
@@ -403,7 +372,6 @@
         </div>
       </div>
     </div>
-
     <!-- Answer board -->
     <div class="section" id="answer-board-section">
       <div class="section-label">Đáp án các đội <span id="answer-count-badge" style="color:var(--cyan)"></span></div>
@@ -413,7 +381,6 @@
         </div>
       </div>
     </div>
-
     <!-- Scoreboard -->
     <div class="section">
       <div class="section-label">Bảng điểm</div>
@@ -421,11 +388,8 @@
         <div id="score-board"></div>
       </div>
     </div>
-
   </div>
-
 </div><!-- /admin-panel -->
-
 <!-- Firebase -->
 <script src="https://www.gstatic.com/firebasejs/12.14.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/12.14.0/firebase-database-compat.js"></script>
@@ -445,7 +409,7 @@ const questions = [
   { text:"Nếu lựa chọn:",                      a:"Làm sếp công ty bé",       b:"Nhân viên tập đoàn lớn",     special:false },
   { text:"Đồ uống unhealthy bạn chọn:",        a:"Bia",                      b:"Rượu",                       special:false },
   { text:"Đến giờ nạp calo rồi, bạn chọn:",   a:"Ăn lẩu",                   b:"Ăn nướng",                   special:false },
-  { text:"🌟 CÂU ĂN ĐIỂM: Tỉnh nào bắt đầu bằng chữ H?", a:"Hà Nội",      b:"Hải Phòng",                  special:true  },
+  { text:"🌟 CÂU ĂN Ý: Tỉnh nào bắt đầu bằng chữ H?", type:"text", special:true },
   { text:"Thời tiết ưa thích:",                a:"Mùa Xuân mát mẻ",          b:"Mùa Thu se lạnh",            special:false },
   { text:"Chuông báo thức kêu:",               a:"Dậy ngay",                 b:"Bấm 5 phút nữa",             special:false },
   { text:"Kế hoạch cuối tuần:",                a:"Ngủ nướng",                b:"Ra ngoài vi vu",             special:false },
@@ -453,13 +417,11 @@ const questions = [
   { text:"Dân chơi hệ:",                       a:"Táo IOS",                  b:"Android",                    special:false },
   { text:"Nếu lựa chọn, bạn muốn trở thành:", a:"Steve Jobs",               b:"Elon Musk",                  special:false }
 ];
-
 // ── STATE ──
 let roomCode = '';
 let currentRound = 0;
 let acceptingAnswers = true;
 let gamePhase = 'setup'; // setup | playing | ended
-
 // ── TOAST ──
 let toastTimer;
 function toast(msg, dur=2500) {
@@ -468,7 +430,6 @@ function toast(msg, dur=2500) {
   clearTimeout(toastTimer);
   toastTimer = setTimeout(() => el.classList.remove('show'), dur);
 }
-
 // ── AUTH ──
 document.getElementById('btn-auth').addEventListener('click', tryLogin);
 document.getElementById('auth-input').addEventListener('keypress', e => { if(e.key==='Enter') tryLogin(); });
@@ -483,7 +444,6 @@ function tryLogin() {
     document.getElementById('auth-input').focus();
   }
 }
-
 // ── CREATE ROOM ──
 document.getElementById('btn-create').addEventListener('click', createRoom);
 function createRoom() {
@@ -498,7 +458,6 @@ function createRoom() {
     toast('✅ Đã tạo phòng: ' + code);
   });
 }
-
 // ── LOAD EXISTING ROOM ──
 document.getElementById('btn-load-room').addEventListener('click', () => {
   const code = document.getElementById('inp-existing-code').value.trim().toUpperCase();
@@ -509,7 +468,6 @@ document.getElementById('btn-load-room').addEventListener('click', () => {
     toast('🔗 Đã tải phòng: ' + code);
   });
 });
-
 // ── LOAD ROOM ──
 function loadRoom(code) {
   roomCode = code;
@@ -520,12 +478,10 @@ function loadRoom(code) {
   listenTeams();
   listenGame();
 }
-
 // ── COPY CODE ──
 document.getElementById('btn-copy-code').addEventListener('click', () => {
   navigator.clipboard.writeText(roomCode).then(() => toast('📋 Đã copy mã phòng!'));
 });
-
 // ── LISTEN PLAYERS ──
 function listenPlayers() {
   db.ref('rooms/' + roomCode + '/players').on('value', snap => {
@@ -542,7 +498,6 @@ function listenPlayers() {
     document.getElementById('stat-players').textContent = list.length;
   });
 }
-
 // ── LISTEN TEAMS ──
 function listenTeams() {
   db.ref('rooms/' + roomCode + '/teams').on('value', snap => {
@@ -563,7 +518,6 @@ function listenTeams() {
     renderScoreBoard(list);
   });
 }
-
 // ── LISTEN GAME ──
 function listenGame() {
   db.ref('rooms/' + roomCode + '/game').on('value', snap => {
@@ -577,7 +531,6 @@ function listenGame() {
     listenAnswers();
   });
 }
-
 // ── LISTEN ANSWERS (realtime) ──
 function listenAnswers() {
   db.ref('rooms/' + roomCode + '/answers').on('value', snap => {
@@ -601,7 +554,6 @@ function listenAnswers() {
     });
   });
 }
-
 // ── STATUS BADGE ──
 function updateStatusBadge(status) {
   const badge = document.getElementById('status-badge');
@@ -614,7 +566,6 @@ function updateStatusBadge(status) {
   badge.textContent = text;
   badge.className = 'status-pill ' + cls;
 }
-
 // ── MAKE TEAMS ──
 document.getElementById('btn-make-teams').addEventListener('click', () => {
   if (!roomCode) { toast('⚠️ Chưa có phòng!'); return; }
@@ -637,7 +588,6 @@ document.getElementById('btn-make-teams').addEventListener('click', () => {
     toast('💞 Đã ghép ' + Object.keys(teams).length + ' đội!');
   });
 });
-
 // ── START GAME ──
 document.getElementById('btn-start-game').addEventListener('click', () => {
   if (!roomCode) { toast('⚠️ Chưa có phòng!'); return; }
@@ -648,38 +598,57 @@ document.getElementById('btn-start-game').addEventListener('click', () => {
   gamePhase = 'playing';
   toast('🎮 Game bắt đầu!');
 });
-
 // ── SEND QUESTION ──
 function sendQuestion(idx) {
   const q = questions[idx];
-  db.ref('rooms/' + roomCode + '/game').set({
+  const qType = q.type || 'choice';
+  const payload = {
     status: 'playing',
     round: idx,
     question: q.text,
-    optionA: q.a,
-    optionB: q.b,
-    special: q.special,
+    type: qType,
+    special: !!q.special,
     revealed: false
-  });
+  };
+  if (qType === 'choice') {
+    payload.optionA = q.a;
+    payload.optionB = q.b;
+  }
+  db.ref('rooms/' + roomCode + '/game').set(payload);
   db.ref('rooms/' + roomCode + '/answers').remove();
   // Update admin UI
   document.getElementById('q-num').textContent = `Câu ${idx+1} / ${questions.length}`;
   document.getElementById('q-display').textContent = q.text;
-  document.getElementById('q-opt-a').textContent = q.a;
-  document.getElementById('q-opt-b').textContent = q.b;
-  document.getElementById('q-special-flag').style.display = q.special ? 'block' : 'none';
+  if (qType === 'choice') {
+    document.getElementById('q-opts').style.display = 'grid';
+    document.getElementById('q-freetext-note').style.display = 'none';
+    document.getElementById('q-opt-a').textContent = q.a;
+    document.getElementById('q-opt-b').textContent = q.b;
+  } else {
+    document.getElementById('q-opts').style.display = 'none';
+    document.getElementById('q-freetext-note').style.display = 'block';
+  }
+  if (qType === 'text') {
+    document.getElementById('q-special-flag').style.display = 'block';
+    document.getElementById('q-special-flag-text').textContent = '✍️ Câu tự do · Trùng ý +1 — Trùng & độc nhất +3';
+  } else if (q.special) {
+    document.getElementById('q-special-flag').style.display = 'block';
+    document.getElementById('q-special-flag-text').textContent = '🌟 Câu ăn điểm đặc biệt · +3 điểm';
+  } else {
+    document.getElementById('q-special-flag').style.display = 'none';
+  }
   document.getElementById('stat-round').textContent = idx+1;
   // Reset reveal display
   document.getElementById('answer-board').innerHTML = '<div style="color:var(--muted);font-size:0.85rem;text-align:center;padding:8px;">Chờ người chơi trả lời...</div>';
   acceptingAnswers = true;
   updateToggleBtn();
 }
-
 // ── REVEAL ──
 document.getElementById('btn-reveal').addEventListener('click', revealAnswers);
 function revealAnswers() {
   if (!roomCode) return;
   const q = questions[currentRound];
+  const qType = q.type || 'choice';
   db.ref('rooms/' + roomCode + '/answers').once('value').then(aSnap => {
     const answers = aSnap.val() || {};
     db.ref('rooms/' + roomCode + '/teams').once('value').then(tSnap => {
@@ -687,19 +656,53 @@ function revealAnswers() {
       const board = document.getElementById('answer-board');
       const rows = [];
       const scoreUpdates = {};
-      Object.entries(teams).forEach(([key, team], i) => {
-        const a1 = answers[team.player1] ? answers[team.player1].answer : null;
-        const a2 = answers[team.player2] ? answers[team.player2].answer : null;
-        const match = a1 && a2 && a1 === a2;
-        const pts = match ? (q.special ? 3 : 1) : 0;
-        if (match) scoreUpdates[key] = (team.score||0) + pts;
-        rows.push(`
-          <div class="answer-row ${match?'match':'nomatch'}">
-            <div class="ar-team">💞 Đội ${i+1}: ${team.player1} & ${team.player2||'?'}</div>
-            <div class="ar-ans">${team.player1}: <strong>${a1||'—'}</strong> &nbsp; ${team.player2||'?'}: <strong>${a2||'—'}</strong></div>
-            <div class="ar-result ${match?'win':'lose'}">${match ? (q.special?'🌟 +3':'💞 +1') : '😅 0'}</div>
-          </div>`);
-      });
+
+      if (qType === 'text') {
+        // Chuẩn hoá đáp án (bỏ dấu, bỏ khoảng trắng, không phân biệt hoa/thường)
+        // rồi đếm xem có bao nhiêu đội cùng "ăn ý" với 1 đáp án giống nhau
+        const teamInfo = {};
+        const matchCountByNorm = {};
+        Object.entries(teams).forEach(([key, team]) => {
+          const a1 = answers[team.player1] ? answers[team.player1].answer : '';
+          const a2 = answers[team.player2] ? answers[team.player2].answer : '';
+          const n1 = normalizeAnswer(a1);
+          const n2 = normalizeAnswer(a2);
+          const match = !!(n1 && n2 && n1 === n2);
+          teamInfo[key] = { a1, a2, match, norm: n1 };
+          if (match) matchCountByNorm[n1] = (matchCountByNorm[n1]||0) + 1;
+        });
+        Object.entries(teams).forEach(([key, team], i) => {
+          const info = teamInfo[key];
+          let pts = 0, label = '😅 0';
+          if (info.match) {
+            const isUnique = matchCountByNorm[info.norm] === 1;
+            pts = isUnique ? 3 : 1;
+            label = isUnique ? '🌟 +3 (độc nhất)' : '💞 +1 (đội khác cũng trùng)';
+            scoreUpdates[key] = (team.score||0) + pts;
+          }
+          rows.push(`
+            <div class="answer-row ${info.match?'match':'nomatch'}">
+              <div class="ar-team">💞 Đội ${i+1}: ${team.player1} & ${team.player2||'?'}</div>
+              <div class="ar-ans">${team.player1}: <strong>${info.a1||'—'}</strong> &nbsp; ${team.player2||'?'}: <strong>${info.a2||'—'}</strong></div>
+              <div class="ar-result ${info.match?'win':'lose'}">${label}</div>
+            </div>`);
+        });
+      } else {
+        Object.entries(teams).forEach(([key, team], i) => {
+          const a1 = answers[team.player1] ? answers[team.player1].answer : null;
+          const a2 = answers[team.player2] ? answers[team.player2].answer : null;
+          const match = a1 && a2 && a1 === a2;
+          const pts = match ? (q.special ? 3 : 1) : 0;
+          if (match) scoreUpdates[key] = (team.score||0) + pts;
+          rows.push(`
+            <div class="answer-row ${match?'match':'nomatch'}">
+              <div class="ar-team">💞 Đội ${i+1}: ${team.player1} & ${team.player2||'?'}</div>
+              <div class="ar-ans">${team.player1}: <strong>${a1||'—'}</strong> &nbsp; ${team.player2||'?'}: <strong>${a2||'—'}</strong></div>
+              <div class="ar-result ${match?'win':'lose'}">${match ? (q.special?'🌟 +3':'💞 +1') : '😅 0'}</div>
+            </div>`);
+        });
+      }
+
       board.innerHTML = rows.join('') || '<div style="color:var(--muted);">Không có đáp án</div>';
       Object.entries(scoreUpdates).forEach(([key, score]) => {
         db.ref('rooms/' + roomCode + '/teams/' + key + '/score').set(score);
@@ -709,7 +712,6 @@ function revealAnswers() {
     });
   });
 }
-
 // ── NEXT QUESTION ──
 document.getElementById('btn-next').addEventListener('click', () => {
   currentRound++;
@@ -719,7 +721,6 @@ document.getElementById('btn-next').addEventListener('click', () => {
   sendQuestion(currentRound);
   toast(`➡️ Chuyển câu ${currentRound+1}`);
 });
-
 // ── TOGGLE ACCEPT ANSWERS ──
 document.getElementById('btn-toggle-accept').addEventListener('click', () => {
   acceptingAnswers = !acceptingAnswers;
@@ -738,7 +739,6 @@ function updateToggleBtn() {
     btn.childNodes[1].textContent = ' Đóng đáp án';
   }
 }
-
 // ── END GAME ──
 function endGame() {
   db.ref('rooms/' + roomCode + '/game/status').set('ended');
@@ -750,7 +750,6 @@ document.getElementById('btn-end-game').addEventListener('click', () => {
   if (!confirm('Kết thúc game? Người chơi sẽ thấy màn hình kết quả.')) return;
   endGame();
 });
-
 // ── RESET ──
 document.getElementById('btn-reset').addEventListener('click', () => {
   if (!roomCode) { toast('⚠️ Chưa có phòng'); return; }
@@ -768,7 +767,6 @@ document.getElementById('btn-reset').addEventListener('click', () => {
     toast('🗑 Đã reset phòng!');
   });
 });
-
 // ── SCORE BOARD ──
 function renderScoreBoard(teams) {
   const sorted = [...teams].sort((a,b)=>(b.score||0)-(a.score||0));
