@@ -154,6 +154,11 @@
     animation: chipIn 0.3s cubic-bezier(0.34,1.5,0.64,1);
   }
   @keyframes chipIn { from{opacity:0;transform:scale(0.8)} to{opacity:1;transform:scale(1)} }
+  .chip-x {
+    cursor: pointer; opacity: 0.55; font-weight: 900; margin-left: 2px;
+    transition: opacity 0.15s, color 0.15s;
+  }
+  .chip-x:hover { opacity: 1; color: var(--red); }
   .player-count { font-size: 0.7rem; color: var(--muted); margin-top: 8px; }
   /* ── TEAM LIST ── */
   .team-row {
@@ -283,6 +288,7 @@
       <p>Mã phòng: <strong id="room-code-top" style="color:var(--gold)">—</strong> &nbsp;·&nbsp; Người chơi: <strong id="player-count-top" style="color:var(--cyan)">0</strong></p>
     </div>
     <div style="display:flex;gap:8px;flex-wrap:wrap;">
+      <button class="btn btn-purple" id="btn-open-display">📺 Màn hình lớn</button>
       <button class="btn btn-ghost" id="btn-end-game">🏁 Kết thúc</button>
       <button class="btn btn-red" id="btn-reset">🗑 Reset</button>
     </div>
@@ -403,22 +409,22 @@ const questions = [
   { level:1, text:"Liên hoan cuối năm bạn chọn:", a:"Hát", b:"Nhảy", special:false },
   { level:1, text:"Bộ môn thể thao nếu phải chọn:", a:"Chạy bộ", b:"Bơi lội", special:false },
   { level:1, text:"Nếu phải chọn đi du lịch:", a:"Lên núi", b:"Xuống biển", special:false },
-  { level:1, text:"Nếu lựa chọn đồ uống có cồn:", a:"Bia", b:"Rượu", special:false },
+  { level:1, text:"Nếu lựa chọn đồ uống unhealthy:", a:"Bia", b:"Rượu", special:false },
   { level:1, text:"Đến giờ nạp calo rồi, bạn chọn:", a:"Ăn lẩu", b:"Ăn nướng", special:false },
-  { level:1, text:"Chuông báo thức kêu:", a:"Dậy ngay", b:"5 phút nữa n lần", special:false },
+  { level:1, text:"Chuông báo thức kêu:", a:"Dậy ngay", b:"5 phút nữa", special:false },
   // ── LEVEL 2: Thấu Hiểu Trung (Ai là ai?) ──
-  { level:2, text:"Ai là người cục súc hơn?", type:"who_is" },
-  { level:2, text:"Ai là người tốt bụng hơn?", type:"who_is" },
+  { level:2, text:"Ai là người nóng tính hơn?", type:"who_is" },
+  { level:2, text:"Ai là người xinh gái hơn?", type:"who_is" },
   { level:2, text:"Ai là người nói nhiều hơn?", type:"who_is" },
   { level:2, text:"Ai là người hay quên hơn?", type:"who_is" },
-  { level:2, text:"Ai là người có tháng sinh nhỏ hơn, trùng tháng thì ngày nhỏ hơn?", type:"who_is" },
-  { level:2, text:"Ai là người hay làm lộ bí mật?", type:"who_is" },
+  { level:2, text:"Ai là người có tháng sinh nhỏ hơn?", type:"who_is" },
+  { level:2, text:"Ai là người hay quan tâm người khác hơn?", type:"who_is" },
   // ── LEVEL 3: Thấu Hiểu Sâu (Ăn Điểm Cao) ──
   { level:3, text:"Tỉnh nào bắt đầu bằng chữ 'T'?", type:"text", special:true },
   { level:3, text:"Món ăn nào dễ thấy trong ngày Tết?", type:"text", special:true },
-  { level:3, text:"Kể tên một thành viên thuộc ban kế hoạch?", type:"text", special:true },
-  { level:3, text:"Kể tên một thành viên nam phòng sales?", type:"text", special:true },
-  { level:3, text:"Kể tên một trợ lý sản xuất?", type:"text", special:true }
+  { level:3, text:"Kể tên một loài động vật sống dưới nước?", type:"text", special:true },
+  { level:3, text:"Từ số 1-4, bạn đang nghĩ đến số?", type:"text", special:true },
+  { level:3, text:"Một quốc gia đến từ châu Á?", type:"text", special:true }
 ];
 // ── STATE ──
 let roomCode = '';
@@ -485,6 +491,15 @@ function loadRoom(code) {
 document.getElementById('btn-copy-code').addEventListener('click', () => {
   navigator.clipboard.writeText(roomCode).then(() => toast('📋 Đã copy mã phòng!'));
 });
+// ── MỞ MÀN HÌNH LỚN (display.html) CHO KHÁN GIẢ ──
+document.getElementById('btn-open-display').addEventListener('click', () => {
+  if (!roomCode) { toast('⚠️ Chưa có phòng để hiển thị!'); return; }
+  window.open('display.html?room=' + roomCode, '_blank');
+});
+// ── ESCAPE HTML (an toàn khi chèn tên người chơi vào innerHTML) ──
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
 // ── LISTEN PLAYERS ──
 function listenPlayers() {
   db.ref('rooms/' + roomCode + '/players').on('value', snap => {
@@ -494,12 +509,26 @@ function listenPlayers() {
     if (list.length === 0) {
       grid.innerHTML = '<span style="color:var(--muted);font-size:0.85rem;">Chưa có ai vào phòng...</span>';
     } else {
-      grid.innerHTML = list.map(p => `<div class="player-chip">👤 ${p.name}</div>`).join('');
+      grid.innerHTML = list.map(p => `<div class="player-chip">👤 ${escapeHtml(p.name)}<span class="chip-x" data-name="${escapeHtml(p.name)}" title="Xoá người chơi này (gỡ tên để người khác/họ vào lại được)">✕</span></div>`).join('');
     }
     document.getElementById('player-count-lbl').textContent = list.length + ' người chơi';
     document.getElementById('player-count-top').textContent = list.length;
     document.getElementById('stat-players').textContent = list.length;
   });
+}
+// ── XOÁ NGƯỜI CHƠI (gỡ luôn phần "giữ tên" để tên đó dùng lại được) ──
+document.getElementById('player-grid').addEventListener('click', e => {
+  const x = e.target.closest('.chip-x');
+  if (!x) return;
+  removePlayer(x.dataset.name);
+});
+function removePlayer(name) {
+  if (!roomCode || !name) return;
+  if (!confirm('Xoá người chơi "' + name + '" khỏi phòng?\n(Tên này sẽ được giải phóng để vào lại hoặc dùng lại được)')) return;
+  const nameKey = normalizeAnswer(name);
+  db.ref('rooms/' + roomCode + '/players/' + name).remove();
+  db.ref('rooms/' + roomCode + '/nameReservations/' + nameKey).remove();
+  toast('🗑 Đã xoá "' + name + '" — tên đã được giải phóng');
 }
 // ── LISTEN TEAMS ──
 function listenTeams() {
@@ -588,6 +617,7 @@ document.getElementById('btn-make-teams').addEventListener('click', () => {
         score: 0
       };
     }
+    db.ref('rooms/' + roomCode + '/teamNameReservations').remove(); // dọn tên đội cũ nếu ghép lại
     db.ref('rooms/' + roomCode + '/teams').set(teams);
     toast('💞 Đã ghép ' + Object.keys(teams).length + ' đội!');
   });
@@ -613,7 +643,8 @@ function sendQuestion(idx) {
     question: q.text,
     type: qType,
     special: !!q.special,
-    revealed: false
+    revealed: false,
+    startedAt: firebase.database.ServerValue.TIMESTAMP
   };
   if (qType === 'choice') {
     payload.optionA = q.a;

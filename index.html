@@ -567,6 +567,24 @@
   }
   .timer-circle.urgent { border-color: var(--gold); color: var(--gold); animation: urgentPulse 0.5s ease-in-out infinite; }
   @keyframes urgentPulse { 50% { box-shadow: 0 0 20px rgba(255,214,10,0.6); } }
+  /* ── PARTNER ANSWER STATUS ── */
+  .partner-status-pill {
+    width: 100%; max-width: 480px; text-align: center;
+    padding: 9px 14px; border-radius: 99px;
+    font-size: 0.78rem; font-weight: 700;
+    background: rgba(255,255,255,0.05); border: 1px solid var(--border);
+    color: var(--muted);
+    transition: background 0.25s, border-color 0.25s, color 0.25s;
+  }
+  .partner-status-pill.answered {
+    background: rgba(0,245,212,0.12); border-color: rgba(0,245,212,0.4); color: var(--cyan);
+  }
+  /* ── LEADERBOARD (màn kết quả) ── */
+  .leaderboard-card { padding: 20px 18px; }
+  .leaderboard-title {
+    font-size: 0.7rem; font-weight: 800; letter-spacing: 0.18em;
+    text-transform: uppercase; color: var(--muted); margin-bottom: 12px; text-align: center;
+  }
   /* RESPONSIVE */
   @media (max-width: 360px) {
     .logo-text { font-size: 2.2rem; }
@@ -672,7 +690,7 @@
       <div class="howto-title">🎮 HƯỚNG DẪN CHƠI NHANH</div>
       <div class="howto-tabs">
         <button class="howto-tab-btn active" data-tab="1" onclick="switchHowtoTab(1)">Level 1<br>Thấu Hiểu Nông</button>
-        <button class="howto-tab-btn" data-tab="2" onclick="switchHowtoTab(2)">Level 2<br>Thấu Hiểu Vừa</button>
+        <button class="howto-tab-btn" data-tab="2" onclick="switchHowtoTab(2)">Level 2<br>Thấu Hiểu Trung</button>
         <button class="howto-tab-btn" data-tab="3" onclick="switchHowtoTab(3)">Level 3<br>Thấu Hiểu Sâu</button>
       </div>
       <div class="howto-scroll">
@@ -680,8 +698,8 @@
         <div class="howto-panel active" id="howto-panel-1">
           <div class="howto-rule-box">
             <b>Luật chơi:</b> Trả lời câu hỏi lựa chọn <b>A hoặc B</b>.<br>
-            Nếu <b>CẢ HAI</b> thành viên cùng chọn đáp án giống nhau → <span class="howto-pts good">+1 điểm</span>.<br>
-            Chọn khác nhau → <span class="howto-pts zero">0 điểm</span>.
+            Nếu <b>CẢ HAI</b> thành viên cùng chọn đúng đáp án giống nhau → <span class="howto-pts good">+1 điểm</span>.<br>
+            Chọn lệch nhau → <span class="howto-pts zero">0 điểm</span>.
           </div>
           <div>
             <div class="howto-demo-label">Thử ngay</div>
@@ -695,13 +713,13 @@
         <!-- LEVEL 2 -->
         <div class="howto-panel" id="howto-panel-2">
           <div class="howto-rule-box">
-            <b>Luật chơi:</b> Gõ tên bạn hoặc đồng đội.<br>
-            Nếu <b>TRÙNG KHỚP</b> (Chọn cùng 1 tên) → <span class="howto-pts good">+2 điểm</span>.<br>
-            Khác nhau → <span class="howto-pts zero">0 điểm</span>.
+            <b>Luật chơi:</b> Bí mật gõ tên bạn hoặc đồng đội cho câu hỏi (VD: Ai nóng tính hơn?).<br>
+            Nếu <b>TRÙNG KHỚP</b> (Cùng chọn 1 tên) → <span class="howto-pts good">+2 điểm</span>.<br>
+            Lệch nhau → <span class="howto-pts zero">0 điểm</span>.
           </div>
           <div>
             <div class="howto-demo-label">Thử ngay</div>
-            <div class="howto-demo-q">Ai là người có khả năng bùng kèo đi chơi vào phút cuối cao hơn?</div>
+            <div class="howto-demo-q">Ai là người có khả năng bùng kèo đi chơi vào phút chót cao hơn?</div>
             <div class="howto-demo-input-row">
               <input id="demo-l2-input" placeholder="Gõ tên bạn hoặc đồng đội..." maxlength="20">
               <button class="howto-demo-send" onclick="demoSendL2()">Gửi</button>
@@ -711,16 +729,16 @@
         <!-- LEVEL 3 -->
         <div class="howto-panel" id="howto-panel-3">
           <div class="howto-rule-box">
-            <b>Luật chơi:</b> Câu trả lời do bạn tự chọn và điền.<br>
-            Điền khác với đồng đội → <span class="howto-pts zero">0 điểm</span>.<br>
-            Điền trùng câu trả lời với đồng đội → <span class="howto-pts good">+1 điểm</span>.<br>
-            Điền trùng câu trả lời với đồng đội + <b>DUY NHẤT</b> (không Đội nào khác trùng) → <span class="howto-pts great">+3 điểm 🌟</span>.
+            <b>Luật chơi:</b> Câu hỏi tự điền chữ.<br>
+            Điền sai với đồng đội → <span class="howto-pts zero">0 điểm</span>.<br>
+            Điền đúng + trùng câu trả lời với đồng đội → <span class="howto-pts good">+1 điểm</span>.<br>
+            Điền đúng + <b>DUY NHẤT</b> (không đội nào khác trùng) → <span class="howto-pts great">+3 điểm 🌟</span>.
           </div>
           <div>
             <div class="howto-demo-label">Thử ngay</div>
-            <div class="howto-demo-q">Điền tên 1 môn thể thao sử dụng tay?</div>
+            <div class="howto-demo-q">Hãy điền tên 1 môn thể thao sử dụng tay?</div>
             <div class="howto-demo-input-row">
-              <input id="demo-l3-input" placeholder="Điền đáp án..." maxlength="30">
+              <input id="demo-l3-input" placeholder="Gõ thử đáp án..." maxlength="30">
               <button class="howto-demo-send" onclick="demoSendL3()">Gửi thử</button>
             </div>
           </div>
@@ -735,6 +753,9 @@
     <div style="width:100%;max-width:480px;display:flex;justify-content:space-between;align-items:center;padding:0 4px;">
       <div id="round-badge" class="q-round-badge">Câu 1 / 20</div>
       <div class="timer-wrap"><div class="timer-circle" id="timer-circle">—</div></div>
+    </div>
+    <div class="partner-status-pill" id="partner-status-pill">
+      <span id="partner-status-text">⏳ Đồng đội chưa trả lời...</span>
     </div>
     <div id="special-badge-wrap" style="display:none;width:100%;max-width:480px;">
       <div class="q-special-badge" id="special-badge-text">🌟 Câu ăn điểm đặc biệt · +3 điểm</div>
@@ -779,6 +800,10 @@
     <div class="team-score-banner" id="score-banner-r">
       <div><div class="tsb-label">Tổng điểm đội</div><div class="tsb-team" id="tsb-r-team">—</div></div>
       <div class="tsb-score" id="tsb-r-score">0</div>
+    </div>
+    <div class="card leaderboard-card" id="leaderboard-card">
+      <div class="leaderboard-title">🏆 Bảng xếp hạng hiện tại</div>
+      <div class="ws-list" id="leaderboard-list" style="margin-bottom:0;max-width:none;"></div>
     </div>
   </div>
 </div><!-- /app -->
@@ -949,6 +974,11 @@ function runCountdown(cb) {
 let myName='', myRoom='', myTeam='', myTeamKey='';
 let hasAnswered=false, currentRound=0;
 let prevRound=-1, prevRevealed=false, prevStatus='';
+let partnerListenerAttached=false;
+// ── ĐỒNG BỘ THỜI GIAN SERVER (để đếm giờ giống nhau trên mọi máy) ──
+let serverTimeOffset = 0;
+db.ref('.info/serverTimeOffset').on('value', snap => { serverTimeOffset = snap.val() || 0; });
+function serverNow() { return Date.now() + serverTimeOffset; }
 // ─────────────────────────────────────────
 // JOIN
 // ─────────────────────────────────────────
@@ -963,21 +993,41 @@ function joinRoom() {
   if (!myRoom) { toast('⚠️ Nhập mã phòng!'); return; }
   const btn = document.getElementById('btn-join');
   btn.textContent = '⏳ Đang kết nối...'; btn.disabled = true;
+  const resetBtn = () => { btn.textContent = 'Vào phòng 🚀'; btn.disabled = false; };
   db.ref('rooms/' + myRoom).once('value').then(snap => {
     if (!snap.exists()) {
       toast('❌ Phòng không tồn tại!');
-      btn.textContent = 'Vào phòng 🚀'; btn.disabled = false;
+      resetBtn();
       return;
     }
-    // Register player
-    db.ref('rooms/' + myRoom + '/players/' + myName).set({ name:myName, score:0, answer:'' });
-    showScreen('lobby');
-    toast(`🎉 Chào ${myName}! Đã vào phòng ${myRoom}`);
-    findMyTeam();
-    listenGame();
+    const nameKey = normalizeAnswer(myName);
+    if (!nameKey) { toast('⚠️ Tên không hợp lệ, thử tên khác!'); resetBtn(); return; }
+    // ── Giữ tên theo nguyên tắc "ai gửi trước được trước" ──
+    // Dùng transaction để Firebase tự xử lý an toàn khi 2 người bấm cùng lúc.
+    db.ref('rooms/' + myRoom + '/nameReservations/' + nameKey).transaction(curr => {
+      if (curr === null) return myName; // tên chưa ai dùng -> giữ tên này
+      return; // abort -> tên đã có người dùng, không ghi gì cả
+    }, (error, committed) => {
+      if (error) {
+        toast('❌ Lỗi: ' + error.message);
+        resetBtn();
+        return;
+      }
+      if (!committed) {
+        toast('❌ Tên "' + myName + '" đã có người dùng trong phòng này! Hãy chọn tên khác.');
+        resetBtn();
+        return;
+      }
+      // Giữ tên thành công -> đăng ký người chơi
+      db.ref('rooms/' + myRoom + '/players/' + myName).set({ name:myName, score:0, answer:'' });
+      showScreen('lobby');
+      toast(`🎉 Chào ${myName}! Đã vào phòng ${myRoom}`);
+      findMyTeam();
+      listenGame();
+    });
   }).catch(e => {
     toast('❌ Lỗi: ' + e.message);
-    btn.textContent = 'Vào phòng 🚀'; btn.disabled = false;
+    resetBtn();
   });
 }
 // ─────────────────────────────────────────
@@ -1000,6 +1050,11 @@ function findMyTeam() {
         renderTeamNameUI(team, key);
         // Score banner
         updateScoreBanners(team.score||0, partner, team.teamName);
+        // Lắng nghe trạng thái trả lời của đồng đội (chỉ gắn 1 lần cho cả game)
+        if (partner && !partnerListenerAttached) {
+          partnerListenerAttached = true;
+          listenPartnerStatus(partner);
+        }
       }
     });
     // keep updating score
@@ -1025,6 +1080,19 @@ function updateScoreBanners(score, partnerName, teamName) {
   document.getElementById('tsb-q-score')&&(document.getElementById('tsb-q-score').textContent = score);
   document.getElementById('tsb-r-team')&&(document.getElementById('tsb-r-team').textContent = teamLabel);
   document.getElementById('tsb-r-score')&&(document.getElementById('tsb-r-score').textContent = score);
+}
+// ─────────────────────────────────────────
+// PARTNER STATUS (báo "đồng đội đã trả lời" ngay trên màn câu hỏi)
+// ─────────────────────────────────────────
+function listenPartnerStatus(partnerName) {
+  db.ref('rooms/' + myRoom + '/answers/' + partnerName).on('value', snap => {
+    const pill = document.getElementById('partner-status-pill');
+    if (!pill) return;
+    const answered = snap.exists();
+    pill.classList.toggle('answered', answered);
+    document.getElementById('partner-status-text').textContent = answered
+      ? '✅ Đồng đội đã trả lời!' : '⏳ Đồng đội chưa trả lời...';
+  });
 }
 // ─────────────────────────────────────────
 // LISTEN GAME
@@ -1102,15 +1170,24 @@ function renderQuestion(game) {
     document.getElementById('btn-b').className = 'btn-answer';
   }
   document.getElementById('status-chosen').style.display = 'none';
-  // Timer
+  // Reset "đồng đội đã trả lời" cho vòng mới
+  const partnerPill = document.getElementById('partner-status-pill');
+  if (partnerPill) {
+    partnerPill.classList.remove('answered');
+    document.getElementById('partner-status-text').textContent = '⏳ Đồng đội chưa trả lời...';
+  }
+  // Timer — đồng bộ theo server time để mọi máy luôn thấy cùng 1 số giây,
+  // dù mạng chậm hay vào trễ giữa vòng (tính từ game.startedAt do host ghi lên).
   clearInterval(timerInterval);
-  let t = 30;
+  const QUESTION_DURATION = 30;
+  const startedAt = game.startedAt || serverNow();
   const tc = document.getElementById('timer-circle');
   const tick = () => {
-    tc.textContent = t;
-    tc.classList.toggle('urgent', t <= 5);
-    if (t <= 0) clearInterval(timerInterval);
-    else t--;
+    const elapsed = Math.floor((serverNow() - startedAt) / 1000);
+    const remaining = Math.max(0, QUESTION_DURATION - elapsed);
+    tc.textContent = remaining;
+    tc.classList.toggle('urgent', remaining <= 5 && remaining > 0);
+    if (remaining <= 0) clearInterval(timerInterval);
   };
   tick();
   timerInterval = setInterval(tick, 1000);
@@ -1226,11 +1303,29 @@ function showResultForPlayer(game) {
         </div>`;
       document.getElementById('result-points-wrap').innerHTML = match
         ? `<div class="result-points">+${pts} điểm cho đội${qType==='text' && !isUnique ? ' (đội khác cũng đoán giống)' : ''}</div>` : '';
+      renderLeaderboard(teams);
       showScreen('result');
       if (match) { sfxSuccess(); floatScore(pts); }
       else sfxFail();
     });
   });
+}
+// ─────────────────────────────────────────
+// LEADERBOARD GIỮA TRẬN (hiện ở màn kết quả sau mỗi câu)
+// ─────────────────────────────────────────
+function renderLeaderboard(teams) {
+  const el = document.getElementById('leaderboard-list');
+  if (!el) return;
+  const teamLabel = t => t.teamName || (t.player1 + ' & ' + (t.player2||'?'));
+  const list = Object.entries(teams).map(([key, t]) => ({ key, ...t }));
+  list.sort((a,b) => (b.score||0) - (a.score||0));
+  const medals = ['🥇','🥈','🥉'];
+  el.innerHTML = list.map((t,i) => `
+    <div class="ws-row ${t.key===myTeamKey?'my-team':''}">
+      <span class="ws-rank">${medals[i]||'#'+(i+1)}</span>
+      <span class="ws-team-name">${teamLabel(t)}${t.key===myTeamKey?' 👈':''}</span>
+      <span class="ws-pts">${t.score||0}</span>
+    </div>`).join('');
 }
 // ─────────────────────────────────────────
 // END GAME
@@ -1288,10 +1383,32 @@ function saveTeamName() {
   const val = document.getElementById('inp-team-name').value.trim();
   if (!val) { toast('⚠️ Nhập tên đội trước đã!'); return; }
   if (!myTeamKey) return;
-  db.ref('rooms/' + myRoom + '/teams/' + myTeamKey + '/teamName').set(val).then(() => {
-    document.getElementById('team-name-edit-row').classList.remove('show');
-    toast('✅ Đã đổi tên đội thành "' + val + '"');
-    sfxClick();
+  const newKey = normalizeAnswer(val);
+  if (!newKey) { toast('⚠️ Tên đội không hợp lệ, thử tên khác!'); return; }
+  const oldName = myTeam && myTeam.teamName;
+  const oldKey = oldName ? normalizeAnswer(oldName) : null;
+  const applyName = () => {
+    db.ref('rooms/' + myRoom + '/teams/' + myTeamKey + '/teamName').set(val).then(() => {
+      if (oldKey && oldKey !== newKey) {
+        db.ref('rooms/' + myRoom + '/teamNameReservations/' + oldKey).remove();
+      }
+      document.getElementById('team-name-edit-row').classList.remove('show');
+      toast('✅ Đã đổi tên đội thành "' + val + '"');
+      sfxClick();
+    });
+  };
+  if (oldKey === newKey) { applyName(); return; } // chỉ đổi hoa/thường/khoảng trắng -> không cần giữ tên lại
+  // ── Giữ tên đội theo nguyên tắc "ai lưu trước được trước" ──
+  db.ref('rooms/' + myRoom + '/teamNameReservations/' + newKey).transaction(curr => {
+    if (curr === null) return myTeamKey;
+    return; // abort -> tên đội đã có đội khác dùng
+  }, (error, committed) => {
+    if (error) { toast('❌ Lỗi: ' + error.message); return; }
+    if (!committed) {
+      toast('❌ Tên đội "' + val + '" đã có đội khác dùng rồi!');
+      return;
+    }
+    applyName();
   });
 }
 // ─────────────────────────────────────────

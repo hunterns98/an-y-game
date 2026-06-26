@@ -1,0 +1,642 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ăn Ý ❤️ — Màn hình lớn</title>
+<style>
+  :root {
+    --bg:       #0a0015;
+    --border:   rgba(255,255,255,0.12);
+    --pink:     #ff2d78;
+    --cyan:     #00f5d4;
+    --gold:     #ffd60a;
+    --purple:   #9b5de5;
+    --green:    #22c55e;
+    --text:     #f0e6ff;
+    --muted:    #9980b0;
+    --radius:   20px;
+    --radius-lg:28px;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body {
+    height: 100%; background: var(--bg); color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    overflow-x: hidden;
+  }
+  body {
+    background-image:
+      radial-gradient(ellipse 90% 50% at 50% -10%, rgba(155,93,229,0.3) 0%, transparent 65%),
+      radial-gradient(ellipse 60% 40% at 85% 90%, rgba(255,45,120,0.16) 0%, transparent 60%);
+    min-height: 100vh;
+  }
+  /* ── STARS (nhẹ, chỉ trang trí) ── */
+  .stars { position: fixed; inset: 0; pointer-events: none; z-index: 0; overflow: hidden; }
+  .star { position: absolute; border-radius: 50%; background: white; opacity: 0; animation: twinkle var(--d,4s) var(--delay,0s) infinite; }
+  @keyframes twinkle { 0%,100%{opacity:0;transform:scale(0.5);} 50%{opacity:var(--op,0.5);transform:scale(1);} }
+  @media (prefers-reduced-motion: reduce) { .star { animation: none; } }
+  /* ── LAYOUT ── */
+  #app { position: relative; z-index: 1; min-height: 100vh; display: flex; flex-direction: column; align-items: center; padding: 0 28px 40px; }
+  /* ── TOP BAR ── */
+  #top-bar {
+    display: none; width: 100%; max-width: 1100px;
+    align-items: center; justify-content: space-between;
+    padding: 22px 4px 18px;
+  }
+  .brand {
+    font-size: 1.5rem; font-weight: 900;
+    background: linear-gradient(135deg, var(--pink), var(--gold), var(--cyan));
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+  }
+  .room-pill {
+    display: flex; align-items: center; gap: 10px;
+    background: rgba(255,214,10,0.1); border: 1.5px dashed rgba(255,214,10,0.4);
+    border-radius: 99px; padding: 8px 20px;
+  }
+  .room-pill span { font-size: 0.65rem; letter-spacing: 0.18em; color: var(--muted); text-transform: uppercase; }
+  .room-pill strong { font-size: 1.15rem; font-weight: 900; color: var(--gold); letter-spacing: 0.2em; }
+  /* ── SCREEN MANAGEMENT ── */
+  .screen { display: none; flex-direction: column; align-items: center; width: 100%; max-width: 1100px; gap: 22px; flex: 1; justify-content: center; }
+  .screen.active { display: flex; animation: screenIn 0.45s cubic-bezier(0.34,1.4,0.64,1); }
+  @keyframes screenIn { from{opacity:0;transform:translateY(18px);} to{opacity:1;transform:translateY(0);} }
+  /* ── ENTER ROOM SCREEN ── */
+  .enter-card {
+    background: linear-gradient(135deg, rgba(255,255,255,0.08), rgba(255,255,255,0.02));
+    border: 1px solid var(--border); border-radius: var(--radius-lg);
+    padding: 48px 40px; text-align: center; max-width: 480px;
+  }
+  .enter-emoji { font-size: 3.4rem; display: block; margin-bottom: 10px; }
+  .enter-title { font-size: 1.6rem; font-weight: 900; margin-bottom: 8px; }
+  .enter-sub { font-size: 0.9rem; color: var(--muted); margin-bottom: 26px; line-height: 1.5; }
+  .enter-input {
+    width: 100%; padding: 16px; text-align: center; letter-spacing: 0.35em; text-transform: uppercase;
+    background: rgba(255,255,255,0.07); border: 1.5px solid var(--border); border-radius: var(--radius);
+    color: var(--text); font-size: 1.5rem; font-weight: 900; outline: none; margin-bottom: 14px;
+  }
+  .enter-input:focus { border-color: var(--cyan); }
+  .enter-btn {
+    width: 100%; padding: 16px; border: none; border-radius: var(--radius);
+    background: linear-gradient(135deg, var(--pink), #d4006d); color: white;
+    font-size: 1rem; font-weight: 800; cursor: pointer; letter-spacing: 0.05em;
+  }
+  .enter-btn:hover { filter: brightness(1.1); }
+  .enter-error { color: #ff6b6b; font-size: 0.85rem; margin-top: 12px; min-height: 18px; font-weight: 700; }
+  /* ── WAITING SCREEN ── */
+  .waiting-card { text-align: center; }
+  .waiting-emoji { font-size: 4rem; animation: pulseEmoji 1.6s ease-in-out infinite; display: block; }
+  @keyframes pulseEmoji { 50% { transform: scale(1.1); } }
+  .waiting-title { font-size: 2rem; font-weight: 900; margin: 10px 0 6px; }
+  .join-instructions { font-size: 1rem; color: var(--muted); margin-bottom: 18px; }
+  .big-room-code {
+    font-size: 4.2rem; font-weight: 900; letter-spacing: 0.3em; color: var(--gold);
+    text-shadow: 0 0 40px rgba(255,214,10,0.5);
+  }
+  .waiting-section { width: 100%; max-width: 900px; text-align: center; }
+  .waiting-section-label {
+    font-size: 0.75rem; font-weight: 800; letter-spacing: 0.2em; text-transform: uppercase;
+    color: var(--muted); margin-bottom: 14px;
+  }
+  .chip-row { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; }
+  .d-chip {
+    background: rgba(155,93,229,0.15); border: 1px solid rgba(155,93,229,0.35);
+    border-radius: 99px; padding: 10px 20px; font-size: 1.05rem; font-weight: 700;
+    animation: chipIn 0.3s cubic-bezier(0.34,1.5,0.64,1);
+  }
+  @keyframes chipIn { from{opacity:0;transform:scale(0.8)} to{opacity:1;transform:scale(1)} }
+  .d-chip-empty { color: var(--muted); font-size: 0.95rem; }
+  #d-player-count { font-size: 0.85rem; color: var(--muted); margin-top: 12px; }
+  .pair-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  @media (max-width: 700px) { .pair-grid { grid-template-columns: 1fr; } }
+  .d-pair {
+    display: flex; align-items: center; gap: 12px; text-align: left;
+    background: rgba(255,255,255,0.05); border: 1px solid var(--border);
+    border-radius: 14px; padding: 14px 18px;
+  }
+  .d-pair-num {
+    flex-shrink: 0; width: 32px; height: 32px; border-radius: 50%;
+    background: rgba(255,214,10,0.18); border: 1px solid rgba(255,214,10,0.4);
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 900; color: var(--gold); font-size: 0.95rem;
+  }
+  .d-pair-names { font-size: 1.05rem; font-weight: 700; }
+  /* ── QUESTION SCREEN ── */
+  #screen-question { gap: 18px; }
+  .top-meta-row { width: 100%; display: flex; justify-content: space-between; align-items: center; }
+  .round-badge {
+    background: rgba(255,214,10,0.15); border: 1px solid rgba(255,214,10,0.35);
+    border-radius: 99px; padding: 8px 22px;
+    font-size: 0.95rem; font-weight: 800; color: var(--gold);
+    letter-spacing: 0.1em; text-transform: uppercase;
+  }
+  #d-timer-wrap { display: flex; align-items: center; }
+  .timer-circle {
+    width: 100px; height: 100px; border-radius: 50%;
+    border: 5px solid var(--pink);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 2.1rem; font-weight: 900; color: var(--pink);
+    background: rgba(255,45,120,0.1);
+    transition: color 0.3s, border-color 0.3s;
+  }
+  .timer-circle.urgent { border-color: var(--gold); color: var(--gold); animation: urgentPulse 0.5s ease-in-out infinite; }
+  @keyframes urgentPulse { 50% { box-shadow: 0 0 28px rgba(255,214,10,0.65); } }
+  .special-badge {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: rgba(255,45,120,0.2); border: 1px solid rgba(255,45,120,0.4);
+    border-radius: 99px; padding: 7px 20px;
+    font-size: 0.85rem; font-weight: 800; color: var(--pink);
+  }
+  .question-display-card {
+    width: 100%; text-align: center; padding: 36px 30px;
+    background: linear-gradient(135deg, rgba(255,255,255,0.08), rgba(255,255,255,0.02));
+    border: 1px solid var(--border); border-radius: var(--radius-lg);
+  }
+  .question-display-text {
+    font-size: 2.3rem; font-weight: 900; line-height: 1.35;
+  }
+  .question-display-text.animate-in { animation: questionIn 0.5s cubic-bezier(0.34,1.4,0.64,1); }
+  @keyframes questionIn { from{opacity:0;transform:scale(0.92) translateY(8px);} to{opacity:1;transform:scale(1) translateY(0);} }
+  .options-row { display: flex; gap: 16px; justify-content: center; margin-top: 22px; }
+  .opt-box {
+    flex: 1; max-width: 320px;
+    background: rgba(255,255,255,0.06); border: 1.5px solid var(--border);
+    border-radius: var(--radius); padding: 16px 18px;
+  }
+  .opt-tag { display: block; font-size: 0.7rem; letter-spacing: 0.2em; color: var(--muted); text-transform: uppercase; margin-bottom: 6px; }
+  #d-opt-a, #d-opt-b { font-size: 1.15rem; font-weight: 700; }
+  .progress-wrap { text-align: center; }
+  .progress-label { font-size: 0.85rem; letter-spacing: 0.1em; color: var(--muted); text-transform: uppercase; margin-bottom: 6px; }
+  .progress-count { font-size: 2rem; font-weight: 900; color: var(--cyan); }
+  /* ── REVEAL BOARD ── */
+  .reveal-board { width: 100%; display: none; flex-direction: column; gap: 10px; max-height: 50vh; overflow-y: auto; }
+  .reveal-row {
+    display: flex; align-items: center; justify-content: space-between; gap: 14px;
+    padding: 14px 20px; border-radius: 14px;
+    background: rgba(255,255,255,0.05); border: 1.5px solid var(--border);
+    font-size: 0.98rem;
+  }
+  .reveal-row.match   { border-color: var(--green); background: rgba(34,197,94,0.1); }
+  .reveal-row.nomatch { border-color: rgba(239,68,68,0.35); background: rgba(239,68,68,0.06); }
+  .rr-team   { font-weight: 800; flex: 1; }
+  .rr-ans    { font-size: 0.88rem; color: var(--muted); flex: 1.4; }
+  .rr-result { font-weight: 900; font-size: 0.95rem; white-space: nowrap; }
+  .rr-result.win  { color: var(--green); }
+  .rr-result.lose { color: var(--muted); }
+  .reveal-empty { color: var(--muted); text-align: center; padding: 20px; }
+  /* ── ENDED SCREEN ── */
+  #screen-ended { position: relative; }
+  #d-confetti-canvas { position: fixed; inset: 0; pointer-events: none; z-index: 0; }
+  .ended-content { position: relative; z-index: 1; text-align: center; }
+  .ended-label { font-size: 0.8rem; letter-spacing: 0.3em; color: var(--muted); text-transform: uppercase; margin-bottom: 14px; }
+  .ended-crown { font-size: 6rem; display: block; animation: crownBounce 1.5s ease-in-out infinite; }
+  @keyframes crownBounce { 50% { transform: translateY(-12px) scale(1.08); } }
+  .ended-name { font-size: 3.4rem; font-weight: 900; color: var(--gold); margin: 10px 0; text-shadow: 0 0 50px rgba(255,214,10,0.6); }
+  .ended-score { font-size: 1.7rem; font-weight: 900; color: var(--cyan); margin-bottom: 8px; }
+  .ended-sub { font-size: 0.85rem; letter-spacing: 0.2em; color: var(--purple); text-transform: uppercase; margin-bottom: 30px; }
+  .ended-list { display: flex; flex-direction: column; gap: 10px; max-width: 480px; margin: 0 auto; }
+  .d-ws-row {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 14px 20px; border-radius: 14px;
+    background: rgba(255,255,255,0.06); border: 1.5px solid var(--border);
+    font-size: 1.05rem;
+  }
+  .d-ws-rank { width: 30px; font-size: 1.3rem; }
+  .d-ws-team { flex: 1; text-align: left; padding: 0 12px; font-weight: 700; }
+  .d-ws-pts { font-weight: 900; color: var(--gold); font-size: 1.15rem; }
+  @media (max-width: 700px) {
+    .question-display-text { font-size: 1.6rem; }
+    .big-room-code { font-size: 2.8rem; }
+    .ended-name { font-size: 2.2rem; }
+    .timer-circle { width: 76px; height: 76px; font-size: 1.6rem; }
+  }
+</style>
+</head>
+<body>
+<div class="stars" id="stars"></div>
+<div id="top-bar">
+  <div class="brand">❤️ Ăn Ý — Màn hình lớn</div>
+  <div class="room-pill"><span>Mã phòng</span><strong id="top-room-code">—</strong></div>
+</div>
+<div id="app">
+  <!-- ── SCREEN: ENTER ROOM CODE ── -->
+  <div class="screen active" id="screen-enter">
+    <div class="enter-card">
+      <span class="enter-emoji">📺</span>
+      <div class="enter-title">Ăn Ý — Màn hình lớn</div>
+      <p class="enter-sub">Nhập mã phòng để chiếu lên TV/máy chiếu cho mọi người cùng theo dõi trận đấu.</p>
+      <input class="enter-input" id="d-inp-room" placeholder="XXXXX" maxlength="5" autocomplete="off">
+      <button class="enter-btn" id="d-btn-connect">Hiển thị 📺</button>
+      <p class="enter-error" id="d-enter-error"></p>
+    </div>
+  </div>
+  <!-- ── SCREEN: WAITING (LOBBY) ── -->
+  <div class="screen" id="screen-waiting">
+    <div class="waiting-card">
+      <span class="waiting-emoji">🎮</span>
+      <div class="waiting-title">Đang chờ host bắt đầu...</div>
+      <div class="join-instructions">Mở app trên điện thoại và nhập mã phòng để tham gia 👇</div>
+      <div class="big-room-code" id="d-room-code-big">—</div>
+    </div>
+    <div class="waiting-section">
+      <div class="waiting-section-label">Người chơi đã vào phòng</div>
+      <div class="chip-row" id="d-player-chips"></div>
+      <div id="d-player-count">0 người đã vào</div>
+    </div>
+    <div class="waiting-section" id="d-teams-section" style="display:none;">
+      <div class="waiting-section-label">💞 Các cặp đấu</div>
+      <div class="pair-grid" id="d-team-pairs"></div>
+    </div>
+  </div>
+  <!-- ── SCREEN: QUESTION / REVEAL ── -->
+  <div class="screen" id="screen-question">
+    <div class="top-meta-row">
+      <div id="d-round-badge" class="round-badge">Level 1 · Câu 1 / 20</div>
+      <div id="d-timer-wrap"><div class="timer-circle" id="d-timer-circle">—</div></div>
+    </div>
+    <div id="d-special-badge" class="special-badge" style="display:none;"></div>
+    <div class="question-display-card">
+      <div class="question-display-text" id="d-question-text">...</div>
+      <div class="options-row" id="d-options-row" style="display:none;">
+        <div class="opt-box"><span class="opt-tag">Lựa chọn A</span><span id="d-opt-a">—</span></div>
+        <div class="opt-box"><span class="opt-tag">Lựa chọn B</span><span id="d-opt-b">—</span></div>
+      </div>
+    </div>
+    <div class="progress-wrap" id="d-progress-wrap">
+      <div class="progress-label">Số đội đã trả lời</div>
+      <div class="progress-count" id="d-progress-count">0 / 0</div>
+    </div>
+    <div class="reveal-board" id="d-reveal-board"></div>
+  </div>
+  <!-- ── SCREEN: ENDED ── -->
+  <div class="screen" id="screen-ended">
+    <canvas id="d-confetti-canvas"></canvas>
+    <div class="ended-content">
+      <p class="ended-label">🎮 Ăn Ý · Game Over</p>
+      <span class="ended-crown">🏆</span>
+      <div class="ended-name" id="d-ws-name">—</div>
+      <div class="ended-score" id="d-ws-score">0 điểm</div>
+      <div class="ended-sub">Đội chiến thắng 💞</div>
+      <div class="ended-list" id="d-ws-list"></div>
+    </div>
+  </div>
+</div>
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/12.14.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/12.14.0/firebase-database-compat.js"></script>
+<script src="firebase.js"></script>
+<script>
+// ─────────────────────────────────────────
+// STARS (trang trí nhẹ)
+// ─────────────────────────────────────────
+(function() {
+  const c = document.getElementById('stars');
+  for (let i = 0; i < 50; i++) {
+    const s = document.createElement('div');
+    s.className = 'star';
+    const size = Math.random() * 2.5 + 1;
+    s.style.cssText = `
+      width:${size}px; height:${size}px;
+      left:${Math.random()*100}%; top:${Math.random()*100}%;
+      --d:${(Math.random()*5+3).toFixed(1)}s;
+      --delay:-${(Math.random()*8).toFixed(1)}s;
+      --op:${(Math.random()*0.5+0.2).toFixed(2)};
+    `;
+    c.appendChild(s);
+  }
+})();
+// ─────────────────────────────────────────
+// SCREEN MANAGEMENT
+// ─────────────────────────────────────────
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  const el = document.getElementById('screen-' + id);
+  if (el) el.classList.add('active');
+}
+// ─────────────────────────────────────────
+// ĐỒNG BỘ THỜI GIAN SERVER (đếm giờ giống y hệt màn hình người chơi)
+// ─────────────────────────────────────────
+let serverTimeOffset = 0;
+db.ref('.info/serverTimeOffset').on('value', snap => { serverTimeOffset = snap.val() || 0; });
+function serverNow() { return Date.now() + serverTimeOffset; }
+// ─────────────────────────────────────────
+// STATE
+// ─────────────────────────────────────────
+let myRoom = '';
+let playersCache = {};
+let teamsCache = {};
+let answersCache = {};
+let gameCache = null;
+let prevDisplayRound = -1;
+let displayTimerInterval;
+// ─────────────────────────────────────────
+// KẾT NỐI PHÒNG
+// ─────────────────────────────────────────
+document.getElementById('d-btn-connect').addEventListener('click', () => {
+  const code = document.getElementById('d-inp-room').value.trim().toUpperCase();
+  if (!code) { showEnterError('⚠️ Nhập mã phòng!'); return; }
+  connectRoom(code);
+});
+document.getElementById('d-inp-room').addEventListener('keypress', e => {
+  if (e.key === 'Enter') document.getElementById('d-btn-connect').click();
+});
+function showEnterError(msg) { document.getElementById('d-enter-error').textContent = msg; }
+function connectRoom(code) {
+  showEnterError('');
+  myRoom = code;
+  db.ref('rooms/' + myRoom).once('value').then(snap => {
+    if (!snap.exists()) {
+      showEnterError('❌ Phòng "' + code + '" không tồn tại!');
+      return;
+    }
+    document.getElementById('top-room-code').textContent = myRoom;
+    document.getElementById('top-bar').style.display = 'flex';
+    document.getElementById('d-room-code-big').textContent = myRoom;
+    history.replaceState(null, '', '?room=' + myRoom);
+    listenPlayers();
+    listenTeams();
+    listenAnswers();
+    listenGameDisplay();
+  }).catch(e => showEnterError('❌ Lỗi: ' + e.message));
+}
+// Tự kết nối nếu URL có ?room=XXXXX (host bấm "Màn hình lớn" từ trang admin)
+(function initFromURL() {
+  const params = new URLSearchParams(window.location.search);
+  const code = (params.get('room') || '').toUpperCase().trim();
+  if (code) {
+    document.getElementById('d-inp-room').value = code;
+    connectRoom(code);
+  }
+})();
+// ─────────────────────────────────────────
+// LẮNG NGHE NGƯỜI CHƠI (màn chờ)
+// ─────────────────────────────────────────
+function listenPlayers() {
+  db.ref('rooms/' + myRoom + '/players').on('value', snap => {
+    playersCache = snap.val() || {};
+    renderWaitingPlayers();
+  });
+}
+function renderWaitingPlayers() {
+  const list = Object.values(playersCache);
+  const el = document.getElementById('d-player-chips');
+  if (!el) return;
+  el.innerHTML = list.length
+    ? list.map(p => `<div class="d-chip">👤 ${p.name}</div>`).join('')
+    : '<div class="d-chip-empty">Chưa có ai vào phòng...</div>';
+  document.getElementById('d-player-count').textContent = list.length + ' người đã vào';
+}
+// ─────────────────────────────────────────
+// LẮNG NGHE ĐỘI (cặp đấu + dùng cho tiến độ/reveal)
+// ─────────────────────────────────────────
+function listenTeams() {
+  db.ref('rooms/' + myRoom + '/teams').on('value', snap => {
+    teamsCache = snap.val() || {};
+    renderWaitingTeams();
+    renderProgress();
+  });
+}
+function renderWaitingTeams() {
+  const list = Object.entries(teamsCache);
+  const section = document.getElementById('d-teams-section');
+  if (!section) return;
+  if (list.length === 0) { section.style.display = 'none'; return; }
+  section.style.display = 'block';
+  document.getElementById('d-team-pairs').innerHTML = list.map(([key, t], i) => `
+    <div class="d-pair">
+      <span class="d-pair-num">${i+1}</span>
+      <span class="d-pair-names">${t.teamName ? '<b>'+t.teamName+'</b> · ' : ''}${t.player1} &amp; ${t.player2 || 'Đang chờ'}</span>
+    </div>`).join('');
+}
+// ─────────────────────────────────────────
+// LẮNG NGHE ĐÁP ÁN (chỉ dùng để đếm tiến độ — KHÔNG hiện nội dung trước khi reveal)
+// ─────────────────────────────────────────
+function listenAnswers() {
+  db.ref('rooms/' + myRoom + '/answers').on('value', snap => {
+    answersCache = snap.val() || {};
+    renderProgress();
+  });
+}
+function isTeamDone(team) {
+  const required = [team.player1, team.player2].filter(Boolean);
+  return required.length > 0 && required.every(p => answersCache[p] && answersCache[p].answer !== undefined && answersCache[p].answer !== '');
+}
+function renderProgress() {
+  const el = document.getElementById('d-progress-count');
+  if (!el) return;
+  const teamsArr = Object.values(teamsCache);
+  const total = teamsArr.length;
+  const done = teamsArr.filter(isTeamDone).length;
+  el.textContent = done + ' / ' + total;
+}
+// ─────────────────────────────────────────
+// LẮNG NGHE GAME (chuyển màn hình theo trạng thái)
+// ─────────────────────────────────────────
+function listenGameDisplay() {
+  db.ref('rooms/' + myRoom + '/game').on('value', snap => {
+    const g = snap.val();
+    gameCache = g;
+    if (!g) { showScreen('waiting'); return; }
+    if (g.status === 'ended') { showEnded(); return; }
+    if (g.status !== 'playing') { showScreen('waiting'); return; }
+    const newRound = g.round || 0;
+    if (newRound !== prevDisplayRound) {
+      prevDisplayRound = newRound;
+      renderQuestionDisplay(g);
+      showScreen('question');
+    }
+    if (g.revealed) {
+      showRevealView(g);
+    } else {
+      showProgressView();
+      startDisplayTimer(g);
+    }
+  });
+}
+// ─────────────────────────────────────────
+// RENDER CÂU HỎI
+// ─────────────────────────────────────────
+function renderQuestionDisplay(g) {
+  const qType = g.type || 'choice';
+  document.getElementById('d-round-badge').textContent = `Level ${g.level||1} · Câu ${(g.round||0)+1} / 20`;
+  const qText = document.getElementById('d-question-text');
+  qText.textContent = g.question || '...';
+  qText.classList.remove('animate-in');
+  requestAnimationFrame(() => qText.classList.add('animate-in'));
+
+  const specialEl = document.getElementById('d-special-badge');
+  if (qType === 'who_is') {
+    specialEl.style.display = 'inline-flex';
+    specialEl.textContent = '🕵️ Ai là ai? · Trùng tên +2 điểm';
+  } else if (qType === 'text') {
+    specialEl.style.display = 'inline-flex';
+    specialEl.textContent = '✍️ Câu tự nhập · Trùng ý +1 — Trùng & độc nhất +3';
+  } else if (g.special) {
+    specialEl.style.display = 'inline-flex';
+    specialEl.textContent = '🌟 Câu ăn điểm đặc biệt · +3 điểm';
+  } else {
+    specialEl.style.display = 'none';
+  }
+
+  const optsRow = document.getElementById('d-options-row');
+  if (qType === 'choice') {
+    optsRow.style.display = 'flex';
+    document.getElementById('d-opt-a').textContent = g.optionA || '—';
+    document.getElementById('d-opt-b').textContent = g.optionB || '—';
+  } else {
+    optsRow.style.display = 'none';
+  }
+  renderProgress();
+}
+function showProgressView() {
+  document.getElementById('d-progress-wrap').style.display = 'block';
+  document.getElementById('d-reveal-board').style.display = 'none';
+  document.getElementById('d-timer-wrap').style.display = 'flex';
+}
+function showRevealView(g) {
+  clearInterval(displayTimerInterval);
+  document.getElementById('d-progress-wrap').style.display = 'none';
+  document.getElementById('d-timer-wrap').style.display = 'none';
+  document.getElementById('d-reveal-board').style.display = 'flex';
+  renderRevealBoard(g);
+}
+// ─────────────────────────────────────────
+// TIMER (đồng bộ y hệt cách index.html dùng cho người chơi)
+// ─────────────────────────────────────────
+function startDisplayTimer(g) {
+  clearInterval(displayTimerInterval);
+  const QUESTION_DURATION = 30;
+  const startedAt = g.startedAt || serverNow();
+  const tc = document.getElementById('d-timer-circle');
+  const tick = () => {
+    const elapsed = Math.floor((serverNow() - startedAt) / 1000);
+    const remaining = Math.max(0, QUESTION_DURATION - elapsed);
+    tc.textContent = remaining;
+    tc.classList.toggle('urgent', remaining <= 5 && remaining > 0);
+    if (remaining <= 0) clearInterval(displayTimerInterval);
+  };
+  tick();
+  displayTimerInterval = setInterval(tick, 1000);
+}
+// ─────────────────────────────────────────
+// REVEAL BOARD (giống logic chấm điểm ở admin.html — chỉ đọc, không ghi điểm)
+// ─────────────────────────────────────────
+function revealRowHtml(label, p1, a1, p2, a2, match, resultLabel) {
+  return `<div class="reveal-row ${match?'match':'nomatch'}">
+    <div class="rr-team">💞 ${label}</div>
+    <div class="rr-ans">${p1}: <b>${a1||'—'}</b> &nbsp;&nbsp; ${p2||'?'}: <b>${a2||'—'}</b></div>
+    <div class="rr-result ${match?'win':'lose'}">${resultLabel}</div>
+  </div>`;
+}
+function renderRevealBoard(g) {
+  const qType = g.type || 'choice';
+  const teams = teamsCache;
+  const answers = answersCache;
+  const teamLabel = (t, i) => t.teamName || ('Đội ' + (i+1) + ': ' + t.player1 + ' & ' + (t.player2||'?'));
+  const rows = [];
+
+  if (qType === 'who_is') {
+    Object.values(teams).forEach((team, i) => {
+      const a1 = answers[team.player1] ? answers[team.player1].answer : '';
+      const a2 = answers[team.player2] ? answers[team.player2].answer : '';
+      const n1 = normalizeAnswer(a1), n2 = normalizeAnswer(a2);
+      const match = !!(n1 && n2 && n1 === n2);
+      rows.push(revealRowHtml(teamLabel(team,i), team.player1, a1, team.player2, a2, match, match ? '🕵️ +2' : '😅 0'));
+    });
+  } else if (qType === 'text') {
+    const teamInfo = {}; const countByNorm = {};
+    Object.entries(teams).forEach(([key, team]) => {
+      const a1 = answers[team.player1] ? answers[team.player1].answer : '';
+      const a2 = answers[team.player2] ? answers[team.player2].answer : '';
+      const n1 = normalizeAnswer(a1), n2 = normalizeAnswer(a2);
+      const match = !!(n1 && n2 && n1 === n2);
+      teamInfo[key] = { a1, a2, match, norm: n1 };
+      if (match) countByNorm[n1] = (countByNorm[n1]||0) + 1;
+    });
+    Object.entries(teams).forEach(([key, team], i) => {
+      const info = teamInfo[key];
+      let label = '😅 0';
+      if (info.match) {
+        const isUnique = countByNorm[info.norm] === 1;
+        label = isUnique ? '🌟 +3 (độc nhất)' : '💞 +1 (trùng đội khác)';
+      }
+      rows.push(revealRowHtml(teamLabel(team,i), team.player1, info.a1, team.player2, info.a2, info.match, label));
+    });
+  } else {
+    Object.values(teams).forEach((team, i) => {
+      const a1 = answers[team.player1] ? answers[team.player1].answer : null;
+      const a2 = answers[team.player2] ? answers[team.player2].answer : null;
+      const match = !!(a1 && a2 && a1 === a2);
+      const label = match ? (g.special ? '🌟 +3' : '💞 +1') : '😅 0';
+      rows.push(revealRowHtml(teamLabel(team,i), team.player1, a1, team.player2, a2, match, label));
+    });
+  }
+  document.getElementById('d-reveal-board').innerHTML = rows.join('') || '<div class="reveal-empty">Không có đáp án</div>';
+}
+// ─────────────────────────────────────────
+// MÀN KẾT THÚC
+// ─────────────────────────────────────────
+let endedConfettiInterval;
+function showEnded() {
+  showScreen('ended');
+  db.ref('rooms/' + myRoom + '/teams').once('value').then(snap => {
+    const teams = snap.val() || {};
+    const sorted = Object.values(teams).sort((a,b) => (b.score||0) - (a.score||0));
+    const winner = sorted[0] || { player1:'—', player2:'', score:0 };
+    const teamLabel = t => t.teamName || (t.player1 + ' & ' + (t.player2||'?'));
+    document.getElementById('d-ws-name').textContent = teamLabel(winner);
+    document.getElementById('d-ws-score').textContent = (winner.score||0) + ' điểm';
+    const medals = ['🥇','🥈','🥉'];
+    document.getElementById('d-ws-list').innerHTML = sorted.map((t,i) => `
+      <div class="d-ws-row">
+        <span class="d-ws-rank">${medals[i]||'#'+(i+1)}</span>
+        <span class="d-ws-team">${teamLabel(t)}</span>
+        <span class="d-ws-pts">${t.score||0}</span>
+      </div>`).join('');
+  });
+  if (!endedConfettiInterval) {
+    startDisplayConfetti();
+    endedConfettiInterval = setInterval(startDisplayConfetti, 6000);
+  }
+}
+// ─────────────────────────────────────────
+// CONFETTI (tối ưu: tối đa 90 hạt, tự dừng & dọn sạch để không tích tụ khi để TV chạy lâu)
+// ─────────────────────────────────────────
+let dConfettiRAF;
+function startDisplayConfetti() {
+  const canvas = document.getElementById('d-confetti-canvas');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  canvas.width = window.innerWidth; canvas.height = window.innerHeight;
+  if (dConfettiRAF) cancelAnimationFrame(dConfettiRAF);
+  const PARTICLE_COUNT = 90;
+  const DURATION_MS = 3200;
+  const particles = Array.from({length:PARTICLE_COUNT}, () => ({
+    x: Math.random()*canvas.width, y: -20,
+    r: Math.random()*7+3,
+    color: `hsl(${Math.random()*360},90%,60%)`,
+    vx: (Math.random()-0.5)*4, vy: Math.random()*4+2,
+    tilt: Math.random()*10, tiltV: (Math.random()-0.5)*0.3
+  }));
+  const startTime = performance.now();
+  function draw() {
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    particles.forEach(p => {
+      p.x += p.vx; p.y += p.vy; p.tilt += p.tiltV;
+      if (p.y > canvas.height) { p.y = -20; p.x = Math.random()*canvas.width; }
+      ctx.beginPath();
+      ctx.lineWidth = p.r; ctx.strokeStyle = p.color;
+      ctx.moveTo(p.x+p.tilt, p.y);
+      ctx.lineTo(p.x+p.tilt, p.y+p.r*2);
+      ctx.stroke();
+    });
+    if (performance.now() - startTime < DURATION_MS) {
+      dConfettiRAF = requestAnimationFrame(draw);
+    } else {
+      dConfettiRAF = null;
+      ctx.clearRect(0,0,canvas.width,canvas.height);
+    }
+  }
+  draw();
+}
+</script>
+</body>
+</html>
