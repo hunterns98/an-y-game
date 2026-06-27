@@ -452,7 +452,7 @@ function renderWaitingTeams() {
     <div class="d-pair">
       <span class="d-pair-num">${i+1}</span>
       ${avatarImg(t.player1,30)} ${avatarImg(t.player2,30)}
-      <span class="d-pair-names">${t.teamName ? '<b>'+t.teamName+'</b> · ' : ''}${t.player1} &amp; ${t.player2 || 'Đang chờ'}</span>
+      <span class="d-pair-names">${t.teamName || ('Đội ' + (i+1))}</span>
     </div>`).join('');
 }
 // ─────────────────────────────────────────
@@ -579,7 +579,7 @@ function renderRevealBoard(g) {
   const qType = g.type || 'choice';
   const teams = teamsCache;
   const answers = answersCache;
-  const teamLabel = (t, i) => t.teamName || ('Đội ' + (i+1) + ': ' + t.player1 + ' & ' + (t.player2||'?'));
+  const teamLabel = (t, i) => t.teamName || ('Đội ' + (i+1));
   const rows = [];
 
   if (qType === 'who_is') {
@@ -628,9 +628,10 @@ function showEnded() {
   showScreen('ended');
   db.ref('rooms/' + myRoom + '/teams').once('value').then(snap => {
     const teams = snap.val() || {};
-    const sorted = Object.values(teams).sort((a,b) => (b.score||0) - (a.score||0));
-    const winner = sorted[0] || { player1:'—', player2:'', score:0 };
-    const teamLabel = t => t.teamName || (t.player1 + ' & ' + (t.player2||'?'));
+    const withIdx = Object.values(teams).map((t,i) => ({...t, _idx:i}));
+    const sorted = withIdx.sort((a,b) => (b.score||0) - (a.score||0));
+    const winner = sorted[0] || { player1:'—', player2:'', score:0, _idx:0 };
+    const teamLabel = t => t.teamName || ('Đội ' + (t._idx+1));
     document.getElementById('d-ws-name').textContent = teamLabel(winner);
     document.getElementById('d-ws-score').textContent = (winner.score||0) + ' điểm';
     document.getElementById('d-ws-avatars').innerHTML = (winner.player1 || winner.player2)

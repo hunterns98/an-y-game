@@ -169,6 +169,7 @@
     letter-spacing: 0.05em;
     -webkit-tap-highlight-color: transparent;
   }
+  .btn:disabled { opacity: 0.4; cursor: not-allowed; }
   .btn:active { transform: scale(0.96); }
   .btn-primary {
     background: linear-gradient(135deg, var(--pink), #d4006d);
@@ -780,24 +781,25 @@
       <div class="q-text" id="q-text">...</div>
     </div>
     <div class="answer-grid" id="answer-grid">
-      <button class="btn-answer" id="btn-a" onclick="chooseAnswer('A')">
+      <button class="btn-answer" id="btn-a" onclick="selectChoice('A')">
         <span class="option-label">Lựa chọn A</span>
         <span id="opt-a-text">—</span>
       </button>
-      <button class="btn-answer" id="btn-b" onclick="chooseAnswer('B')">
+      <button class="btn-answer" id="btn-b" onclick="selectChoice('B')">
         <span class="option-label">Lựa chọn B</span>
         <span id="opt-b-text">—</span>
       </button>
     </div>
+    <button class="btn btn-primary" id="btn-submit-choice" disabled>Gửi đáp án 📨</button>
     <div class="card" id="answer-text-wrap" style="display:none;flex-direction:column;gap:12px;">
       <input class="field-input" id="inp-free-answer" placeholder="Nhập đáp án của bạn..." maxlength="60" autocomplete="off">
       <button class="btn btn-primary" id="btn-submit-free">Gửi đáp án 📨</button>
     </div>
     <div class="card status-chosen" id="status-chosen" style="display:none;">
-      <span class="chosen-emoji">✅</span>
-      <div class="chosen-label">Bạn đã chọn</div>
+      <span class="chosen-emoji" id="chosen-emoji">✅</span>
+      <div class="chosen-label" id="chosen-label">Bạn đã chọn</div>
       <div class="chosen-answer" id="chosen-display">—</div>
-      <div class="chosen-sub">Đang chờ đồng đội trả lời...</div>
+      <div class="chosen-sub" id="chosen-sub">Đang chờ đồng đội trả lời...</div>
     </div>
     <div class="team-score-banner" id="score-banner-q">
       <div><div class="tsb-label">Đội của bạn</div><div class="tsb-team" id="tsb-q-team">—</div></div>
@@ -991,6 +993,7 @@ let myName='', myRoom='', myTeam='', myTeamKey='', myAvatar=null;
 let hasAnswered=false, currentRound=0;
 let prevRound=-1, prevRevealed=false, prevStatus='';
 let partnerListenerAttached=false;
+let selectedChoice=null, timeIsUp=false;
 // ── ĐỒNG BỘ THỜI GIAN SERVER (để đếm giờ giống nhau trên mọi máy) ──
 let serverTimeOffset = 0;
 db.ref('.info/serverTimeOffset').on('value', snap => { serverTimeOffset = snap.val() || 0; });
@@ -1224,6 +1227,7 @@ function renderQuestion(game) {
   // Toggle answer UI by question type
   if (qType === 'text' || qType === 'who_is') {
     document.getElementById('answer-grid').style.display = 'none';
+    document.getElementById('btn-submit-choice').style.display = 'none';
     document.getElementById('answer-text-wrap').style.display = 'flex';
     document.getElementById('inp-free-answer').value = '';
     document.getElementById('inp-free-answer').disabled = false;
@@ -1240,8 +1244,16 @@ function renderQuestion(game) {
     document.getElementById('btn-b').disabled = false;
     document.getElementById('btn-a').className = 'btn-answer';
     document.getElementById('btn-b').className = 'btn-answer';
+    selectedChoice = null;
+    const submitChoiceBtn = document.getElementById('btn-submit-choice');
+    submitChoiceBtn.style.display = 'block';
+    submitChoiceBtn.disabled = true;
+    submitChoiceBtn.textContent = 'Gửi đáp án 📨';
   }
   document.getElementById('status-chosen').style.display = 'none';
+  document.getElementById('chosen-emoji').textContent = '✅';
+  document.getElementById('chosen-label').textContent = 'Bạn đã chọn';
+  document.getElementById('chosen-sub').textContent = 'Đang chờ đồng đội trả lời...';
   // Reset "đồng đội đã trả lời" cho vòng mới
   const partnerPill = document.getElementById('partner-status-pill');
   if (partnerPill) {
@@ -1251,6 +1263,7 @@ function renderQuestion(game) {
   // Timer — đồng bộ theo server time để mọi máy luôn thấy cùng 1 số giây,
   // dù mạng chậm hay vào trễ giữa vòng (tính từ game.startedAt do host ghi lên).
   clearInterval(timerInterval);
+  timeIsUp = false;
   const QUESTION_DURATION = 30;
   const startedAt = game.startedAt || serverNow();
   const tc = document.getElementById('timer-circle');
@@ -1259,24 +1272,56 @@ function renderQuestion(game) {
     const remaining = Math.max(0, QUESTION_DURATION - elapsed);
     tc.textContent = remaining;
     tc.classList.toggle('urgent', remaining <= 5 && remaining > 0);
-    if (remaining <= 0) clearInterval(timerInterval);
+    if (remaining <= 0) {
+      clearInterval(timerInterval);
+      if (!timeIsUp) { timeIsUp = true; handleTimeUp(); }
+    }
   };
   tick();
   timerInterval = setInterval(tick, 1000);
 }
 // ─────────────────────────────────────────
-// CHOOSE ANSWER (câu trắc nghiệm A/B)
+// HẾT GIỜ -> khoá toàn bộ UI trả lời, coi như không trả lời nếu chưa gửi
 // ─────────────────────────────────────────
-window.chooseAnswer = function(choice) {
-  if (hasAnswered) return;
+function handleTimeUp() {
+  document.getElementById('btn-a').disabled = true;
+  document.getElementById('btn-b').disabled = true;
+  document.getElementById('btn-submit-choice').disabled = true;
+  document.getElementById('inp-free-answer').disabled = true;
+  document.getElementById('btn-submit-free').disabled = true;
+  if (hasAnswered) return; // đã gửi đáp án trước khi hết giờ -> không cần đổi gì thêm
+  sfxFail();
+  document.getElementById('status-chosen').style.display = 'block';
+  document.getElementById('chosen-emoji').textContent = '⌛';
+  document.getElementById('chosen-label').textContent = 'Đã hết thời gian';
+  document.getElementById('chosen-display').textContent = '—';
+  document.getElementById('chosen-sub').textContent = 'Bạn không trả lời kịp — tính như không có đáp án';
+}
+// ─────────────────────────────────────────
+// CHỌN ĐÁP ÁN (câu trắc nghiệm A/B) — chỉ HIGHLIGHT, chưa gửi
+// Tránh trường hợp bấm nhầm: phải bấm "Gửi đáp án" mới thật sự xác nhận
+// ─────────────────────────────────────────
+window.selectChoice = function(choice) {
+  if (hasAnswered || timeIsUp) return;
+  selectedChoice = choice;
+  sfxClick();
+  document.getElementById('btn-a').classList.remove('selected-a');
+  document.getElementById('btn-b').classList.remove('selected-b');
+  document.getElementById('btn-' + choice.toLowerCase()).classList.add('selected-' + choice.toLowerCase());
+  document.getElementById('btn-submit-choice').disabled = false;
+};
+document.getElementById('btn-submit-choice').addEventListener('click', submitChoiceAnswer);
+function submitChoiceAnswer() {
+  if (hasAnswered || timeIsUp) return;
+  if (!selectedChoice) { toast('⚠️ Chọn 1 đáp án trước đã!'); return; }
   hasAnswered = true;
   sfxClick();
   clearInterval(timerInterval);
-  // Animate button
-  const btnSel = document.getElementById('btn-' + choice.toLowerCase());
-  btnSel.classList.add('selected-' + choice.toLowerCase());
+  const choice = selectedChoice;
   document.getElementById('btn-a').disabled = true;
   document.getElementById('btn-b').disabled = true;
+  document.getElementById('btn-submit-choice').disabled = true;
+  document.getElementById('btn-submit-choice').textContent = '✅ Đã gửi';
   setTimeout(() => {
     document.getElementById('status-chosen').style.display = 'block';
     document.getElementById('chosen-display').textContent = choice + ' — ' +
@@ -1285,14 +1330,14 @@ window.chooseAnswer = function(choice) {
   db.ref('rooms/' + myRoom + '/answers/' + myName).set({
     answer: choice, round: currentRound, timestamp: Date.now()
   });
-};
+}
 // ─────────────────────────────────────────
 // SUBMIT FREE-TEXT ANSWER (câu tự nhập)
 // ─────────────────────────────────────────
 document.getElementById('btn-submit-free').addEventListener('click', submitFreeAnswer);
 document.getElementById('inp-free-answer').addEventListener('keypress', e => { if (e.key === 'Enter') submitFreeAnswer(); });
 function submitFreeAnswer() {
-  if (hasAnswered) return;
+  if (hasAnswered || timeIsUp) return;
   const val = document.getElementById('inp-free-answer').value.trim();
   if (!val) { toast('⚠️ Nhập đáp án trước đã!'); return; }
   hasAnswered = true;
