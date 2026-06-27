@@ -271,6 +271,17 @@
     50%      { transform:scale(1.08); opacity:0.8; box-shadow:0 0 0 16px rgba(155,93,229,0); }
   }
   .waiting-text { color: var(--muted); font-size: 0.9rem; font-weight: 600; }
+  /* ── AVATAR ── */
+  .avatar-thumb {
+    border-radius: 50%; object-fit: cover; flex-shrink: 0;
+    border: 2px solid rgba(255,255,255,0.25);
+  }
+  .my-avatar-row {
+    display: flex; align-items: center; justify-content: center; gap: 10px;
+    margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--border);
+  }
+  .my-avatar-row span { font-size: 0.85rem; font-weight: 700; color: var(--muted); }
+  .my-avatar-row b { color: var(--text); }
   /* ── STATUS CHOSEN ── */
   .status-chosen {
     text-align: center; padding: 24px;
@@ -657,11 +668,16 @@
           <div class="waiting-text">Chờ host bắt đầu game...</div>
         </div>
       </div>
+      <div class="my-avatar-row" id="my-avatar-row" style="display:none;">
+        <img id="my-avatar-img" class="avatar-thumb" style="width:40px;height:40px;" src="" alt="avatar">
+        <span>Bạn là: <b id="my-avatar-name">—</b></span>
+      </div>
     </div>
     <div id="partner-display" class="card" style="display:none;">
       <div class="field-label" style="margin-bottom:12px;">Đồng đội của bạn</div>
       <div class="partner-tag">
-        <span class="partner-avatar">💞</span>
+        <img id="partner-avatar-img" class="avatar-thumb" style="width:38px;height:38px;display:none;" src="" alt="avatar">
+        <span class="partner-avatar" id="partner-avatar-fallback">💞</span>
         <div class="partner-info">
           <div class="partner-lbl">Partner</div>
           <div class="partner-name" id="partner-name-text">Chưa ghép cặp</div>
@@ -971,7 +987,7 @@ function runCountdown(cb) {
 // ─────────────────────────────────────────
 // STATE
 // ─────────────────────────────────────────
-let myName='', myRoom='', myTeam='', myTeamKey='';
+let myName='', myRoom='', myTeam='', myTeamKey='', myAvatar=null;
 let hasAnswered=false, currentRound=0;
 let prevRound=-1, prevRevealed=false, prevStatus='';
 let partnerListenerAttached=false;
@@ -979,6 +995,36 @@ let partnerListenerAttached=false;
 let serverTimeOffset = 0;
 db.ref('.info/serverTimeOffset').on('value', snap => { serverTimeOffset = snap.val() || 0; });
 function serverNow() { return Date.now() + serverTimeOffset; }
+// ── AVATAR (18 avatar ngẫu nhiên, không trùng nhau trong cùng 1 phòng) ──
+function avatarSrc(n) { return 'assets/avatars/avatar' + n + '.png'; }
+function drawAvatar(callback) {
+  let assigned = null;
+  db.ref('rooms/' + myRoom + '/avatarPool').transaction(pool => {
+    if (!Array.isArray(pool) || pool.length === 0) {
+      assigned = null;
+      return pool; // hồ rỗng hoặc chưa có -> không đổi gì, sẽ random ở dưới
+    }
+    const newPool = pool.slice();
+    assigned = newPool.pop();
+    return newPool;
+  }, (error, committed) => {
+    if (error || !committed || assigned == null) {
+      assigned = Math.floor(Math.random() * 18) + 1; // hồ hết -> random (có thể trùng)
+    }
+    callback(assigned);
+  });
+}
+// ── Vào phòng qua link QR có sẵn ?room=XXXXX -> tự điền mã, chỉ cần gõ tên ──
+(function prefillRoomFromURL() {
+  const params = new URLSearchParams(window.location.search);
+  const code = (params.get('room') || '').toUpperCase().trim();
+  if (code) {
+    const el = document.getElementById('inp-room');
+    if (el) el.value = code;
+    const nameEl = document.getElementById('inp-name');
+    if (nameEl) nameEl.focus();
+  }
+})();
 // ─────────────────────────────────────────
 // JOIN
 // ─────────────────────────────────────────
@@ -1018,12 +1064,21 @@ function joinRoom() {
         resetBtn();
         return;
       }
-      // Giữ tên thành công -> đăng ký người chơi
-      db.ref('rooms/' + myRoom + '/players/' + myName).set({ name:myName, score:0, answer:'' });
-      showScreen('lobby');
-      toast(`🎉 Chào ${myName}! Đã vào phòng ${myRoom}`);
-      findMyTeam();
-      listenGame();
+      // Giữ tên thành công -> rút avatar ngẫu nhiên (không trùng trong phòng) -> đăng ký người chơi
+      drawAvatar(avatarNum => {
+        myAvatar = avatarNum;
+        db.ref('rooms/' + myRoom + '/players/' + myName).set({ name:myName, score:0, answer:'', avatar:avatarNum });
+        const av = document.getElementById('my-avatar-row');
+        if (av) {
+          av.style.display = 'flex';
+          document.getElementById('my-avatar-img').src = avatarSrc(avatarNum);
+          document.getElementById('my-avatar-name').textContent = myName;
+        }
+        showScreen('lobby');
+        toast(`🎉 Chào ${myName}! Đã vào phòng ${myRoom}`);
+        findMyTeam();
+        listenGame();
+      });
     });
   }).catch(e => {
     toast('❌ Lỗi: ' + e.message);
@@ -1046,6 +1101,7 @@ function findMyTeam() {
         const pd = document.getElementById('partner-display');
         pd.style.display = 'block';
         document.getElementById('partner-name-text').textContent = partner || '—';
+        if (partner) renderPartnerAvatar(partner);
         // Team name editor
         renderTeamNameUI(team, key);
         // Score banner
@@ -1092,6 +1148,22 @@ function listenPartnerStatus(partnerName) {
     pill.classList.toggle('answered', answered);
     document.getElementById('partner-status-text').textContent = answered
       ? '✅ Đồng đội đã trả lời!' : '⏳ Đồng đội chưa trả lời...';
+  });
+}
+function renderPartnerAvatar(partnerName) {
+  db.ref('rooms/' + myRoom + '/players/' + partnerName + '/avatar').once('value').then(snap => {
+    const num = snap.val();
+    const img = document.getElementById('partner-avatar-img');
+    const fallback = document.getElementById('partner-avatar-fallback');
+    if (!img || !fallback) return;
+    if (num) {
+      img.src = avatarSrc(num);
+      img.style.display = 'block';
+      fallback.style.display = 'none';
+    } else {
+      img.style.display = 'none';
+      fallback.style.display = 'block';
+    }
   });
 }
 // ─────────────────────────────────────────

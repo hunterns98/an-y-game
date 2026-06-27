@@ -160,6 +160,11 @@
   }
   .chip-x:hover { opacity: 1; color: var(--red); }
   .player-count { font-size: 0.7rem; color: var(--muted); margin-top: 8px; }
+  /* ── AVATAR ── */
+  .avatar-thumb {
+    border-radius: 50%; object-fit: cover; flex-shrink: 0;
+    border: 1.5px solid rgba(255,255,255,0.25); vertical-align: middle;
+  }
   /* ── TEAM LIST ── */
   .team-row {
     display: flex; align-items: center; justify-content: space-between;
@@ -453,6 +458,15 @@ function tryLogin() {
     document.getElementById('auth-input').focus();
   }
 }
+// ── XÁO TRỘN 18 SỐ AVATAR (dùng để rút ngẫu nhiên, không trùng, cho người chơi) ──
+function shuffledAvatarPool() {
+  const arr = Array.from({length:18}, (_,i)=>i+1);
+  for (let i = arr.length-1; i>0; i--) {
+    const j = Math.floor(Math.random()*(i+1));
+    [arr[i],arr[j]] = [arr[j],arr[i]];
+  }
+  return arr;
+}
 // ── CREATE ROOM ──
 document.getElementById('btn-create').addEventListener('click', createRoom);
 function createRoom() {
@@ -461,7 +475,8 @@ function createRoom() {
   db.ref('rooms/' + code).set({
     host: hostName,
     status: 'waiting',
-    currentRound: -1
+    currentRound: -1,
+    avatarPool: shuffledAvatarPool()
   }).then(() => {
     loadRoom(code);
     toast('✅ Đã tạo phòng: ' + code);
@@ -500,16 +515,25 @@ document.getElementById('btn-open-display').addEventListener('click', () => {
 function escapeHtml(s) {
   return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 }
+// ── AVATAR THUMBNAIL (fallback 👤 nếu người chơi chưa có avatar — VD phòng tạo trước khi có tính năng này) ──
+let playersCache = {};
+function avatarImg(name, size) {
+  size = size || 28;
+  const num = playersCache[name] && playersCache[name].avatar;
+  if (!num) return `<span style="font-size:${Math.round(size*0.7)}px;line-height:1;">👤</span>`;
+  return `<img class="avatar-thumb" style="width:${size}px;height:${size}px;" src="assets/avatars/avatar${num}.png" alt="">`;
+}
 // ── LISTEN PLAYERS ──
 function listenPlayers() {
   db.ref('rooms/' + roomCode + '/players').on('value', snap => {
     const players = snap.val() || {};
+    playersCache = players;
     const list = Object.values(players);
     const grid = document.getElementById('player-grid');
     if (list.length === 0) {
       grid.innerHTML = '<span style="color:var(--muted);font-size:0.85rem;">Chưa có ai vào phòng...</span>';
     } else {
-      grid.innerHTML = list.map(p => `<div class="player-chip">👤 ${escapeHtml(p.name)}<span class="chip-x" data-name="${escapeHtml(p.name)}" title="Xoá người chơi này (gỡ tên để người khác/họ vào lại được)">✕</span></div>`).join('');
+      grid.innerHTML = list.map(p => `<div class="player-chip">${avatarImg(p.name,20)} ${escapeHtml(p.name)}<span class="chip-x" data-name="${escapeHtml(p.name)}" title="Xoá người chơi này (gỡ tên để người khác/họ vào lại được)">✕</span></div>`).join('');
     }
     document.getElementById('player-count-lbl').textContent = list.length + ' người chơi';
     document.getElementById('player-count-top').textContent = list.length;
@@ -544,7 +568,7 @@ function listenTeams() {
     const container = document.getElementById('team-list-display');
     container.innerHTML = list.map((t,i) => `
       <div class="team-row">
-        <div class="team-players">💞 ${t.teamName ? '<strong>'+t.teamName+'</strong> · ' : 'Đội '+(i+1)+': '}<strong>${t.player1}</strong> & <strong>${t.player2||'Đang chờ'}</strong></div>
+        <div class="team-players">${avatarImg(t.player1,24)} ${avatarImg(t.player2,24)} ${t.teamName ? '<strong>'+t.teamName+'</strong> · ' : 'Đội '+(i+1)+': '}<strong>${t.player1}</strong> & <strong>${t.player2||'Đang chờ'}</strong></div>
         <div class="team-score-badge">${t.score||0} điểm</div>
       </div>`).join('');
     renderScoreBoard(list);
@@ -578,7 +602,7 @@ function listenAnswers() {
         const a2 = answers[team.player2] ? '✅' : '⏳';
         const label = team.teamName || `Đội ${i+1}: ${team.player1} & ${team.player2||'?'}`;
         return `<div class="answer-row" id="ar-${key}">
-          <div class="ar-team">💞 ${label}</div>
+          <div class="ar-team">${avatarImg(team.player1,22)} ${avatarImg(team.player2,22)} ${label}</div>
           <div class="ar-ans">${team.player1}: ${a1} &nbsp; ${team.player2||'?'}: ${a2}</div>
           <div class="ar-result" id="ar-res-${key}">—</div>
         </div>`;
@@ -713,7 +737,7 @@ function revealAnswers() {
           if (match) scoreUpdates[key] = (team.score||0) + pts;
           rows.push(`
             <div class="answer-row ${match?'match':'nomatch'}">
-              <div class="ar-team">💞 ${teamLabel(team,i)}</div>
+              <div class="ar-team">${avatarImg(team.player1,22)} ${avatarImg(team.player2,22)} ${teamLabel(team,i)}</div>
               <div class="ar-ans">${team.player1}: <strong>${a1||'—'}</strong> &nbsp; ${team.player2||'?'}: <strong>${a2||'—'}</strong></div>
               <div class="ar-result ${match?'win':'lose'}">${match ? '🕵️ +2' : '😅 0'}</div>
             </div>`);
@@ -743,7 +767,7 @@ function revealAnswers() {
           }
           rows.push(`
             <div class="answer-row ${info.match?'match':'nomatch'}">
-              <div class="ar-team">💞 ${teamLabel(team,i)}</div>
+              <div class="ar-team">${avatarImg(team.player1,22)} ${avatarImg(team.player2,22)} ${teamLabel(team,i)}</div>
               <div class="ar-ans">${team.player1}: <strong>${info.a1||'—'}</strong> &nbsp; ${team.player2||'?'}: <strong>${info.a2||'—'}</strong></div>
               <div class="ar-result ${info.match?'win':'lose'}">${label}</div>
             </div>`);
@@ -757,7 +781,7 @@ function revealAnswers() {
           if (match) scoreUpdates[key] = (team.score||0) + pts;
           rows.push(`
             <div class="answer-row ${match?'match':'nomatch'}">
-              <div class="ar-team">💞 ${teamLabel(team,i)}</div>
+              <div class="ar-team">${avatarImg(team.player1,22)} ${avatarImg(team.player2,22)} ${teamLabel(team,i)}</div>
               <div class="ar-ans">${team.player1}: <strong>${a1||'—'}</strong> &nbsp; ${team.player2||'?'}: <strong>${a2||'—'}</strong></div>
               <div class="ar-result ${match?'win':'lose'}">${match ? (q.special?'🌟 +3':'💞 +1') : '😅 0'}</div>
             </div>`);
@@ -816,7 +840,7 @@ document.getElementById('btn-reset').addEventListener('click', () => {
   if (!roomCode) { toast('⚠️ Chưa có phòng'); return; }
   if (!confirm('Xóa tất cả dữ liệu phòng và bắt đầu lại?')) return;
   db.ref('rooms/' + roomCode).set({
-    host: 'Host', status: 'waiting', currentRound: -1
+    host: 'Host', status: 'waiting', currentRound: -1, avatarPool: shuffledAvatarPool()
   }).then(() => {
     document.getElementById('phase-setup').style.display = 'block';
     document.getElementById('phase-game').style.display = 'none';
