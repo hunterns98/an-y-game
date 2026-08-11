@@ -1017,16 +1017,80 @@ function drawAvatar(callback) {
     callback(assigned);
   });
 }
-// ── Vào phòng qua link QR có sẵn ?room=XXXXX -> tự điền mã, chỉ cần gõ tên ──
-(function prefillRoomFromURL() {
+// ─────────────────────────────────────────
+// PLAYER SESSION (resume sau khi refresh / mất mạng / đóng tab)
+// ─────────────────────────────────────────
+// Key lưu localStorage theo TỪNG PHÒNG, vì 1 máy có thể từng vào nhiều phòng khác nhau.
+function sessionStorageKey(room) { return 'anygame_session_' + room; }
+function generateSessionId() {
+  if (window.crypto && crypto.randomUUID) return crypto.randomUUID();
+  return 'sid-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2);
+}
+function saveLocalSession(room, name, sessionId) {
+  try { localStorage.setItem(sessionStorageKey(room), JSON.stringify({ name, sessionId })); } catch(e) {}
+}
+function loadLocalSession(room) {
+  try {
+    const raw = localStorage.getItem(sessionStorageKey(room));
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    if (!parsed || !parsed.name || !parsed.sessionId) return null;
+    return parsed;
+  } catch(e) { return null; }
+}
+function clearLocalSession(room) {
+  try { localStorage.removeItem(sessionStorageKey(room)); } catch(e) {}
+}
+// So khớp session lưu local với dữ liệu player thật trên Firebase.
+// Trả về player data nếu hợp lệ (đúng tên + đúng sessionId), null nếu stale.
+function validateSession(room, localSess) {
+  return db.ref('rooms/' + room + '/players/' + localSess.name).once('value').then(snap => {
+    const player = snap.val();
+    if (player && player.sessionId && player.sessionId === localSess.sessionId) return player;
+    return null;
+  });
+}
+// Điểm vào chung sau khi đã xác định chắc chắn danh tính (join mới HOẶC resume)
+function enterGameAsPlayer(name, room, avatarNum) {
+  myName = name; myRoom = room; myAvatar = avatarNum;
+  const av = document.getElementById('my-avatar-row');
+  if (av) {
+    av.style.display = 'flex';
+    document.getElementById('my-avatar-img').src = avatarSrc(avatarNum);
+    document.getElementById('my-avatar-name').textContent = name;
+  }
+  showScreen('lobby');
+  findMyTeam();
+  listenGame();
+}
+// ── Nếu URL có ?room=XXXXX VÀ máy này đã có session đã lưu cho đúng phòng đó
+// -> tự động khôi phục thẳng vào game, không bắt gõ lại tên / không qua màn Join.
+(function tryAutoResumeFromURL() {
   const params = new URLSearchParams(window.location.search);
   const code = (params.get('room') || '').toUpperCase().trim();
-  if (code) {
-    const el = document.getElementById('inp-room');
-    if (el) el.value = code;
+  if (!code) return;
+  const roomEl = document.getElementById('inp-room');
+  if (roomEl) roomEl.value = code;
+  const localSess = loadLocalSession(code);
+  if (!localSess) {
     const nameEl = document.getElementById('inp-name');
     if (nameEl) nameEl.focus();
+    return;
   }
+  const nameEl = document.getElementById('inp-name');
+  if (nameEl) nameEl.value = localSess.name;
+  toast('🔄 Đang khôi phục phiên chơi...');
+  db.ref('rooms/' + code).once('value').then(snap => {
+    if (!snap.exists()) { clearLocalSession(code); return; }
+    validateSession(code, localSess).then(player => {
+      if (player) {
+        toast(`👋 Chào mừng trở lại, ${localSess.name}!`);
+        enterGameAsPlayer(localSess.name, code, player.avatar);
+      } else {
+        clearLocalSession(code); // session cũ không còn hợp lệ -> để người dùng tự bấm Join
+      }
+    });
+  }).catch(()=>{});
 })();
 // ─────────────────────────────────────────
 // JOIN
@@ -1045,14 +1109,38 @@ function joinRoom() {
   const resetBtn = () => { btn.textContent = 'Vào phòng 🚀'; btn.disabled = false; };
   db.ref('rooms/' + myRoom).once('value').then(snap => {
     if (!snap.exists()) {
-      toast('❌ Phòng không tồn tại!');
+      toast('❌ Phòng "' + myRoom + '" không tồn tại!');
       resetBtn();
       return;
     }
+    // ── Nếu máy này đã có session cho đúng phòng này VÀ tên gõ trùng với tên đã lưu
+    // -> đây nhiều khả năng là chính chủ quay lại (bị văng/mất mạng/đóng tab) -> cho resume thẳng,
+    // KHÔNG chạy transaction giữ tên, KHÔNG rút avatar mới.
+    const localSess = loadLocalSession(myRoom);
+    if (localSess && normalizeAnswer(localSess.name) === normalizeAnswer(myName)) {
+      validateSession(myRoom, localSess).then(player => {
+        if (player) {
+          toast(`👋 Chào mừng trở lại, ${localSess.name}!`);
+          enterGameAsPlayer(localSess.name, myRoom, player.avatar);
+        } else {
+          // Session cũ không còn hợp lệ (phòng đã reset, hoặc host đã xoá player này) -> dọn sạch rồi join như bình thường
+          clearLocalSession(myRoom);
+          doFreshJoin();
+        }
+      }).catch(e => { toast('❌ Lỗi: ' + e.message); resetBtn(); });
+      return;
+    }
+    doFreshJoin();
+  }).catch(e => {
+    toast('❌ Lỗi: ' + e.message);
+    resetBtn();
+  });
+
+  // ── Luồng JOIN MỚI hoàn toàn (chưa từng có session hợp lệ cho phòng này) — giữ nguyên logic gốc ──
+  function doFreshJoin() {
     const nameKey = normalizeAnswer(myName);
     if (!nameKey) { toast('⚠️ Tên không hợp lệ, thử tên khác!'); resetBtn(); return; }
     // ── Giữ tên theo nguyên tắc "ai gửi trước được trước" ──
-    // Dùng transaction để Firebase tự xử lý an toàn khi 2 người bấm cùng lúc.
     db.ref('rooms/' + myRoom + '/nameReservations/' + nameKey).transaction(curr => {
       if (curr === null) return myName; // tên chưa ai dùng -> giữ tên này
       return; // abort -> tên đã có người dùng, không ghi gì cả
@@ -1067,26 +1155,16 @@ function joinRoom() {
         resetBtn();
         return;
       }
-      // Giữ tên thành công -> rút avatar ngẫu nhiên (không trùng trong phòng) -> đăng ký người chơi
+      // Giữ tên thành công -> rút avatar ngẫu nhiên (không trùng trong phòng) -> đăng ký người chơi + tạo session mới
       drawAvatar(avatarNum => {
-        myAvatar = avatarNum;
-        db.ref('rooms/' + myRoom + '/players/' + myName).set({ name:myName, score:0, answer:'', avatar:avatarNum });
-        const av = document.getElementById('my-avatar-row');
-        if (av) {
-          av.style.display = 'flex';
-          document.getElementById('my-avatar-img').src = avatarSrc(avatarNum);
-          document.getElementById('my-avatar-name').textContent = myName;
-        }
-        showScreen('lobby');
+        const sessionId = generateSessionId();
+        db.ref('rooms/' + myRoom + '/players/' + myName).set({ name:myName, score:0, answer:'', avatar:avatarNum, sessionId });
+        saveLocalSession(myRoom, myName, sessionId);
         toast(`🎉 Chào ${myName}! Đã vào phòng ${myRoom}`);
-        findMyTeam();
-        listenGame();
+        enterGameAsPlayer(myName, myRoom, avatarNum);
       });
     });
-  }).catch(e => {
-    toast('❌ Lỗi: ' + e.message);
-    resetBtn();
-  });
+  }
 }
 // ─────────────────────────────────────────
 // FIND TEAM
@@ -1186,6 +1264,9 @@ function listenGame() {
       prevRound = newRound; prevRevealed = false;
       hasAnswered = false;
       renderQuestion(game);
+      // Nếu vòng này (round hiện tại) mình ĐÃ có đáp án sẵn trên Firebase (VD: vừa reconnect
+      // giữa lúc đang trả lời) -> khôi phục đúng trạng thái "đã trả lời", tránh gửi đè lại.
+      applyAlreadyAnsweredIfNeeded(newRound);
       // Countdown only if not first
       if (newRound > 0) {
         runCountdown(() => showScreen('question'));
@@ -1199,6 +1280,34 @@ function listenGame() {
       showResultForPlayer(game);
     }
   });
+}
+// ─────────────────────────────────────────
+// Kiểm tra đáp án đã gửi cho round hiện tại (dùng khi reconnect / vào lại giữa câu hỏi)
+// -> khoá UI trả lời để KHÔNG cho gửi đè lên đáp án cũ.
+// ─────────────────────────────────────────
+function applyAlreadyAnsweredIfNeeded(round) {
+  if (!myName || !myRoom) return;
+  db.ref('rooms/' + myRoom + '/answers/' + myName).once('value').then(snap => {
+    const a = snap.val();
+    if (!a || a.round !== round) return; // chưa trả lời vòng này -> không cần khoá gì cả
+    lockAnsweredUI(a.answer);
+  });
+}
+function lockAnsweredUI(answerVal) {
+  hasAnswered = true;
+  clearInterval(timerInterval);
+  document.getElementById('btn-a').disabled = true;
+  document.getElementById('btn-b').disabled = true;
+  document.getElementById('btn-submit-choice').disabled = true;
+  document.getElementById('btn-submit-choice').textContent = '✅ Đã gửi';
+  document.getElementById('inp-free-answer').disabled = true;
+  document.getElementById('btn-submit-free').disabled = true;
+  document.getElementById('btn-submit-free').textContent = '✅ Đã gửi';
+  document.getElementById('status-chosen').style.display = 'block';
+  document.getElementById('chosen-emoji').textContent = '✅';
+  document.getElementById('chosen-label').textContent = 'Bạn đã chọn';
+  document.getElementById('chosen-display').textContent = answerVal;
+  document.getElementById('chosen-sub').textContent = 'Đang chờ đồng đội trả lời...';
 }
 // ─────────────────────────────────────────
 // RENDER QUESTION
