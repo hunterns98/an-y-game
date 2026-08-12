@@ -436,6 +436,11 @@ let roomCode = '';
 let currentRound = 0;
 let acceptingAnswers = true;
 let gamePhase = 'setup'; // setup | playing | ended
+// Trạng thái revealed đã biết gần nhất của round hiện tại (dùng để listenAnswers()
+// không ghi đè nhầm bảng kết quả điểm bằng pill ✅/⏳ sau khi đã reveal).
+let lastKnownRevealed = false;
+// ── ADMIN ROOM SESSION (rehydrate) — chỉ nhớ MÃ PHÒNG đang quản lý, không phải identity ──
+function adminRoomStorageKey() { return 'anygame_admin_room'; }
 // ── TOAST ──
 let toastTimer;
 function toast(msg, dur=2500) {
@@ -452,6 +457,7 @@ function tryLogin() {
   if (pin === '2106') {
     document.getElementById('auth-gate').style.display = 'none';
     document.getElementById('admin-panel').style.display = 'block';
+    tryAutoLoadLastRoom();
   } else {
     document.getElementById('auth-error').textContent = 'Sai mã PIN rồi!';
     document.getElementById('auth-input').value = '';
@@ -498,9 +504,25 @@ function loadRoom(code) {
   document.getElementById('room-code-top').textContent = code;
   document.getElementById('rc-code-val').textContent = code;
   document.getElementById('room-code-display').style.display = 'block';
+  try { localStorage.setItem(adminRoomStorageKey(), code); } catch(e) {}
   listenPlayers();
   listenTeams();
   listenGame();
+}
+// ── AUTO-LOAD PHÒNG ĐANG QUẢN LÝ SAU KHI PIN HỢP LỆ (rehydrate cho Admin) ──
+// Chỉ ĐỌC từ Firebase để kiểm tra phòng còn tồn tại hay không — không ghi gì cả.
+function tryAutoLoadLastRoom() {
+  let savedRoom = null;
+  try { savedRoom = localStorage.getItem(adminRoomStorageKey()); } catch(e) {}
+  if (!savedRoom) return;
+  db.ref('rooms/' + savedRoom).once('value').then(snap => {
+    if (!snap.exists()) {
+      try { localStorage.removeItem(adminRoomStorageKey()); } catch(e) {}
+      return;
+    }
+    toast('🔄 Đang khôi phục phòng ' + savedRoom + '...');
+    loadRoom(savedRoom);
+  }).catch(()=>{});
 }
 // ── COPY CODE ──
 document.getElementById('btn-copy-code').addEventListener('click', () => {
@@ -574,15 +596,39 @@ function listenTeams() {
     renderScoreBoard(list);
   });
 }
-// ── LISTEN GAME ──
+// ── LISTEN GAME (đồng thời là REHYDRATE cho Admin) ──
+// Firebase `game` node là NGUỒN SỰ THẬT DUY NHẤT cho câu hỏi hiện tại. Hàm này chỉ ĐỌC
+// và VẼ LẠI UI cho đúng trạng thái — chạy giống hệt dù do thao tác Start/Next/Reveal
+// hay do F5/reload. Tuyệt đối KHÔNG gửi câu hỏi mới, KHÔNG xoá answers, KHÔNG ghi
+// startedAt, KHÔNG cộng điểm, KHÔNG set revealed, KHÔNG tạo round mới.
 function listenGame() {
   db.ref('rooms/' + roomCode + '/game').on('value', snap => {
     const g = snap.val();
-    if (!g) return;
+    if (!g) {
+      // Chưa có game nào (phòng mới hoặc vừa Reset) -> màn Setup
+      lastKnownRevealed = false;
+      gamePhase = 'setup';
+      updateStatusBadge('waiting');
+      document.getElementById('phase-setup').style.display = 'block';
+      document.getElementById('phase-game').style.display = 'none';
+      listenAnswers();
+      return;
+    }
     document.getElementById('stat-round').textContent = (g.round||0)+1;
     updateStatusBadge(g.status||'waiting');
-    if (g.status === 'playing') {
-      currentRound = g.round || 0;
+    currentRound = g.round || 0;
+    lastKnownRevealed = !!g.revealed;
+    gamePhase = g.status === 'ended' ? 'ended' : (g.status === 'playing' ? 'playing' : 'setup');
+
+    if (g.status === 'playing' || g.status === 'ended') {
+      // Đảm bảo đúng phase-game hiển thị, dù do thao tác Start trước đó hay F5 lại giữa chừng
+      document.getElementById('phase-setup').style.display = 'none';
+      document.getElementById('phase-game').style.display = 'block';
+      renderCurrentQuestionCard(g);
+      applyControlButtonsState(g);
+      if (g.revealed) {
+        renderRevealedReadOnly(g);
+      }
     }
     listenAnswers();
   });
@@ -593,6 +639,10 @@ function listenAnswers() {
     const answers = snap.val() || {};
     const count = Object.keys(answers).length;
     document.getElementById('answer-count-badge').textContent = count > 0 ? `(${count} đã trả lời)` : '';
+    // Nếu round hiện tại ĐÃ reveal, bảng answer-board đang hiển thị kết quả có điểm
+    // (do renderRevealedReadOnly / revealAnswers vẽ) — KHÔNG được ghi đè lại bằng
+    // pill ✅/⏳ vô nghĩa nữa.
+    if (lastKnownRevealed) return;
     // Show in answer board (hide actual answers until reveal)
     db.ref('rooms/' + roomCode + '/teams').once('value').then(ts => {
       const teams = ts.val() || {};
@@ -656,6 +706,54 @@ document.getElementById('btn-start-game').addEventListener('click', () => {
   gamePhase = 'playing';
   toast('🎮 Game bắt đầu!');
 });
+// ── RENDER: Thẻ câu hỏi hiện tại (tách để click-path và rehydrate-path dùng chung) ──
+// Đọc trực tiếp từ object `game` (đúng schema Firebase game node) — KHÔNG dùng lại
+// mảng questions[] cục bộ, đúng nguyên tắc "Firebase game node là source of truth".
+// Hành vi giữ nguyên y hệt code gốc, chỉ tách ra thành hàm riêng.
+function renderCurrentQuestionCard(game) {
+  const qType = game.type || 'choice';
+  document.getElementById('q-num').textContent = `Level ${game.level||1} · Câu ${(game.round||0)+1} / ${questions.length}`;
+  document.getElementById('q-display').textContent = game.question || '—';
+  if (qType === 'choice') {
+    document.getElementById('q-opts').style.display = 'grid';
+    document.getElementById('q-freetext-note').style.display = 'none';
+    document.getElementById('q-opt-a').textContent = game.optionA || '—';
+    document.getElementById('q-opt-b').textContent = game.optionB || '—';
+  } else if (qType === 'who_is') {
+    document.getElementById('q-opts').style.display = 'none';
+    document.getElementById('q-freetext-note').style.display = 'block';
+    document.getElementById('q-freetext-note').textContent = '🕵️ Người chơi gõ tên (bản thân hoặc đồng đội) — trùng tên là ăn ý!';
+  } else {
+    document.getElementById('q-opts').style.display = 'none';
+    document.getElementById('q-freetext-note').style.display = 'block';
+    document.getElementById('q-freetext-note').textContent = '✍️ Người chơi tự nhập đáp án — không có lựa chọn mẫu, chỉ cần đồng đội nghĩ giống nhau!';
+  }
+  if (qType === 'who_is') {
+    document.getElementById('q-special-flag').style.display = 'block';
+    document.getElementById('q-special-flag-text').textContent = '🕵️ Ai là ai? · Trùng tên +2 điểm';
+  } else if (qType === 'text') {
+    document.getElementById('q-special-flag').style.display = 'block';
+    document.getElementById('q-special-flag-text').textContent = '✍️ Câu tự do · Trùng ý +1 — Trùng & độc nhất +3';
+  } else if (game.special) {
+    document.getElementById('q-special-flag').style.display = 'block';
+    document.getElementById('q-special-flag-text').textContent = '🌟 Câu ăn điểm đặc biệt · +3 điểm';
+  } else {
+    document.getElementById('q-special-flag').style.display = 'none';
+  }
+  document.getElementById('stat-round').textContent = (game.round||0)+1;
+}
+// ── BẬT/TẮT NÚT ĐIỀU KHIỂN theo đúng trạng thái hiện tại (dùng chung click-path & rehydrate) ──
+function applyControlButtonsState(game) {
+  const revealBtn = document.getElementById('btn-reveal');
+  const nextBtn = document.getElementById('btn-next');
+  if (!game || game.status === 'ended') {
+    revealBtn.disabled = true;
+    nextBtn.disabled = true;
+    return;
+  }
+  revealBtn.disabled = !!game.revealed;
+  nextBtn.disabled = false;
+}
 // ── SEND QUESTION ──
 function sendQuestion(idx) {
   const q = questions[idx];
@@ -676,124 +774,139 @@ function sendQuestion(idx) {
   }
   db.ref('rooms/' + roomCode + '/game').set(payload);
   db.ref('rooms/' + roomCode + '/answers').remove();
-  // Update admin UI
-  document.getElementById('q-num').textContent = `Level ${q.level||1} · Câu ${idx+1} / ${questions.length}`;
-  document.getElementById('q-display').textContent = q.text;
-  if (qType === 'choice') {
-    document.getElementById('q-opts').style.display = 'grid';
-    document.getElementById('q-freetext-note').style.display = 'none';
-    document.getElementById('q-opt-a').textContent = q.a;
-    document.getElementById('q-opt-b').textContent = q.b;
-  } else if (qType === 'who_is') {
-    document.getElementById('q-opts').style.display = 'none';
-    document.getElementById('q-freetext-note').style.display = 'block';
-    document.getElementById('q-freetext-note').textContent = '🕵️ Người chơi gõ tên (bản thân hoặc đồng đội) — trùng tên là ăn ý!';
-  } else {
-    document.getElementById('q-opts').style.display = 'none';
-    document.getElementById('q-freetext-note').style.display = 'block';
-    document.getElementById('q-freetext-note').textContent = '✍️ Người chơi tự nhập đáp án — không có lựa chọn mẫu, chỉ cần đồng đội nghĩ giống nhau!';
-  }
-  if (qType === 'who_is') {
-    document.getElementById('q-special-flag').style.display = 'block';
-    document.getElementById('q-special-flag-text').textContent = '🕵️ Ai là ai? · Trùng tên +2 điểm';
-  } else if (qType === 'text') {
-    document.getElementById('q-special-flag').style.display = 'block';
-    document.getElementById('q-special-flag-text').textContent = '✍️ Câu tự do · Trùng ý +1 — Trùng & độc nhất +3';
-  } else if (q.special) {
-    document.getElementById('q-special-flag').style.display = 'block';
-    document.getElementById('q-special-flag-text').textContent = '🌟 Câu ăn điểm đặc biệt · +3 điểm';
-  } else {
-    document.getElementById('q-special-flag').style.display = 'none';
-  }
-  document.getElementById('stat-round').textContent = idx+1;
+  // Update admin UI — dùng chung hàm render với rehydrate-path
+  lastKnownRevealed = false;
+  renderCurrentQuestionCard(payload);
+  applyControlButtonsState(payload);
   // Reset reveal display
   document.getElementById('answer-board').innerHTML = '<div style="color:var(--muted);font-size:0.85rem;text-align:center;padding:8px;">Chờ người chơi trả lời...</div>';
   acceptingAnswers = true;
   updateToggleBtn();
 }
-// ── REVEAL ──
+// ── TÍNH KẾT QUẢ REVEAL (THUẦN — không ghi Firebase, không đụng DOM) ──
+// Dùng chung cho cả nhánh ghi điểm thật (revealAnswers) lẫn nhánh chỉ-đọc khi rehydrate
+// (renderRevealedReadOnly). game ở đây LUÔN đọc trực tiếp từ Firebase game node
+// (không dùng lại mảng questions[] cục bộ) — đúng nguyên tắc "Firebase game node
+// là source of truth cho current question".
+function computeRevealResults(game, answers, teams) {
+  const qType = game.type || 'choice';
+  const rows = [];
+  const scoreUpdates = {};
+  const teamLabel = (team, i) => team.teamName ? team.teamName : `Đội ${i+1}: ${team.player1} & ${team.player2||'?'}`;
+
+  if (qType === 'who_is') {
+    Object.entries(teams).forEach(([key, team], i) => {
+      const a1 = answers[team.player1] ? answers[team.player1].answer : '';
+      const a2 = answers[team.player2] ? answers[team.player2].answer : '';
+      const n1 = normalizeAnswer(a1);
+      const n2 = normalizeAnswer(a2);
+      const match = !!(n1 && n2 && n1 === n2);
+      const pts = match ? 2 : 0;
+      if (match) scoreUpdates[key] = (team.score||0) + pts;
+      rows.push(`
+        <div class="answer-row ${match?'match':'nomatch'}">
+          <div class="ar-team">${avatarImg(team.player1,22)} ${avatarImg(team.player2,22)} ${teamLabel(team,i)}</div>
+          <div class="ar-ans">${team.player1}: <strong>${a1||'—'}</strong> &nbsp; ${team.player2||'?'}: <strong>${a2||'—'}</strong></div>
+          <div class="ar-result ${match?'win':'lose'}">${match ? '🕵️ +2' : '😅 0'}</div>
+        </div>`);
+    });
+  } else if (qType === 'text') {
+    // Chuẩn hoá đáp án (bỏ dấu, bỏ khoảng trắng, không phân biệt hoa/thường)
+    // rồi đếm xem có bao nhiêu đội cùng "ăn ý" với 1 đáp án giống nhau
+    const teamInfo = {};
+    const matchCountByNorm = {};
+    Object.entries(teams).forEach(([key, team]) => {
+      const a1 = answers[team.player1] ? answers[team.player1].answer : '';
+      const a2 = answers[team.player2] ? answers[team.player2].answer : '';
+      const n1 = normalizeAnswer(a1);
+      const n2 = normalizeAnswer(a2);
+      const match = !!(n1 && n2 && n1 === n2);
+      teamInfo[key] = { a1, a2, match, norm: n1 };
+      if (match) matchCountByNorm[n1] = (matchCountByNorm[n1]||0) + 1;
+    });
+    Object.entries(teams).forEach(([key, team], i) => {
+      const info = teamInfo[key];
+      let pts = 0, label = '😅 0';
+      if (info.match) {
+        const isUnique = matchCountByNorm[info.norm] === 1;
+        pts = isUnique ? 3 : 1;
+        label = isUnique ? '🌟 +3 (độc nhất)' : '💞 +1 (đội khác cũng trùng)';
+        scoreUpdates[key] = (team.score||0) + pts;
+      }
+      rows.push(`
+        <div class="answer-row ${info.match?'match':'nomatch'}">
+          <div class="ar-team">${avatarImg(team.player1,22)} ${avatarImg(team.player2,22)} ${teamLabel(team,i)}</div>
+          <div class="ar-ans">${team.player1}: <strong>${info.a1||'—'}</strong> &nbsp; ${team.player2||'?'}: <strong>${info.a2||'—'}</strong></div>
+          <div class="ar-result ${info.match?'win':'lose'}">${label}</div>
+        </div>`);
+    });
+  } else {
+    Object.entries(teams).forEach(([key, team], i) => {
+      const a1 = answers[team.player1] ? answers[team.player1].answer : null;
+      const a2 = answers[team.player2] ? answers[team.player2].answer : null;
+      const match = a1 && a2 && a1 === a2;
+      const pts = match ? (game.special ? 3 : 1) : 0;
+      if (match) scoreUpdates[key] = (team.score||0) + pts;
+      rows.push(`
+        <div class="answer-row ${match?'match':'nomatch'}">
+          <div class="ar-team">${avatarImg(team.player1,22)} ${avatarImg(team.player2,22)} ${teamLabel(team,i)}</div>
+          <div class="ar-ans">${team.player1}: <strong>${a1||'—'}</strong> &nbsp; ${team.player2||'?'}: <strong>${a2||'—'}</strong></div>
+          <div class="ar-result ${match?'win':'lose'}">${match ? (game.special?'🌟 +3':'💞 +1') : '😅 0'}</div>
+        </div>`);
+    });
+  }
+  return { rowsHtml: rows, scoreUpdates };
+}
+function renderRevealBoardHtml(rowsHtml) {
+  const board = document.getElementById('answer-board');
+  board.innerHTML = rowsHtml.join('') || '<div style="color:var(--muted);">Không có đáp án</div>';
+}
+// ── REVEAL (GHI ĐIỂM — CHỈ 1 LẦN DUY NHẤT MỖI ROUND, KỂ CẢ DOUBLE-CLICK/RACE) ──
+// Cơ chế: dùng Firebase transaction trên đúng field `game/revealed` để "chốt quyền reveal"
+// một cách ATOMIC. Firebase RTDB đảm bảo transaction luôn đọc giá trị mới nhất và tự retry
+// nếu có xung đột -> CHỈ DUY NHẤT 1 lệnh gọi (dù từ 1 client double-click, 2 tab, hay 2 người
+// host khác nhau bấm gần như đồng thời) có thể chuyển revealed từ false -> true thành công.
+// Mọi lệnh gọi khác nhận committed=false và DỪNG NGAY, không tính/không ghi điểm gì thêm.
+// -> Không còn khoảng hở kiểu "đọc revealed=false rồi mới ghi true" như cách cũ (dễ dính race).
 document.getElementById('btn-reveal').addEventListener('click', revealAnswers);
 function revealAnswers() {
   if (!roomCode) return;
-  const q = questions[currentRound];
-  const qType = q.type || 'choice';
+  db.ref('rooms/' + roomCode + '/game/revealed').transaction(curr => {
+    if (curr === true) return; // đã có người/thao tác khác reveal rồi -> abort, không ghi gì
+    return true; // chốt quyền reveal cho lệnh gọi này
+  }, (error, committed) => {
+    if (error) { toast('❌ Lỗi: ' + error.message); return; }
+    if (!committed) return; // thua trong race hoặc double-click -> im lặng dừng, an toàn tuyệt đối
+
+    // Chỉ đúng 1 lần gọi duy nhất cho mỗi round đi được tới đây.
+    db.ref('rooms/' + roomCode + '/game').once('value').then(gSnap => {
+      const game = gSnap.val() || {};
+      db.ref('rooms/' + roomCode + '/answers').once('value').then(aSnap => {
+        const answers = aSnap.val() || {};
+        db.ref('rooms/' + roomCode + '/teams').once('value').then(tSnap => {
+          const teams = tSnap.val() || {};
+          const { rowsHtml, scoreUpdates } = computeRevealResults(game, answers, teams);
+          renderRevealBoardHtml(rowsHtml);
+          Object.entries(scoreUpdates).forEach(([key, score]) => {
+            db.ref('rooms/' + roomCode + '/teams/' + key + '/score').set(score);
+          });
+          lastKnownRevealed = true;
+          applyControlButtonsState(game);
+          toast('🔓 Đã reveal! ' + Object.keys(scoreUpdates).length + ' đội ăn điểm');
+        });
+      });
+    });
+  });
+}
+// ── REHYDRATE (CHỈ ĐỌC): render lại bảng kết quả khi F5 vào đúng lúc round đã reveal.
+// Tuyệt đối KHÔNG ghi điểm, KHÔNG set game.revealed — chỉ tính lại để hiển thị.
+function renderRevealedReadOnly(game) {
   db.ref('rooms/' + roomCode + '/answers').once('value').then(aSnap => {
     const answers = aSnap.val() || {};
     db.ref('rooms/' + roomCode + '/teams').once('value').then(tSnap => {
       const teams = tSnap.val() || {};
-      const board = document.getElementById('answer-board');
-      const rows = [];
-      const scoreUpdates = {};
-      const teamLabel = (team, i) => team.teamName ? team.teamName : `Đội ${i+1}: ${team.player1} & ${team.player2||'?'}`;
-
-      if (qType === 'who_is') {
-        Object.entries(teams).forEach(([key, team], i) => {
-          const a1 = answers[team.player1] ? answers[team.player1].answer : '';
-          const a2 = answers[team.player2] ? answers[team.player2].answer : '';
-          const n1 = normalizeAnswer(a1);
-          const n2 = normalizeAnswer(a2);
-          const match = !!(n1 && n2 && n1 === n2);
-          const pts = match ? 2 : 0;
-          if (match) scoreUpdates[key] = (team.score||0) + pts;
-          rows.push(`
-            <div class="answer-row ${match?'match':'nomatch'}">
-              <div class="ar-team">${avatarImg(team.player1,22)} ${avatarImg(team.player2,22)} ${teamLabel(team,i)}</div>
-              <div class="ar-ans">${team.player1}: <strong>${a1||'—'}</strong> &nbsp; ${team.player2||'?'}: <strong>${a2||'—'}</strong></div>
-              <div class="ar-result ${match?'win':'lose'}">${match ? '🕵️ +2' : '😅 0'}</div>
-            </div>`);
-        });
-      } else if (qType === 'text') {
-        // Chuẩn hoá đáp án (bỏ dấu, bỏ khoảng trắng, không phân biệt hoa/thường)
-        // rồi đếm xem có bao nhiêu đội cùng "ăn ý" với 1 đáp án giống nhau
-        const teamInfo = {};
-        const matchCountByNorm = {};
-        Object.entries(teams).forEach(([key, team]) => {
-          const a1 = answers[team.player1] ? answers[team.player1].answer : '';
-          const a2 = answers[team.player2] ? answers[team.player2].answer : '';
-          const n1 = normalizeAnswer(a1);
-          const n2 = normalizeAnswer(a2);
-          const match = !!(n1 && n2 && n1 === n2);
-          teamInfo[key] = { a1, a2, match, norm: n1 };
-          if (match) matchCountByNorm[n1] = (matchCountByNorm[n1]||0) + 1;
-        });
-        Object.entries(teams).forEach(([key, team], i) => {
-          const info = teamInfo[key];
-          let pts = 0, label = '😅 0';
-          if (info.match) {
-            const isUnique = matchCountByNorm[info.norm] === 1;
-            pts = isUnique ? 3 : 1;
-            label = isUnique ? '🌟 +3 (độc nhất)' : '💞 +1 (đội khác cũng trùng)';
-            scoreUpdates[key] = (team.score||0) + pts;
-          }
-          rows.push(`
-            <div class="answer-row ${info.match?'match':'nomatch'}">
-              <div class="ar-team">${avatarImg(team.player1,22)} ${avatarImg(team.player2,22)} ${teamLabel(team,i)}</div>
-              <div class="ar-ans">${team.player1}: <strong>${info.a1||'—'}</strong> &nbsp; ${team.player2||'?'}: <strong>${info.a2||'—'}</strong></div>
-              <div class="ar-result ${info.match?'win':'lose'}">${label}</div>
-            </div>`);
-        });
-      } else {
-        Object.entries(teams).forEach(([key, team], i) => {
-          const a1 = answers[team.player1] ? answers[team.player1].answer : null;
-          const a2 = answers[team.player2] ? answers[team.player2].answer : null;
-          const match = a1 && a2 && a1 === a2;
-          const pts = match ? (q.special ? 3 : 1) : 0;
-          if (match) scoreUpdates[key] = (team.score||0) + pts;
-          rows.push(`
-            <div class="answer-row ${match?'match':'nomatch'}">
-              <div class="ar-team">${avatarImg(team.player1,22)} ${avatarImg(team.player2,22)} ${teamLabel(team,i)}</div>
-              <div class="ar-ans">${team.player1}: <strong>${a1||'—'}</strong> &nbsp; ${team.player2||'?'}: <strong>${a2||'—'}</strong></div>
-              <div class="ar-result ${match?'win':'lose'}">${match ? (q.special?'🌟 +3':'💞 +1') : '😅 0'}</div>
-            </div>`);
-        });
-      }
-
-      board.innerHTML = rows.join('') || '<div style="color:var(--muted);">Không có đáp án</div>';
-      Object.entries(scoreUpdates).forEach(([key, score]) => {
-        db.ref('rooms/' + roomCode + '/teams/' + key + '/score').set(score);
-      });
-      db.ref('rooms/' + roomCode + '/game/revealed').set(true);
-      toast('🔓 Đã reveal! ' + Object.keys(scoreUpdates).length + ' đội ăn điểm');
+      const { rowsHtml } = computeRevealResults(game, answers, teams);
+      renderRevealBoardHtml(rowsHtml);
     });
   });
 }
@@ -829,6 +942,7 @@ function endGame() {
   db.ref('rooms/' + roomCode + '/game/status').set('ended');
   gamePhase = 'ended';
   updateStatusBadge('ended');
+  applyControlButtonsState({ status: 'ended' });
   toast('🏁 Game kết thúc!', 4000);
 }
 document.getElementById('btn-end-game').addEventListener('click', () => {
