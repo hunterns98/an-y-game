@@ -574,7 +574,36 @@ function removePlayer(name) {
   const nameKey = normalizeAnswer(name);
   db.ref('rooms/' + roomCode + '/players/' + name).remove();
   db.ref('rooms/' + roomCode + '/nameReservations/' + nameKey).remove();
+  cleanupPlayerFromTeams(name);
   toast('🗑 Đã xoá "' + name + '" — tên đã được giải phóng');
+}
+// ── DỌN TEAM REFERENCE KHI XOÁ PLAYER (Team Cleanup / Player Lifecycle) ──
+// Chỉ làm TRỐNG đúng slot của player bị xoá (set '') — GIỮ NGUYÊN slot còn lại,
+// GIỮ NGUYÊN score, GIỮ NGUYÊN teamName. KHÔNG bao giờ xoá team chỉ vì mất 1 người,
+// để tránh mất điểm và làm kẹt màn hình của người còn lại (xem audit đã duyệt).
+// CHỈ xoá hẳn team khi CẢ HAI slot đều rỗng sau thao tác này — lúc đó an toàn tuyệt đối
+// vì không còn ai để mất điểm — kèm giải phóng teamNameReservations nếu team có tên tuỳ chỉnh.
+function cleanupPlayerFromTeams(name) {
+  db.ref('rooms/' + roomCode + '/teams').once('value').then(snap => {
+    const teams = snap.val() || {};
+    const entry = Object.entries(teams).find(([key, t]) => t.player1 === name || t.player2 === name);
+    if (!entry) return; // player chưa từng ở trong team nào -> không có gì để dọn
+    const [key, team] = entry;
+    const slot = team.player1 === name ? 'player1' : 'player2';
+    const otherSlot = slot === 'player1' ? 'player2' : 'player1';
+    const otherStillHasSomeone = !!team[otherSlot];
+    if (otherStillHasSomeone) {
+      // Còn 1 người trong team -> chỉ làm trống đúng slot bị xoá, giữ nguyên score/teamName
+      db.ref('rooms/' + roomCode + '/teams/' + key + '/' + slot).set('');
+    } else {
+      // Cả 2 slot đều rỗng sau khi xoá -> không còn ai để mất điểm -> xoá hẳn team
+      db.ref('rooms/' + roomCode + '/teams/' + key).remove();
+      if (team.teamName) {
+        const teamNameKey = normalizeAnswer(team.teamName);
+        if (teamNameKey) db.ref('rooms/' + roomCode + '/teamNameReservations/' + teamNameKey).remove();
+      }
+    }
+  });
 }
 // ── LISTEN TEAMS ──
 function listenTeams() {
@@ -590,7 +619,7 @@ function listenTeams() {
     const container = document.getElementById('team-list-display');
     container.innerHTML = list.map((t,i) => `
       <div class="team-row">
-        <div class="team-players">${avatarImg(t.player1,24)} ${avatarImg(t.player2,24)} ${t.teamName ? '<strong>'+t.teamName+'</strong> · ' : 'Đội '+(i+1)+': '}<strong>${t.player1}</strong> & <strong>${t.player2||'Đang chờ'}</strong></div>
+        <div class="team-players">${avatarImg(t.player1,24)} ${avatarImg(t.player2,24)} ${t.teamName ? '<strong>'+t.teamName+'</strong> · ' : 'Đội '+(i+1)+': '}<strong>${t.player1||'Đang chờ'}</strong> & <strong>${t.player2||'Đang chờ'}</strong></div>
         <div class="team-score-badge">${t.score||0} điểm</div>
       </div>`).join('');
     renderScoreBoard(list);
@@ -972,7 +1001,7 @@ function renderScoreBoard(teams) {
   const medals = ['🥇','🥈','🥉'];
   document.getElementById('score-board').innerHTML = sorted.map((t,i)=>`
     <div class="team-row">
-      <div>${medals[i]||'#'+(i+1)} <span class="team-players" style="display:inline;">${t.teamName ? t.teamName+' · ' : ''}${t.player1} & ${t.player2||'?'}</span></div>
+      <div>${medals[i]||'#'+(i+1)} <span class="team-players" style="display:inline;">${t.teamName ? t.teamName+' · ' : ''}${t.player1||'Đang chờ'} & ${t.player2||'Đang chờ'}</span></div>
       <div class="team-score-badge">${t.score||0} điểm</div>
     </div>`).join('') || '<div style="color:var(--muted);font-size:0.85rem;text-align:center;padding:8px;">Chưa có dữ liệu</div>';
 }
