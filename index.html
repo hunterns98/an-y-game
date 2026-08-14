@@ -829,6 +829,7 @@
 <script src="https://www.gstatic.com/firebasejs/12.14.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/12.14.0/firebase-database-compat.js"></script>
 <script src="firebase.js"></script>
+<script src="game-logic.js"></script>
 <script>
 // ─────────────────────────────────────────
 // STARS
@@ -1467,41 +1468,26 @@ function submitFreeAnswer() {
 // RESULT
 // ─────────────────────────────────────────
 function showResultForPlayer(game) {
-  const qType = game.type || 'choice';
   db.ref('rooms/' + myRoom + '/answers').once('value').then(aSnap => {
     const answers = aSnap.val() || {};
     db.ref('rooms/' + myRoom + '/teams').once('value').then(tSnap => {
       const teams = tSnap.val() || {};
       const team = teams[myTeamKey]; if (!team) return;
       const partner = team.player1===myName ? team.player2 : team.player1;
-      const myAns = answers[myName]  ? answers[myName].answer  : null;
-      const pAns  = answers[partner] ? answers[partner].answer : null;
-      let match = false, pts = 0, isUnique = false;
-
-      if (qType === 'who_is') {
-        const n1 = normalizeAnswer(myAns);
-        const n2 = normalizeAnswer(pAns);
-        match = !!(n1 && n2 && n1 === n2);
-        pts = match ? 2 : 0;
-      } else if (qType === 'text') {
-        // Chuẩn hoá (bỏ dấu, bỏ khoảng trắng, không phân biệt hoa/thường) trước khi so khớp
-        const n1 = normalizeAnswer(myAns);
-        const n2 = normalizeAnswer(pAns);
-        match = !!(n1 && n2 && n1 === n2);
-        if (match) {
-          let sameCount = 0;
-          Object.values(teams).forEach(t => {
-            const ta1 = normalizeAnswer(answers[t.player1] ? answers[t.player1].answer : '');
-            const ta2 = normalizeAnswer(answers[t.player2] ? answers[t.player2].answer : '');
-            if (ta1 && ta2 && ta1 === ta2 && ta1 === n1) sameCount++;
-          });
-          isUnique = sameCount === 1;
-          pts = isUnique ? 3 : 1;
-        }
-      } else {
-        match = !!(myAns && pAns && myAns === pAns);
-        pts = match ? (game.special ? 3 : 1) : 0;
-      }
+      // ── Tính match/pts/isUnique bằng GameLogic (pure function — game-logic.js) ──
+      // Công thức GIỮ NGUYÊN 100% so với bản gốc (đã audit đối chiếu từng loại câu hỏi
+      // trước khi migrate: choice/who_is/text đều khớp tuyệt đối với bản inline cũ).
+      // Đây là nơi hiển thị điểm cho người chơi, dùng chung 1 nguồn tính toán với
+      // admin.html (computeRevealResults) và display.html (renderRevealBoard)
+      // -> đảm bảo không bao giờ lệch điểm giữa 3 trang.
+      const results = GameLogic.computeRoundResults(game, teams, answers);
+      const r = results[myTeamKey];
+      if (!r) return; // an toàn nếu team đã bị Team Cleanup xoá hẳn (cả 2 slot rỗng)
+      const { match, pts, isUnique } = r;
+      const iAmPlayer1 = team.player1 === myName;
+      const myAns = iAmPlayer1 ? r.a1 : r.a2;
+      const pAns  = iAmPlayer1 ? r.a2 : r.a1;
+      const qType = game.type || 'choice';
 
       document.getElementById('result-match').textContent = match ? '💞' : '😅';
       let title;
