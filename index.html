@@ -1467,6 +1467,14 @@ function submitFreeAnswer() {
 // ─────────────────────────────────────────
 // RESULT
 // ─────────────────────────────────────────
+// ── HIỂN THỊ NỘI DUNG THẬT CỦA A/B THAY VÌ CHỮ CÁI (chỉ dùng để hiển thị,
+// KHÔNG ảnh hưởng match/pts/isUnique — những giá trị đó đã tính xong trước
+// khi hàm này được gọi). Nếu val không phải đúng 'A'/'B' thì trả nguyên val.
+function resolveChoiceText(val, game) {
+  if (val === 'A') return game.optionA || 'A';
+  if (val === 'B') return game.optionB || 'B';
+  return val;
+}
 function showResultForPlayer(game) {
   db.ref('rooms/' + myRoom + '/answers').once('value').then(aSnap => {
     const answers = aSnap.val() || {};
@@ -1488,6 +1496,11 @@ function showResultForPlayer(game) {
       const myAns = iAmPlayer1 ? r.a1 : r.a2;
       const pAns  = iAmPlayer1 ? r.a2 : r.a1;
       const qType = game.type || 'choice';
+      // Chỉ áp dụng cho câu choice (A/B) — who_is/text vốn đã là nội dung thật
+      // (tên người / đáp án tự do), không được đi qua resolveChoiceText để tránh
+      // trường hợp hy hữu người chơi gõ đúng chữ "A"/"B" bị hiểu nhầm thành lựa chọn.
+      const displayMyAns = qType === 'choice' ? resolveChoiceText(myAns, game) : myAns;
+      const displayPAns  = qType === 'choice' ? resolveChoiceText(pAns, game)  : pAns;
 
       document.getElementById('result-match').textContent = match ? '💞' : '😅';
       let title;
@@ -1507,11 +1520,11 @@ function showResultForPlayer(game) {
       document.getElementById('result-answers').innerHTML = `
         <div class="result-ans-box">
           <div class="rab-label">Bạn</div>
-          <div class="rab-val">${myAns||'—'}</div>
+          <div class="rab-val">${displayMyAns||'—'}</div>
         </div>
         <div class="result-ans-box">
           <div class="rab-label">${partner}</div>
-          <div class="rab-val">${pAns||'—'}</div>
+          <div class="rab-val">${displayPAns||'—'}</div>
         </div>`;
       document.getElementById('result-points-wrap').innerHTML = match
         ? `<div class="result-points">+${pts} điểm cho đội${qType==='text' && !isUnique ? ' (đội khác cũng đoán giống)' : ''}</div>` : '';
