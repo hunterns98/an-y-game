@@ -405,6 +405,7 @@
 <script src="https://www.gstatic.com/firebasejs/12.14.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/12.14.0/firebase-database-compat.js"></script>
 <script src="firebase.js"></script>
+<script src="game-logic.js"></script>
 <script>
 const questions = [
   // ── LEVEL 1: Thấu Hiểu Nông (A/B) ──
@@ -823,14 +824,16 @@ function computeRevealResults(game, answers, teams) {
   const scoreUpdates = {};
   const teamLabel = (team, i) => team.teamName ? team.teamName : `Đội ${i+1}: ${team.player1} & ${team.player2||'?'}`;
 
+  // ── Tính match/pts/isUnique bằng GameLogic (pure function — game-logic.js) ──
+  // Công thức GIỮ NGUYÊN 100% so với bản gốc (xem game-logic.js: computeChoiceResult /
+  // computeWhoIsResult / computeTextResults). Ở đây chỉ còn build HTML + ghi điểm
+  // (Firebase/DOM), đúng nguyên tắc GameLogic không Firebase/không DOM/không UI.
+  const results = GameLogic.computeRoundResults(game, teams, answers);
+
   if (qType === 'who_is') {
     Object.entries(teams).forEach(([key, team], i) => {
-      const a1 = answers[team.player1] ? answers[team.player1].answer : '';
-      const a2 = answers[team.player2] ? answers[team.player2].answer : '';
-      const n1 = normalizeAnswer(a1);
-      const n2 = normalizeAnswer(a2);
-      const match = !!(n1 && n2 && n1 === n2);
-      const pts = match ? 2 : 0;
+      const r = results[key];
+      const a1 = r.a1, a2 = r.a2, match = r.match, pts = r.pts;
       if (match) scoreUpdates[key] = (team.score||0) + pts;
       rows.push(`
         <div class="answer-row ${match?'match':'nomatch'}">
@@ -840,41 +843,24 @@ function computeRevealResults(game, answers, teams) {
         </div>`);
     });
   } else if (qType === 'text') {
-    // Chuẩn hoá đáp án (bỏ dấu, bỏ khoảng trắng, không phân biệt hoa/thường)
-    // rồi đếm xem có bao nhiêu đội cùng "ăn ý" với 1 đáp án giống nhau
-    const teamInfo = {};
-    const matchCountByNorm = {};
-    Object.entries(teams).forEach(([key, team]) => {
-      const a1 = answers[team.player1] ? answers[team.player1].answer : '';
-      const a2 = answers[team.player2] ? answers[team.player2].answer : '';
-      const n1 = normalizeAnswer(a1);
-      const n2 = normalizeAnswer(a2);
-      const match = !!(n1 && n2 && n1 === n2);
-      teamInfo[key] = { a1, a2, match, norm: n1 };
-      if (match) matchCountByNorm[n1] = (matchCountByNorm[n1]||0) + 1;
-    });
     Object.entries(teams).forEach(([key, team], i) => {
-      const info = teamInfo[key];
-      let pts = 0, label = '😅 0';
-      if (info.match) {
-        const isUnique = matchCountByNorm[info.norm] === 1;
-        pts = isUnique ? 3 : 1;
-        label = isUnique ? '🌟 +3 (độc nhất)' : '💞 +1 (đội khác cũng trùng)';
-        scoreUpdates[key] = (team.score||0) + pts;
+      const r = results[key];
+      let label = '😅 0';
+      if (r.match) {
+        label = r.isUnique ? '🌟 +3 (độc nhất)' : '💞 +1 (đội khác cũng trùng)';
+        scoreUpdates[key] = (team.score||0) + r.pts;
       }
       rows.push(`
-        <div class="answer-row ${info.match?'match':'nomatch'}">
+        <div class="answer-row ${r.match?'match':'nomatch'}">
           <div class="ar-team">${avatarImg(team.player1,22)} ${avatarImg(team.player2,22)} ${teamLabel(team,i)}</div>
-          <div class="ar-ans">${team.player1}: <strong>${info.a1||'—'}</strong> &nbsp; ${team.player2||'?'}: <strong>${info.a2||'—'}</strong></div>
-          <div class="ar-result ${info.match?'win':'lose'}">${label}</div>
+          <div class="ar-ans">${team.player1}: <strong>${r.a1||'—'}</strong> &nbsp; ${team.player2||'?'}: <strong>${r.a2||'—'}</strong></div>
+          <div class="ar-result ${r.match?'win':'lose'}">${label}</div>
         </div>`);
     });
   } else {
     Object.entries(teams).forEach(([key, team], i) => {
-      const a1 = answers[team.player1] ? answers[team.player1].answer : null;
-      const a2 = answers[team.player2] ? answers[team.player2].answer : null;
-      const match = a1 && a2 && a1 === a2;
-      const pts = match ? (game.special ? 3 : 1) : 0;
+      const r = results[key];
+      const a1 = r.a1, a2 = r.a2, match = r.match, pts = r.pts;
       if (match) scoreUpdates[key] = (team.score||0) + pts;
       rows.push(`
         <div class="answer-row ${match?'match':'nomatch'}">
