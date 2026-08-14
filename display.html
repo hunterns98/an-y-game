@@ -304,6 +304,7 @@
 <script src="https://www.gstatic.com/firebasejs/12.14.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/12.14.0/firebase-database-compat.js"></script>
 <script src="firebase.js"></script>
+<script src="game-logic.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <script>
 // ─────────────────────────────────────────
@@ -582,40 +583,31 @@ function renderRevealBoard(g) {
   const teamLabel = (t, i) => t.teamName || ('Đội ' + (i+1));
   const rows = [];
 
+  // ── Tính match/isUnique bằng GameLogic (pure function — game-logic.js) ──
+  // Công thức GIỮ NGUYÊN 100% so với bản gốc (xem game-logic.js: computeChoiceResult /
+  // computeWhoIsResult / computeTextResults). Ở đây chỉ còn build HTML (DOM/UI),
+  // đúng nguyên tắc GameLogic không Firebase/không DOM/không UI.
+  const results = GameLogic.computeRoundResults(g, teams, answers);
+
   if (qType === 'who_is') {
-    Object.values(teams).forEach((team, i) => {
-      const a1 = answers[team.player1] ? answers[team.player1].answer : '';
-      const a2 = answers[team.player2] ? answers[team.player2].answer : '';
-      const n1 = normalizeAnswer(a1), n2 = normalizeAnswer(a2);
-      const match = !!(n1 && n2 && n1 === n2);
-      rows.push(revealRowHtml(teamLabel(team,i), team.player1, a1, team.player2, a2, match, match ? '🕵️ +2' : '😅 0'));
+    Object.entries(teams).forEach(([key, team], i) => {
+      const r = results[key];
+      rows.push(revealRowHtml(teamLabel(team,i), team.player1, r.a1, team.player2, r.a2, r.match, r.match ? '🕵️ +2' : '😅 0'));
     });
   } else if (qType === 'text') {
-    const teamInfo = {}; const countByNorm = {};
-    Object.entries(teams).forEach(([key, team]) => {
-      const a1 = answers[team.player1] ? answers[team.player1].answer : '';
-      const a2 = answers[team.player2] ? answers[team.player2].answer : '';
-      const n1 = normalizeAnswer(a1), n2 = normalizeAnswer(a2);
-      const match = !!(n1 && n2 && n1 === n2);
-      teamInfo[key] = { a1, a2, match, norm: n1 };
-      if (match) countByNorm[n1] = (countByNorm[n1]||0) + 1;
-    });
     Object.entries(teams).forEach(([key, team], i) => {
-      const info = teamInfo[key];
+      const r = results[key];
       let label = '😅 0';
-      if (info.match) {
-        const isUnique = countByNorm[info.norm] === 1;
-        label = isUnique ? '🌟 +3 (độc nhất)' : '💞 +1 (trùng đội khác)';
+      if (r.match) {
+        label = r.isUnique ? '🌟 +3 (độc nhất)' : '💞 +1 (trùng đội khác)';
       }
-      rows.push(revealRowHtml(teamLabel(team,i), team.player1, info.a1, team.player2, info.a2, info.match, label));
+      rows.push(revealRowHtml(teamLabel(team,i), team.player1, r.a1, team.player2, r.a2, r.match, label));
     });
   } else {
-    Object.values(teams).forEach((team, i) => {
-      const a1 = answers[team.player1] ? answers[team.player1].answer : null;
-      const a2 = answers[team.player2] ? answers[team.player2].answer : null;
-      const match = !!(a1 && a2 && a1 === a2);
-      const label = match ? (g.special ? '🌟 +3' : '💞 +1') : '😅 0';
-      rows.push(revealRowHtml(teamLabel(team,i), team.player1, a1, team.player2, a2, match, label));
+    Object.entries(teams).forEach(([key, team], i) => {
+      const r = results[key];
+      const label = r.match ? (g.special ? '🌟 +3' : '💞 +1') : '😅 0';
+      rows.push(revealRowHtml(teamLabel(team,i), team.player1, r.a1, team.player2, r.a2, r.match, label));
     });
   }
   document.getElementById('d-reveal-board').innerHTML = rows.join('') || '<div class="reveal-empty">Không có đáp án</div>';
