@@ -818,6 +818,15 @@ function sendQuestion(idx) {
 // (renderRevealedReadOnly). game ở đây LUÔN đọc trực tiếp từ Firebase game node
 // (không dùng lại mảng questions[] cục bộ) — đúng nguyên tắc "Firebase game node
 // là source of truth cho current question".
+// ── HIỂN THỊ NỘI DUNG THẬT CỦA A/B THAY VÌ CHỮ CÁI (chỉ dùng để hiển thị,
+// KHÔNG ảnh hưởng match/pts/isUnique — những giá trị đó đã tính xong trước
+// khi hàm này được gọi). Nếu val không phải đúng 'A'/'B' (null/''/tên người/
+// đáp án tự do của who_is,text) thì trả nguyên val, không đổi behavior cũ.
+function resolveChoiceText(val, game) {
+  if (val === 'A') return game.optionA || 'A';
+  if (val === 'B') return game.optionB || 'B';
+  return val;
+}
 function computeRevealResults(game, answers, teams) {
   const qType = game.type || 'choice';
   const rows = [];
@@ -865,7 +874,7 @@ function computeRevealResults(game, answers, teams) {
       rows.push(`
         <div class="answer-row ${match?'match':'nomatch'}">
           <div class="ar-team">${avatarImg(team.player1,22)} ${avatarImg(team.player2,22)} ${teamLabel(team,i)}</div>
-          <div class="ar-ans">${team.player1}: <strong>${a1||'—'}</strong> &nbsp; ${team.player2||'?'}: <strong>${a2||'—'}</strong></div>
+          <div class="ar-ans">${team.player1}: <strong>${resolveChoiceText(a1, game)||'—'}</strong> &nbsp; ${team.player2||'?'}: <strong>${resolveChoiceText(a2, game)||'—'}</strong></div>
           <div class="ar-result ${match?'win':'lose'}">${match ? (game.special?'🌟 +3':'💞 +1') : '😅 0'}</div>
         </div>`);
     });
