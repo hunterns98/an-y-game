@@ -569,6 +569,14 @@ function startDisplayTimer(g) {
 // ─────────────────────────────────────────
 // REVEAL BOARD (giống logic chấm điểm ở admin.html — chỉ đọc, không ghi điểm)
 // ─────────────────────────────────────────
+// ── HIỂN THỊ NỘI DUNG THẬT CỦA A/B THAY VÌ CHỮ CÁI (chỉ dùng để hiển thị,
+// KHÔNG ảnh hưởng match/isUnique — những giá trị đó đã tính xong trước khi
+// hàm này được gọi). Nếu val không phải đúng 'A'/'B' thì trả nguyên val.
+function resolveChoiceText(val, game) {
+  if (val === 'A') return game.optionA || 'A';
+  if (val === 'B') return game.optionB || 'B';
+  return val;
+}
 function revealRowHtml(label, p1, a1, p2, a2, match, resultLabel) {
   return `<div class="reveal-row ${match?'match':'nomatch'}">
     <div class="rr-team">${avatarImg(p1,24)} ${avatarImg(p2,24)} ${label}</div>
@@ -607,7 +615,7 @@ function renderRevealBoard(g) {
     Object.entries(teams).forEach(([key, team], i) => {
       const r = results[key];
       const label = r.match ? (g.special ? '🌟 +3' : '💞 +1') : '😅 0';
-      rows.push(revealRowHtml(teamLabel(team,i), team.player1, r.a1, team.player2, r.a2, r.match, label));
+      rows.push(revealRowHtml(teamLabel(team,i), team.player1, resolveChoiceText(r.a1, g), team.player2, resolveChoiceText(r.a2, g), r.match, label));
     });
   }
   document.getElementById('d-reveal-board').innerHTML = rows.join('') || '<div class="reveal-empty">Không có đáp án</div>';
