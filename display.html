@@ -484,6 +484,7 @@ function listenGameDisplay() {
   db.ref('rooms/' + myRoom + '/game').on('value', snap => {
     const g = snap.val();
     gameCache = g;
+    if (!g || g.status !== 'ended') clearEndedConfetti();
     if (!g) { showScreen('waiting'); return; }
     if (g.status === 'ended') { showEnded(); return; }
     if (g.status !== 'playing') { showScreen('waiting'); return; }
@@ -624,6 +625,14 @@ function renderRevealBoard(g) {
 // MÀN KẾT THÚC
 // ─────────────────────────────────────────
 let endedConfettiInterval;
+// ── DỌN INTERVAL CONFETTI KHI RỜI MÀN ENDED (chỉ dừng interval, KHÔNG đụng RAF
+// đang chạy dở — burst hiện tại tự kết thúc trong tối đa ~3.2s như thiết kế cũ) ──
+function clearEndedConfetti() {
+  if (endedConfettiInterval) {
+    clearInterval(endedConfettiInterval);
+    endedConfettiInterval = null;
+  }
+}
 function showEnded() {
   showScreen('ended');
   db.ref('rooms/' + myRoom + '/teams').once('value').then(snap => {

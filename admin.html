@@ -440,6 +440,11 @@ let gamePhase = 'setup'; // setup | playing | ended
 // Trạng thái revealed đã biết gần nhất của round hiện tại (dùng để listenAnswers()
 // không ghi đè nhầm bảng kết quả điểm bằng pill ✅/⏳ sau khi đã reveal).
 let lastKnownRevealed = false;
+// Guard: đảm bảo listenAnswers() chỉ đăng ký .on('value') ĐÚNG 1 LẦN cho mỗi
+// phòng đang quản lý — tránh chồng listener mỗi khi node `game` đổi (mỗi round/
+// mỗi lần reveal). Reset về false ở đầu loadRoom() để nếu tải sang phòng khác
+// vẫn được gắn lại đúng 1 lần cho phòng mới.
+let answersListenerAttached = false;
 // ── ADMIN ROOM SESSION (rehydrate) — chỉ nhớ MÃ PHÒNG đang quản lý, không phải identity ──
 function adminRoomStorageKey() { return 'anygame_admin_room'; }
 // ── TOAST ──
@@ -502,6 +507,7 @@ document.getElementById('btn-load-room').addEventListener('click', () => {
 // ── LOAD ROOM ──
 function loadRoom(code) {
   roomCode = code;
+  answersListenerAttached = false;
   document.getElementById('room-code-top').textContent = code;
   document.getElementById('rc-code-val').textContent = code;
   document.getElementById('room-code-display').style.display = 'block';
@@ -641,7 +647,7 @@ function listenGame() {
       updateStatusBadge('waiting');
       document.getElementById('phase-setup').style.display = 'block';
       document.getElementById('phase-game').style.display = 'none';
-      listenAnswers();
+      if (!answersListenerAttached) { answersListenerAttached = true; listenAnswers(); }
       return;
     }
     document.getElementById('stat-round').textContent = (g.round||0)+1;
@@ -660,7 +666,7 @@ function listenGame() {
         renderRevealedReadOnly(g);
       }
     }
-    listenAnswers();
+    if (!answersListenerAttached) { answersListenerAttached = true; listenAnswers(); }
   });
 }
 // ── LISTEN ANSWERS (realtime) ──
