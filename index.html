@@ -994,6 +994,11 @@ let myName='', myRoom='', myTeam='', myTeamKey='', myAvatar=null;
 let hasAnswered=false, currentRound=0;
 let prevRound=-1, prevRevealed=false, prevStatus='';
 let partnerListenerAttached=false;
+// Guard: đảm bảo listener trên teams/{myTeamKey} chỉ đăng ký ĐÚNG 1 LẦN cho
+// cả session — tránh chồng listener mỗi khi node `teams` (toàn phòng) đổi.
+// Kết hợp điều kiện myTeamKey (giống pattern partnerListenerAttached ở trên)
+// để không khoá guard nhầm khi player join TRƯỚC lúc admin ghép cặp.
+let myTeamListenerAttached=false;
 let selectedChoice=null, timeIsUp=false;
 // ── ĐỒNG BỘ THỜI GIAN SERVER (để đếm giờ giống nhau trên mọi máy) ──
 let serverTimeOffset = 0;
@@ -1196,14 +1201,17 @@ function findMyTeam() {
       }
     });
     // keep updating score
-    db.ref('rooms/' + myRoom + '/teams/' + myTeamKey).on('value', ts => {
-      if (!ts.val()) return;
-      const t = ts.val();
-      myTeam = t;
-      const partner = t.player1===myName ? t.player2 : t.player1;
-      renderTeamNameUI(t, myTeamKey);
-      updateScoreBanners(t.score||0, partner, t.teamName);
-    });
+    if (myTeamKey && !myTeamListenerAttached) {
+      myTeamListenerAttached = true;
+      db.ref('rooms/' + myRoom + '/teams/' + myTeamKey).on('value', ts => {
+        if (!ts.val()) return;
+        const t = ts.val();
+        myTeam = t;
+        const partner = t.player1===myName ? t.player2 : t.player1;
+        renderTeamNameUI(t, myTeamKey);
+        updateScoreBanners(t.score||0, partner, t.teamName);
+      });
+    }
   });
 }
 function updateScoreBanners(score, partnerName, teamName) {
