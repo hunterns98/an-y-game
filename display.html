@@ -285,6 +285,7 @@
       <div class="progress-count" id="d-progress-count">0 / 0</div>
     </div>
     <div class="reveal-board" id="d-reveal-board"></div>
+    <div class="ended-list" id="d-round-leaderboard" style="display:none;"></div>
   </div>
   <!-- ── SCREEN: ENDED ── -->
   <div class="screen" id="screen-ended">
@@ -540,6 +541,7 @@ function renderQuestionDisplay(g) {
 function showProgressView() {
   document.getElementById('d-progress-wrap').style.display = 'block';
   document.getElementById('d-reveal-board').style.display = 'none';
+  document.getElementById('d-round-leaderboard').style.display = 'none';
   document.getElementById('d-timer-wrap').style.display = 'flex';
 }
 function showRevealView(g) {
@@ -548,6 +550,24 @@ function showRevealView(g) {
   document.getElementById('d-timer-wrap').style.display = 'none';
   document.getElementById('d-reveal-board').style.display = 'flex';
   renderRevealBoard(g);
+  document.getElementById('d-round-leaderboard').style.display = 'flex';
+  renderRoundLeaderboard();
+}
+// ── LEADERBOARD SAU MỖI CÂU (round-leaderboard) ──
+// Chỉ đọc lại teamsCache đã có sẵn (từ listenTeams(), KHÔNG tạo listener/query mới).
+// Tái dùng đúng CSS pattern .d-ws-row/.d-ws-rank/.d-ws-team/.d-ws-pts đã có sẵn cho
+// màn Ended — chỉ bỏ avatar để gọn chiều cao khi phải hiện đồng thời với reveal-board.
+function renderRoundLeaderboard() {
+  const withIdx = Object.values(teamsCache).map((t, i) => ({ ...t, _idx: i }));
+  const sorted = withIdx.sort((a, b) => (b.score || 0) - (a.score || 0));
+  const teamLabel = t => t.teamName || ('Đội ' + (t._idx + 1));
+  const medals = ['🥇', '🥈', '🥉'];
+  document.getElementById('d-round-leaderboard').innerHTML = sorted.map((t, i) => `
+    <div class="d-ws-row">
+      <span class="d-ws-rank">${medals[i] || '#' + (i + 1)}</span>
+      <span class="d-ws-team">${teamLabel(t)}</span>
+      <span class="d-ws-pts">${t.score || 0}</span>
+    </div>`).join('') || '<div class="reveal-empty">Chưa có dữ liệu</div>';
 }
 // ─────────────────────────────────────────
 // TIMER (đồng bộ y hệt cách index.html dùng cho người chơi)
