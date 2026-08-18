@@ -189,6 +189,30 @@
   .rr-result.win  { color: var(--green); }
   .rr-result.lose { color: var(--muted); }
   .reveal-empty { color: var(--muted); text-align: center; padding: 20px; }
+  /* ── ROUND LEADERBOARD — COMPACT LAYOUT (chỉ áp dụng khi #d-round-leaderboard
+     đang hiển thị, tức SAU khi Reveal — dùng :has()/attribute-selector để scope,
+     KHÔNG đổi bất kỳ style gốc nào của .reveal-row/.d-ws-row/.ended-list (vẫn
+     dùng chung cho màn Ended), KHÔNG ảnh hưởng màn Progress trước Reveal. ── */
+  #screen-question:has(#d-round-leaderboard[style*="flex"]) .reveal-row {
+    padding: 8px 14px !important; font-size: 0.85rem !important;
+  }
+  #screen-question:has(#d-round-leaderboard[style*="flex"]) .reveal-board {
+    gap: 6px !important; display: grid !important; grid-template-columns: 1fr 1fr !important;
+    grid-auto-flow: column !important; grid-template-rows: repeat(4, auto) !important; max-height: none !important;
+  }
+  #d-round-leaderboard.d-ws-compact[style*="flex"] .d-ws-row {
+    padding: 6px 14px !important; font-size: 0.88rem !important;
+  }
+  #d-round-leaderboard.d-ws-compact[style*="flex"] .d-ws-rank {
+    width: 22px !important; font-size: 0.95rem !important;
+  }
+  #d-round-leaderboard.d-ws-compact[style*="flex"] {
+    gap: 6px !important; display: grid !important; grid-template-columns: 1fr 1fr !important;
+    grid-auto-flow: column !important; grid-template-rows: repeat(4, auto) !important; max-width: 920px !important;
+  }
+  #screen-question:has(#d-round-leaderboard[style*="flex"]) .question-display-card { padding: 14px 22px !important; }
+  #screen-question:has(#d-round-leaderboard[style*="flex"]) { gap: 8px !important; }
+  #app:has(#screen-question.active #d-round-leaderboard[style*="flex"]) { padding: 0 28px 8px !important; }
   /* ── ENDED SCREEN ── */
   #screen-ended { position: relative; }
   #d-confetti-canvas { position: fixed; inset: 0; pointer-events: none; z-index: 0; }
@@ -285,7 +309,7 @@
       <div class="progress-count" id="d-progress-count">0 / 0</div>
     </div>
     <div class="reveal-board" id="d-reveal-board"></div>
-    <div class="ended-list" id="d-round-leaderboard" style="display:none;"></div>
+    <div class="ended-list d-ws-compact" id="d-round-leaderboard" style="display:none;"></div>
   </div>
   <!-- ── SCREEN: ENDED ── -->
   <div class="screen" id="screen-ended">
