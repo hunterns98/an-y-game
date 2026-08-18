@@ -408,29 +408,29 @@
 <script src="game-logic.js"></script>
 <script>
 const questions = [
-  // ── LEVEL 1: Thấu Hiểu Nông (A/B) ──
-  { level:1, text:"Thức uống bạn chọn là:", a:"Cà phê", b:"Trà", special:false },
-  { level:1, text:"Thể loại âm nhạc bạn chọn:", a:"Ballad thất tình", b:"Remix giật giật", special:false },
-  { level:1, text:"Nếu phải chọn nuôi, bạn chọn:", a:"Chó", b:"Mèo", special:false },
-  { level:1, text:"Liên hoan cuối năm bạn chọn:", a:"Hát", b:"Nhảy", special:false },
-  { level:1, text:"Bộ môn thể thao nếu phải chọn:", a:"Chạy bộ", b:"Bơi lội", special:false },
-  { level:1, text:"Nếu phải chọn đi du lịch:", a:"Lên núi", b:"Xuống biển", special:false },
-  { level:1, text:"Nếu lựa chọn đồ uống unhealthy:", a:"Bia", b:"Rượu", special:false },
+// ── LEVEL 1: Thấu Hiểu Nông (A/B) ──
+  { level:1, text:"Khóc trên ô tô hay Cười trên xe máy:", a:" Khóc trên ô tô ", b:" Cười trên xe máy ", special:false },
+  { level:1, text:"Ăn bún đậu bạn chấm với:", a:"Mắm tôm", b:"Nước mắm", special:false },
+  { level:1, text:"Nếu phải nuôi pet, bạn chọn:", a:"Chó", b:"Mèo", special:false },
+  { level:1, text:"Đáp án A là đáp án đúng. Hãy chọn “A”:", a:"B", b:"A", special:false },
+  { level:1, text:"Bộ môn thể thao nếu phải chọn:", a:"Píc cờ bôn", b:"Cầu lông", special:false },
+  { level:1, text:"Đâu là từ đúng theo cách hiểu của bạn:", a:"Menu", b:"Melu", special:false },
+  { level:1, text:"Lựa chọn đồ uống có cồn sau:", a:"Bia", b:"Rượu", special:false },
   { level:1, text:"Đến giờ nạp calo rồi, bạn chọn:", a:"Ăn lẩu", b:"Ăn nướng", special:false },
-  { level:1, text:"Chuông báo thức kêu:", a:"Dậy ngay", b:"5 phút nữa", special:false },
+  { level:1, text:"Điền tiếp vào câu thành ngữ “Đều như vắt…..:", a:"chanh", b:"tranh", special:false },
   // ── LEVEL 2: Thấu Hiểu Trung (Ai là ai?) ──
-  { level:2, text:"Ai là người nóng tính hơn?", type:"who_is" },
-  { level:2, text:"Ai là người xinh gái hơn?", type:"who_is" },
-  { level:2, text:"Ai là người nói nhiều hơn?", type:"who_is" },
-  { level:2, text:"Ai là người hay quên hơn?", type:"who_is" },
-  { level:2, text:"Ai là người có tháng sinh nhỏ hơn?", type:"who_is" },
-  { level:2, text:"Ai là người hay quan tâm người khác hơn?", type:"who_is" },
+  { level:2, text:"Trong 2 bạn, ai là người cục súc hơn?", type:"who_is" },
+  { level:2, text:"Trong 2 bạn, ai là người nhiều nyc hơn?", type:"who_is" },
+  { level:2, text:"Trong 2 bạn, ai là người hay nấu xói người khác?", type:"who_is" },
+  { level:2, text:" Trong 2 bạn, ai là người não cá vàng?", type:"who_is" },
+  { level:2, text:" Trong 2 bạn, ai là camera chạy bằng cơm?", type:"who_is" },
+  { level:2, text:"Trong 2 bạn, ai là “rắn độc”?", type:"who_is" },
   // ── LEVEL 3: Thấu Hiểu Sâu (Ăn Điểm Cao) ──
   { level:3, text:"Tỉnh nào bắt đầu bằng chữ 'T'?", type:"text", special:true },
-  { level:3, text:"Món ăn nào dễ thấy trong ngày Tết?", type:"text", special:true },
-  { level:3, text:"Kể tên một loài động vật sống dưới nước?", type:"text", special:true },
-  { level:3, text:"Từ số 1-4, bạn đang nghĩ đến số?", type:"text", special:true },
-  { level:3, text:"Một quốc gia đến từ châu Á?", type:"text", special:true }
+  { level:3, text:"Món ăn nào có trong mâm lễ ngày Tết?", type:"text", special:true },
+  { level:3, text:"Hãy miêu tả Sầu Riêng bằng một từ?", type:"text", special:true },
+  { level:3, text:" Kể tên một Giám Đốc Nhà Máy?", type:"text", special:true },
+  { level:3, text:"Kể tên một nam phòng sales (tính cả người cũ)", type:"text", special:true }
 ];
 // ── STATE ──
 let roomCode = '';
