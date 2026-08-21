@@ -626,7 +626,7 @@ function listenTeams() {
     const container = document.getElementById('team-list-display');
     container.innerHTML = list.map((t,i) => `
       <div class="team-row">
-        <div class="team-players">${avatarImg(t.player1,24)} ${avatarImg(t.player2,24)} ${t.teamName ? '<strong>'+t.teamName+'</strong> · ' : 'Đội '+(i+1)+': '}<strong>${t.player1||'Đang chờ'}</strong> & <strong>${t.player2||'Đang chờ'}</strong></div>
+        <div class="team-players">${avatarImg(t.player1,24)} ${avatarImg(t.player2,24)} ${t.teamName ? '<strong>'+escapeHtml(t.teamName)+'</strong> · ' : 'Đội '+(i+1)+': '}<strong>${escapeHtml(t.player1||'Đang chờ')}</strong> & <strong>${escapeHtml(t.player2||'Đang chờ')}</strong></div>
         <div class="team-score-badge">${t.score||0} điểm</div>
       </div>`).join('');
     renderScoreBoard(list);
@@ -686,10 +686,10 @@ function listenAnswers() {
       const rows = Object.entries(teams).map(([key, team], i) => {
         const a1 = answers[team.player1] ? '✅' : '⏳';
         const a2 = answers[team.player2] ? '✅' : '⏳';
-        const label = team.teamName || `Đội ${i+1}: ${team.player1} & ${team.player2||'?'}`;
+        const label = team.teamName ? escapeHtml(team.teamName) : `Đội ${i+1}: ${escapeHtml(team.player1)} & ${escapeHtml(team.player2||'?')}`;
         return `<div class="answer-row" id="ar-${key}">
           <div class="ar-team">${avatarImg(team.player1,22)} ${avatarImg(team.player2,22)} ${label}</div>
-          <div class="ar-ans">${team.player1}: ${a1} &nbsp; ${team.player2||'?'}: ${a2}</div>
+          <div class="ar-ans">${escapeHtml(team.player1)}: ${a1} &nbsp; ${escapeHtml(team.player2||'?')}: ${a2}</div>
           <div class="ar-result" id="ar-res-${key}">—</div>
         </div>`;
       });
@@ -837,7 +837,7 @@ function computeRevealResults(game, answers, teams) {
   const qType = game.type || 'choice';
   const rows = [];
   const scoreUpdates = {};
-  const teamLabel = (team, i) => team.teamName ? team.teamName : `Đội ${i+1}: ${team.player1} & ${team.player2||'?'}`;
+  const teamLabel = (team, i) => team.teamName ? escapeHtml(team.teamName) : `Đội ${i+1}: ${escapeHtml(team.player1)} & ${escapeHtml(team.player2||'?')}`;
 
   // ── Tính match/pts/isUnique bằng GameLogic (pure function — game-logic.js) ──
   // Công thức GIỮ NGUYÊN 100% so với bản gốc (xem game-logic.js: computeChoiceResult /
@@ -853,7 +853,7 @@ function computeRevealResults(game, answers, teams) {
       rows.push(`
         <div class="answer-row ${match?'match':'nomatch'}">
           <div class="ar-team">${avatarImg(team.player1,22)} ${avatarImg(team.player2,22)} ${teamLabel(team,i)}</div>
-          <div class="ar-ans">${team.player1}: <strong>${a1||'—'}</strong> &nbsp; ${team.player2||'?'}: <strong>${a2||'—'}</strong></div>
+          <div class="ar-ans">${escapeHtml(team.player1)}: <strong>${escapeHtml(a1)||'—'}</strong> &nbsp; ${escapeHtml(team.player2||'?')}: <strong>${escapeHtml(a2)||'—'}</strong></div>
           <div class="ar-result ${match?'win':'lose'}">${match ? '🕵️ +2' : '😅 0'}</div>
         </div>`);
     });
@@ -868,7 +868,7 @@ function computeRevealResults(game, answers, teams) {
       rows.push(`
         <div class="answer-row ${r.match?'match':'nomatch'}">
           <div class="ar-team">${avatarImg(team.player1,22)} ${avatarImg(team.player2,22)} ${teamLabel(team,i)}</div>
-          <div class="ar-ans">${team.player1}: <strong>${r.a1||'—'}</strong> &nbsp; ${team.player2||'?'}: <strong>${r.a2||'—'}</strong></div>
+          <div class="ar-ans">${escapeHtml(team.player1)}: <strong>${escapeHtml(r.a1)||'—'}</strong> &nbsp; ${escapeHtml(team.player2||'?')}: <strong>${escapeHtml(r.a2)||'—'}</strong></div>
           <div class="ar-result ${r.match?'win':'lose'}">${label}</div>
         </div>`);
     });
@@ -880,7 +880,7 @@ function computeRevealResults(game, answers, teams) {
       rows.push(`
         <div class="answer-row ${match?'match':'nomatch'}">
           <div class="ar-team">${avatarImg(team.player1,22)} ${avatarImg(team.player2,22)} ${teamLabel(team,i)}</div>
-          <div class="ar-ans">${team.player1}: <strong>${resolveChoiceText(a1, game)||'—'}</strong> &nbsp; ${team.player2||'?'}: <strong>${resolveChoiceText(a2, game)||'—'}</strong></div>
+          <div class="ar-ans">${escapeHtml(team.player1)}: <strong>${resolveChoiceText(a1, game)||'—'}</strong> &nbsp; ${escapeHtml(team.player2||'?')}: <strong>${resolveChoiceText(a2, game)||'—'}</strong></div>
           <div class="ar-result ${match?'win':'lose'}">${match ? (game.special?'🌟 +3':'💞 +1') : '😅 0'}</div>
         </div>`);
     });
@@ -1002,7 +1002,7 @@ function renderScoreBoard(teams) {
   const medals = ['🥇','🥈','🥉'];
   document.getElementById('score-board').innerHTML = sorted.map((t,i)=>`
     <div class="team-row">
-      <div>${medals[i]||'#'+(i+1)} <span class="team-players" style="display:inline;">${t.teamName ? t.teamName+' · ' : ''}${t.player1||'Đang chờ'} & ${t.player2||'Đang chờ'}</span></div>
+      <div>${medals[i]||'#'+(i+1)} <span class="team-players" style="display:inline;">${t.teamName ? escapeHtml(t.teamName)+' · ' : ''}${escapeHtml(t.player1||'Đang chờ')} & ${escapeHtml(t.player2||'Đang chờ')}</span></div>
       <div class="team-score-badge">${t.score||0} điểm</div>
     </div>`).join('') || '<div style="color:var(--muted);font-size:0.85rem;text-align:center;padding:8px;">Chưa có dữ liệu</div>';
 }

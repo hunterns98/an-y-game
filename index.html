@@ -883,6 +883,12 @@ function sfxWin()    {
   freqs.forEach((f,i)=>setTimeout(()=>playTone(f,'triangle',0.5,0.4),i*120));
 }
 // ─────────────────────────────────────────
+// ESCAPE HTML (an toàn khi chèn tên người chơi/tên đội/đáp án vào innerHTML)
+// ─────────────────────────────────────────
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+// ─────────────────────────────────────────
 // TOAST
 // ─────────────────────────────────────────
 function toast(msg, duration=2600) {
@@ -1090,7 +1096,7 @@ function enterGameAsPlayer(name, room, avatarNum) {
     if (!snap.exists()) { clearLocalSession(code); return; }
     validateSession(code, localSess).then(player => {
       if (player) {
-        toast(`👋 Chào mừng trở lại, ${localSess.name}!`);
+        toast(`👋 Chào mừng trở lại, ${escapeHtml(localSess.name)}!`);
         enterGameAsPlayer(localSess.name, code, player.avatar);
       } else {
         clearLocalSession(code); // session cũ không còn hợp lệ -> để người dùng tự bấm Join
@@ -1126,7 +1132,7 @@ function joinRoom() {
     if (localSess && normalizeAnswer(localSess.name) === normalizeAnswer(myName)) {
       validateSession(myRoom, localSess).then(player => {
         if (player) {
-          toast(`👋 Chào mừng trở lại, ${localSess.name}!`);
+          toast(`👋 Chào mừng trở lại, ${escapeHtml(localSess.name)}!`);
           enterGameAsPlayer(localSess.name, myRoom, player.avatar);
         } else {
           // Session cũ không còn hợp lệ (phòng đã reset, hoặc host đã xoá player này) -> dọn sạch rồi join như bình thường
@@ -1157,7 +1163,7 @@ function joinRoom() {
         return;
       }
       if (!committed) {
-        toast('❌ Tên "' + myName + '" đã có người dùng trong phòng này! Hãy chọn tên khác.');
+        toast('❌ Tên "' + escapeHtml(myName) + '" đã có người dùng trong phòng này! Hãy chọn tên khác.');
         resetBtn();
         return;
       }
@@ -1166,7 +1172,7 @@ function joinRoom() {
         const sessionId = generateSessionId();
         db.ref('rooms/' + myRoom + '/players/' + myName).set({ name:myName, score:0, answer:'', avatar:avatarNum, sessionId });
         saveLocalSession(myRoom, myName, sessionId);
-        toast(`🎉 Chào ${myName}! Đã vào phòng ${myRoom}`);
+        toast(`🎉 Chào ${escapeHtml(myName)}! Đã vào phòng ${escapeHtml(myRoom)}`);
         enterGameAsPlayer(myName, myRoom, avatarNum);
       });
     });
@@ -1528,11 +1534,11 @@ function showResultForPlayer(game) {
       document.getElementById('result-answers').innerHTML = `
         <div class="result-ans-box">
           <div class="rab-label">Bạn</div>
-          <div class="rab-val">${displayMyAns||'—'}</div>
+          <div class="rab-val">${displayMyAns ? escapeHtml(displayMyAns) : '—'}</div>
         </div>
         <div class="result-ans-box">
-          <div class="rab-label">${partner}</div>
-          <div class="rab-val">${displayPAns||'—'}</div>
+          <div class="rab-label">${escapeHtml(partner)}</div>
+          <div class="rab-val">${displayPAns ? escapeHtml(displayPAns) : '—'}</div>
         </div>`;
       document.getElementById('result-points-wrap').innerHTML = match
         ? `<div class="result-points">+${pts} điểm cho đội${qType==='text' && !isUnique ? ' (đội khác cũng đoán giống)' : ''}</div>` : '';
@@ -1549,7 +1555,7 @@ function showResultForPlayer(game) {
 function renderLeaderboard(teams) {
   const el = document.getElementById('leaderboard-list');
   if (!el) return;
-  const teamLabel = t => t.teamName || (t.player1 + ' & ' + (t.player2||'?'));
+  const teamLabel = t => escapeHtml(t.teamName || (t.player1 + ' & ' + (t.player2||'?')));
   const list = Object.entries(teams).map(([key, t]) => ({ key, ...t }));
   list.sort((a,b) => (b.score||0) - (a.score||0));
   const medals = ['🥇','🥈','🥉'];
@@ -1577,7 +1583,7 @@ function showEndForPlayer() {
     listEl.innerHTML = sorted.map((t,i) => `
       <div class="ws-row ${isMyTeam(t)?'my-team':''}">
         <span class="ws-rank">${medals[i]||'#'+(i+1)}</span>
-        <span class="ws-team-name">${teamLabel(t)}${isMyTeam(t)?' 👈':''}</span>
+        <span class="ws-team-name">${escapeHtml(teamLabel(t))}${isMyTeam(t)?' 👈':''}</span>
         <span class="ws-pts">${t.score||0}</span>
       </div>`).join('');
     const ws = document.getElementById('winner-screen');
@@ -1626,7 +1632,7 @@ function saveTeamName() {
         db.ref('rooms/' + myRoom + '/teamNameReservations/' + oldKey).remove();
       }
       document.getElementById('team-name-edit-row').classList.remove('show');
-      toast('✅ Đã đổi tên đội thành "' + val + '"');
+      toast('✅ Đã đổi tên đội thành "' + escapeHtml(val) + '"');
       sfxClick();
     });
   };
@@ -1638,7 +1644,7 @@ function saveTeamName() {
   }, (error, committed) => {
     if (error) { toast('❌ Lỗi: ' + error.message); return; }
     if (!committed) {
-      toast('❌ Tên đội "' + val + '" đã có đội khác dùng rồi!');
+      toast('❌ Tên đội "' + escapeHtml(val) + '" đã có đội khác dùng rồi!');
       return;
     }
     applyName();
@@ -1662,7 +1668,7 @@ window.demoSendL2 = function() {
   const val = document.getElementById('demo-l2-input').value.trim();
   if (!val) { toast('⚠️ Gõ tên trước đã!'); return; }
   sfxClick();
-  toast('✅ Đã gửi đáp án thử: ' + val);
+  toast('✅ Đã gửi đáp án thử: ' + escapeHtml(val));
   document.getElementById('demo-l2-input').value = '';
 };
 window.demoSendL3 = function() {
