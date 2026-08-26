@@ -38,6 +38,16 @@
   /* ── LAYOUT ── */
   #app { position: relative; z-index: 1; min-height: 100vh; display: flex; flex-direction: column; align-items: center; padding: 0 28px 40px; }
   /* ── TOP BAR ── */
+  /* ── CONNECTION BANNER (mất kết nối Firebase) ── */
+  #connection-banner {
+    display: none; position: fixed; top: 0; left: 0; right: 0; z-index: 10000;
+    background: rgba(239,68,68,0.95); color: #fff; text-align: center;
+    padding: 12px 16px; font-size: 1rem; font-weight: 700;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.4);
+    animation: bannerSlideDown 0.3s ease;
+  }
+  #connection-banner.show { display: block; }
+  @keyframes bannerSlideDown { from{transform:translateY(-100%)} to{transform:translateY(0)} }
   #top-bar {
     display: none; width: 100%; max-width: 1100px;
     align-items: center; justify-content: space-between;
@@ -231,12 +241,16 @@
   .ws-avatars-row img { margin: 0 -8px; box-shadow: 0 4px 14px rgba(0,0,0,0.4); }
   .ended-sub { font-size: 0.85rem; letter-spacing: 0.2em; color: var(--purple); text-transform: uppercase; margin-bottom: 30px; }
   .ended-list { display: flex; flex-direction: column; gap: 10px; max-width: 480px; margin: 0 auto; }
-  .d-ws-row {
-    display: flex; align-items: center; justify-content: space-between;
+  .d-ws-row { display: flex; align-items: center; justify-content: space-between;
     padding: 14px 20px; border-radius: 14px;
     background: rgba(255,255,255,0.06); border: 1.5px solid var(--border);
     font-size: 1.05rem;
   }
+  /* ── HIGHLIGHT KHI ĐỘI ĐỔI VỊ TRÍ #1 (round-leaderboard) — hiệu ứng ngắn,
+     tái dùng đúng màu vàng đã dùng ở urgentPulse, không phải animation
+     chuyển hạng phức tạp, chỉ nhấp nháy vài lần rồi dừng ── */
+  @keyframes rank1Pulse { 0%,100% { box-shadow: 0 0 0 rgba(255,214,10,0); } 50% { box-shadow: 0 0 22px rgba(255,214,10,0.8); } }
+  .d-ws-row.rank1-changed { border-color: var(--gold); animation: rank1Pulse 0.8s ease-in-out 2; }
   .d-ws-rank { width: 30px; font-size: 1.3rem; }
   .d-ws-team { flex: 1; text-align: left; padding: 0 12px; font-weight: 700; }
   .d-ws-pts { font-weight: 900; color: var(--gold); font-size: 1.15rem; }
@@ -249,6 +263,7 @@
 </style>
 </head>
 <body>
+<div id="connection-banner">⚠️ Mất kết nối — đang thử kết nối lại...</div>
 <div class="stars" id="stars"></div>
 <div id="top-bar">
   <div class="brand">❤️ Ăn Ý — Màn hình lớn</div>
@@ -364,6 +379,20 @@ function showScreen(id) {
 // ─────────────────────────────────────────
 let serverTimeOffset = 0;
 db.ref('.info/serverTimeOffset').on('value', snap => { serverTimeOffset = snap.val() || 0; });
+// ── TRẠNG THÁI KẾT NỐI (banner mất kết nối) ──
+// Chỉ hiện banner nếu ĐÃ TỪNG kết nối thành công rồi mất — không hiện lúc mới
+// vào trang (giai đoạn connected chuyển false->true ban đầu là bình thường).
+let hasConnectedOnce = false;
+db.ref('.info/connected').on('value', snap => {
+  const connected = snap.val() === true;
+  const banner = document.getElementById('connection-banner');
+  if (connected) {
+    hasConnectedOnce = true;
+    if (banner) banner.classList.remove('show');
+  } else if (hasConnectedOnce) {
+    if (banner) banner.classList.add('show');
+  }
+});
 function serverNow() { return Date.now() + serverTimeOffset; }
 // ─────────────────────────────────────────
 // STATE
@@ -377,6 +406,9 @@ let teamsCache = {};
 let answersCache = {};
 let gameCache = null;
 let prevDisplayRound = -1;
+// Lưu key đội đang hạng #1 ở lần reveal TRƯỚC — dùng để phát hiện đổi hạng #1
+// (chỉ đọc lại, không cần listener/query mới, reset đúng theo session như prevDisplayRound).
+let prevFirstPlaceKey = null;
 let displayTimerInterval;
 // ─────────────────────────────────────────
 // KẾT NỐI PHÒNG
@@ -443,7 +475,7 @@ function avatarImg(name, size) {
   size = size || 28;
   const num = playersCache[name] && playersCache[name].avatar;
   if (!num) return `<span style="font-size:${Math.round(size*0.7)}px;line-height:1;">👤</span>`;
-  return `<img class="avatar-thumb" style="width:${size}px;height:${size}px;" src="assets/avatars/avatar${num}.png" alt="">`;
+  return `<img class="avatar-thumb" style="width:${size}px;height:${size}px;" src="assets/avatars/avatar${num}.webp" alt="">`;
 }
 // ─────────────────────────────────────────
 // LẮNG NGHE NGƯỜI CHƠI (màn chờ)
@@ -588,16 +620,20 @@ function showRevealView(g) {
 // Tái dùng đúng CSS pattern .d-ws-row/.d-ws-rank/.d-ws-team/.d-ws-pts đã có sẵn cho
 // màn Ended — chỉ bỏ avatar để gọn chiều cao khi phải hiện đồng thời với reveal-board.
 function renderRoundLeaderboard() {
-  const withIdx = Object.values(teamsCache).map((t, i) => ({ ...t, _idx: i }));
+  const withIdx = Object.entries(teamsCache).map(([key, t], i) => ({ ...t, _idx: i, _key: key }));
   const sorted = withIdx.sort((a, b) => (b.score || 0) - (a.score || 0));
   const teamLabel = t => escapeHtml(t.teamName || ('Đội ' + (t._idx + 1)));
   const medals = ['🥇', '🥈', '🥉'];
+  // Đội #1 hiện tại đổi so với lần reveal trước (cùng session) -> highlight ngắn
+  const currentFirstKey = sorted[0] ? sorted[0]._key : null;
+  const firstPlaceChanged = prevFirstPlaceKey !== null && currentFirstKey !== null && currentFirstKey !== prevFirstPlaceKey;
   document.getElementById('d-round-leaderboard').innerHTML = sorted.map((t, i) => `
-    <div class="d-ws-row">
+    <div class="d-ws-row${i === 0 && firstPlaceChanged ? ' rank1-changed' : ''}">
       <span class="d-ws-rank">${medals[i] || '#' + (i + 1)}</span>
       <span class="d-ws-team">${teamLabel(t)}</span>
       <span class="d-ws-pts">${t.score || 0}</span>
     </div>`).join('') || '<div class="reveal-empty">Chưa có dữ liệu</div>';
+  prevFirstPlaceKey = currentFirstKey;
 }
 // ─────────────────────────────────────────
 // TIMER (đồng bộ y hệt cách index.html dùng cho người chơi)

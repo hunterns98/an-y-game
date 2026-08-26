@@ -238,6 +238,16 @@
   .stat-val { font-size: 1.6rem; font-weight: 900; color: var(--gold); line-height: 1; }
   .stat-lbl { font-size: 0.62rem; letter-spacing: 0.15em; color: var(--muted); text-transform: uppercase; margin-top: 4px; }
   /* ── TOAST ── */
+  /* ── CONNECTION BANNER (mất kết nối Firebase) ── */
+  #connection-banner {
+    display: none; position: fixed; top: 0; left: 0; right: 0; z-index: 10000;
+    background: rgba(239,68,68,0.95); color: #fff; text-align: center;
+    padding: 10px 16px; font-size: 0.85rem; font-weight: 700;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.4);
+    animation: bannerSlideDown 0.3s ease;
+  }
+  #connection-banner.show { display: block; }
+  @keyframes bannerSlideDown { from{transform:translateY(-100%)} to{transform:translateY(0)} }
   #toast {
     position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
     background: rgba(30,10,60,0.95); border: 1px solid rgba(255,255,255,0.12);
@@ -268,6 +278,8 @@
 </style>
 </head>
 <body>
+<!-- Connection banner -->
+<div id="connection-banner">⚠️ Mất kết nối — đang thử kết nối lại...</div>
 <!-- AUTH -->
 <div id="auth-gate">
   <div class="auth-card">
@@ -445,6 +457,20 @@ let lastKnownRevealed = false;
 // mỗi lần reveal). Reset về false ở đầu loadRoom() để nếu tải sang phòng khác
 // vẫn được gắn lại đúng 1 lần cho phòng mới.
 let answersListenerAttached = false;
+// ── TRẠNG THÁI KẾT NỐI (banner mất kết nối) ──
+// Chỉ hiện banner nếu ĐÃ TỪNG kết nối thành công rồi mất — không hiện lúc mới
+// vào trang (giai đoạn connected chuyển false->true ban đầu là bình thường).
+let hasConnectedOnce = false;
+db.ref('.info/connected').on('value', snap => {
+  const connected = snap.val() === true;
+  const banner = document.getElementById('connection-banner');
+  if (connected) {
+    hasConnectedOnce = true;
+    if (banner) banner.classList.remove('show');
+  } else if (hasConnectedOnce) {
+    if (banner) banner.classList.add('show');
+  }
+});
 // ── ADMIN ROOM SESSION (rehydrate) — chỉ nhớ MÃ PHÒNG đang quản lý, không phải identity ──
 function adminRoomStorageKey() { return 'anygame_admin_room'; }
 // ── TOAST ──
@@ -550,7 +576,7 @@ function avatarImg(name, size) {
   size = size || 28;
   const num = playersCache[name] && playersCache[name].avatar;
   if (!num) return `<span style="font-size:${Math.round(size*0.7)}px;line-height:1;">👤</span>`;
-  return `<img class="avatar-thumb" style="width:${size}px;height:${size}px;" src="assets/avatars/avatar${num}.png" alt="">`;
+  return `<img class="avatar-thumb" style="width:${size}px;height:${size}px;" src="assets/avatars/avatar${num}.webp" alt="">`;
 }
 // ── LISTEN PLAYERS ──
 function listenPlayers() {

@@ -404,6 +404,16 @@
   .ws-pts { font-weight: 900; color: var(--gold); }
   /* ── CONFETTI ── */
   /* (drawn via canvas) */
+  /* ── CONNECTION BANNER (mất kết nối Firebase) ── */
+  #connection-banner {
+    display: none; position: fixed; top: 0; left: 0; right: 0; z-index: 10000;
+    background: rgba(239,68,68,0.95); color: #fff; text-align: center;
+    padding: 10px 16px; font-size: 0.85rem; font-weight: 700;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.4);
+    animation: bannerSlideDown 0.3s ease;
+  }
+  #connection-banner.show { display: block; }
+  @keyframes bannerSlideDown { from{transform:translateY(-100%)} to{transform:translateY(0)} }
   /* ── TOAST ── */
   #toast-container {
     position: fixed; top: 16px; left: 50%; transform: translateX(-50%);
@@ -612,6 +622,8 @@
 <div class="stars" id="stars"></div>
 <!-- Footer credit -->
 <div class="made-by-footer">Made By Nam Thần Sales With <span>♥</span></div>
+<!-- Connection banner -->
+<div id="connection-banner">⚠️ Mất kết nối — đang thử kết nối lại...</div>
 <!-- Toast -->
 <div id="toast-container"></div>
 <!-- Countdown overlay -->
@@ -1009,9 +1021,24 @@ let selectedChoice=null, timeIsUp=false;
 // ── ĐỒNG BỘ THỜI GIAN SERVER (để đếm giờ giống nhau trên mọi máy) ──
 let serverTimeOffset = 0;
 db.ref('.info/serverTimeOffset').on('value', snap => { serverTimeOffset = snap.val() || 0; });
+// ── TRẠNG THÁI KẾT NỐI (banner mất kết nối) ──
+// Chỉ hiện banner nếu ĐÃ TỪNG kết nối thành công rồi mất — không hiện lúc mới
+// vào trang (giai đoạn connected chuyển false->true ban đầu là bình thường,
+// không phải "mất kết nối").
+let hasConnectedOnce = false;
+db.ref('.info/connected').on('value', snap => {
+  const connected = snap.val() === true;
+  const banner = document.getElementById('connection-banner');
+  if (connected) {
+    hasConnectedOnce = true;
+    if (banner) banner.classList.remove('show');
+  } else if (hasConnectedOnce) {
+    if (banner) banner.classList.add('show');
+  }
+});
 function serverNow() { return Date.now() + serverTimeOffset; }
 // ── AVATAR (18 avatar ngẫu nhiên, không trùng nhau trong cùng 1 phòng) ──
-function avatarSrc(n) { return 'assets/avatars/avatar' + n + '.png'; }
+function avatarSrc(n) { return 'assets/avatars/avatar' + n + '.webp'; }
 function drawAvatar(callback) {
   let assigned = null;
   db.ref('rooms/' + myRoom + '/avatarPool').transaction(pool => {
