@@ -228,6 +228,10 @@
     display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 14px;
   }
   .action-bar.three { grid-template-columns: 1fr 1fr 1fr; }
+  .lucky-panel { border-color: rgba(255,214,10,.45); background: linear-gradient(135deg,rgba(255,214,10,.10),rgba(155,93,229,.08)); }
+  .lucky-options { display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:8px; margin-top:12px; }
+  .lucky-choice { text-align:left; min-height:52px; }
+  .lucky-status { font-size:.9rem; line-height:1.55; color:var(--text); }
   /* ── STATS ROW ── */
   .stats-row { display: grid; grid-template-columns: repeat(3,1fr); gap: 10px; margin-bottom: 16px; }
   .stat-cell {
@@ -238,16 +242,6 @@
   .stat-val { font-size: 1.6rem; font-weight: 900; color: var(--gold); line-height: 1; }
   .stat-lbl { font-size: 0.62rem; letter-spacing: 0.15em; color: var(--muted); text-transform: uppercase; margin-top: 4px; }
   /* ── TOAST ── */
-  /* ── CONNECTION BANNER (mất kết nối Firebase) ── */
-  #connection-banner {
-    display: none; position: fixed; top: 0; left: 0; right: 0; z-index: 10000;
-    background: rgba(239,68,68,0.95); color: #fff; text-align: center;
-    padding: 10px 16px; font-size: 0.85rem; font-weight: 700;
-    box-shadow: 0 2px 12px rgba(0,0,0,0.4);
-    animation: bannerSlideDown 0.3s ease;
-  }
-  #connection-banner.show { display: block; }
-  @keyframes bannerSlideDown { from{transform:translateY(-100%)} to{transform:translateY(0)} }
   #toast {
     position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
     background: rgba(30,10,60,0.95); border: 1px solid rgba(255,255,255,0.12);
@@ -278,8 +272,6 @@
 </style>
 </head>
 <body>
-<!-- Connection banner -->
-<div id="connection-banner">⚠️ Mất kết nối — đang thử kết nối lại...</div>
 <!-- AUTH -->
 <div id="auth-gate">
   <div class="auth-card">
@@ -404,6 +396,18 @@
         </div>
       </div>
     </div>
+    <!-- Lucky Round: state riêng tại rooms/{code}/luckyState -->
+    <div class="section">
+      <div class="section-label">🎲 Lucky Round</div>
+      <div class="card lucky-panel" id="lucky-admin-panel">
+        <div class="lucky-status" id="lucky-admin-status">Lucky Round chưa được bắt đầu.</div>
+        <div class="lucky-options" id="lucky-admin-options"></div>
+        <div class="action-bar" style="margin-top:12px;grid-template-columns:1fr 1fr;">
+          <button class="btn btn-gold" id="btn-start-lucky">🎲 BẮT ĐẦU LUCKY ROUND</button>
+          <button class="btn btn-cyan" id="btn-reveal-lucky" disabled>🎯 REVEAL LUCKY</button>
+        </div>
+      </div>
+    </div>
     <!-- Scoreboard -->
     <div class="section">
       <div class="section-label">Bảng điểm</div>
@@ -420,29 +424,38 @@
 <script src="game-logic.js"></script>
 <script>
 const questions = [
-// ── LEVEL 1: Thấu Hiểu Nông (A/B) ──
-  { level:1, text:"Khóc trên ô tô hay Cười trên xe máy:", a:" Khóc trên ô tô ", b:" Cười trên xe máy ", special:false },
-  { level:1, text:"Ăn bún đậu bạn chấm với:", a:"Mắm tôm", b:"Nước mắm", special:false },
-  { level:1, text:"Nếu phải nuôi pet, bạn chọn:", a:"Chó", b:"Mèo", special:false },
-  { level:1, text:"Lựa chọn A là đáp án đúng. Hãy chọn đáp án đúng:", a:"Lựa chọn B", b:"Lựa chọn A", special:false },
-  { level:1, text:"Bộ môn thể thao nếu phải chọn:", a:"Píc cờ bôn", b:"Cầu lông", special:false },
-  { level:1, text:"Đâu là từ đúng theo cách hiểu của bạn:", a:"Menu", b:"Melu", special:false },
-  { level:1, text:"Lựa chọn đồ uống có cồn sau:", a:"Bia", b:"Rượu", special:false },
+  // ── LEVEL 1: Thấu Hiểu Nông (A/B) ──
+  { level:1, text:"Thức uống bạn chọn là:", a:"Cà phê", b:"Trà", special:false },
+  { level:1, text:"Thể loại âm nhạc bạn chọn:", a:"Ballad thất tình", b:"Remix giật giật", special:false },
+  { level:1, text:"Nếu phải chọn nuôi, bạn chọn:", a:"Chó", b:"Mèo", special:false },
+  { level:1, text:"Liên hoan cuối năm bạn chọn:", a:"Hát", b:"Nhảy", special:false },
+  { level:1, text:"Bộ môn thể thao nếu phải chọn:", a:"Chạy bộ", b:"Bơi lội", special:false },
+  { level:1, text:"Nếu phải chọn đi du lịch:", a:"Lên núi", b:"Xuống biển", special:false },
+  { level:1, text:"Nếu lựa chọn đồ uống unhealthy:", a:"Bia", b:"Rượu", special:false },
   { level:1, text:"Đến giờ nạp calo rồi, bạn chọn:", a:"Ăn lẩu", b:"Ăn nướng", special:false },
-  { level:1, text:"Điền tiếp vào câu thành ngữ “Đều như vắt…..:", a:"chanh", b:"tranh", special:false },
+  { level:1, text:"Chuông báo thức kêu:", a:"Dậy ngay", b:"5 phút nữa", special:false },
   // ── LEVEL 2: Thấu Hiểu Trung (Ai là ai?) ──
-  { level:2, text:"Trong 2 bạn, ai là người cục súc hơn?", type:"who_is" },
-  { level:2, text:"Trong 2 bạn, ai là người nhiều nyc hơn?", type:"who_is" },
-  { level:2, text:"Trong 2 bạn, ai là người hay nấu xói người khác?", type:"who_is" },
-  { level:2, text:" Trong 2 bạn, ai là người não cá vàng?", type:"who_is" },
-  { level:2, text:" Trong 2 bạn, ai là camera chạy bằng cơm?", type:"who_is" },
-  { level:2, text:"Trong 2 bạn, ai là “rắn độc”?", type:"who_is" },
+  { level:2, text:"Ai là người nóng tính hơn?", type:"who_is" },
+  { level:2, text:"Ai là người xinh gái hơn?", type:"who_is" },
+  { level:2, text:"Ai là người nói nhiều hơn?", type:"who_is" },
+  { level:2, text:"Ai là người hay quên hơn?", type:"who_is" },
+  { level:2, text:"Ai là người có tháng sinh nhỏ hơn?", type:"who_is" },
+  { level:2, text:"Ai là người hay quan tâm người khác hơn?", type:"who_is" },
   // ── LEVEL 3: Thấu Hiểu Sâu (Ăn Điểm Cao) ──
   { level:3, text:"Tỉnh nào bắt đầu bằng chữ 'T'?", type:"text", special:true },
-  { level:3, text:"Món ăn nào có trong mâm lễ ngày Tết?", type:"text", special:true },
-  { level:3, text:"Hãy miêu tả Sầu Riêng bằng một từ?", type:"text", special:true },
-  { level:3, text:" Kể tên một Giám Đốc Nhà Máy?", type:"text", special:true },
-  { level:3, text:"Kể tên một nam phòng sales (tính cả người cũ)", type:"text", special:true }
+  { level:3, text:"Món ăn nào dễ thấy trong ngày Tết?", type:"text", special:true },
+  { level:3, text:"Kể tên một loài động vật sống dưới nước?", type:"text", special:true },
+  { level:3, text:"Từ số 1-4, bạn đang nghĩ đến số?", type:"text", special:true },
+  { level:3, text:"Một quốc gia đến từ châu Á?", type:"text", special:true }
+];
+// Bộ câu hỏi riêng của Lucky Round, không dùng chung questions[] của 3 level.
+const luckyQuestions = [
+  { text:'Xem phim rạp mọi người thích ngồi hàng trước hay hàng sau?', a:'Hàng trước', b:'Hàng sau' },
+  { text:'Uống trà sữa mọi người gọi ít đá hay nhiều đá?', a:'Ít đá', b:'Nhiều đá' },
+  { text:'Đi ăn cùng team, mọi người thích gọi nhiều món để chia hay mỗi người một món?', a:'Chia nhiều món', b:'Mỗi người một món' },
+  { text:'Cuối tuần mọi người thích ở nhà nghỉ ngơi hay ra ngoài chơi?', a:'Ở nhà', b:'Ra ngoài' },
+  { text:'Khi đi du lịch, mọi người thích dậy sớm khám phá hay ngủ thêm?', a:'Dậy sớm', b:'Ngủ thêm' },
+  { text:'Đồ ăn vặt mọi người thích vị ngọt hay vị mặn?', a:'Vị ngọt', b:'Vị mặn' }
 ];
 // ── STATE ──
 let roomCode = '';
@@ -457,20 +470,6 @@ let lastKnownRevealed = false;
 // mỗi lần reveal). Reset về false ở đầu loadRoom() để nếu tải sang phòng khác
 // vẫn được gắn lại đúng 1 lần cho phòng mới.
 let answersListenerAttached = false;
-// ── TRẠNG THÁI KẾT NỐI (banner mất kết nối) ──
-// Chỉ hiện banner nếu ĐÃ TỪNG kết nối thành công rồi mất — không hiện lúc mới
-// vào trang (giai đoạn connected chuyển false->true ban đầu là bình thường).
-let hasConnectedOnce = false;
-db.ref('.info/connected').on('value', snap => {
-  const connected = snap.val() === true;
-  const banner = document.getElementById('connection-banner');
-  if (connected) {
-    hasConnectedOnce = true;
-    if (banner) banner.classList.remove('show');
-  } else if (hasConnectedOnce) {
-    if (banner) banner.classList.add('show');
-  }
-});
 // ── ADMIN ROOM SESSION (rehydrate) — chỉ nhớ MÃ PHÒNG đang quản lý, không phải identity ──
 function adminRoomStorageKey() { return 'anygame_admin_room'; }
 // ── TOAST ──
@@ -541,6 +540,7 @@ function loadRoom(code) {
   listenPlayers();
   listenTeams();
   listenGame();
+  listenLucky();
 }
 // ── AUTO-LOAD PHÒNG ĐANG QUẢN LÝ SAU KHI PIN HỢP LỆ (rehydrate cho Admin) ──
 // Chỉ ĐỌC từ Firebase để kiểm tra phòng còn tồn tại hay không — không ghi gì cả.
@@ -576,7 +576,7 @@ function avatarImg(name, size) {
   size = size || 28;
   const num = playersCache[name] && playersCache[name].avatar;
   if (!num) return `<span style="font-size:${Math.round(size*0.7)}px;line-height:1;">👤</span>`;
-  return `<img class="avatar-thumb" style="width:${size}px;height:${size}px;" src="assets/avatars/avatar${num}.webp" alt="">`;
+  return `<img class="avatar-thumb" style="width:${size}px;height:${size}px;" src="assets/avatars/avatar${num}.png" alt="">`;
 }
 // ── LISTEN PLAYERS ──
 function listenPlayers() {
@@ -652,7 +652,7 @@ function listenTeams() {
     const container = document.getElementById('team-list-display');
     container.innerHTML = list.map((t,i) => `
       <div class="team-row">
-        <div class="team-players">${avatarImg(t.player1,24)} ${avatarImg(t.player2,24)} ${t.teamName ? '<strong>'+escapeHtml(t.teamName)+'</strong> · ' : 'Đội '+(i+1)+': '}<strong>${escapeHtml(t.player1||'Đang chờ')}</strong> & <strong>${escapeHtml(t.player2||'Đang chờ')}</strong></div>
+        <div class="team-players">${avatarImg(t.player1,24)} ${avatarImg(t.player2,24)} ${t.teamName ? '<strong>'+t.teamName+'</strong> · ' : 'Đội '+(i+1)+': '}<strong>${t.player1||'Đang chờ'}</strong> & <strong>${t.player2||'Đang chờ'}</strong></div>
         <div class="team-score-badge">${t.score||0} điểm</div>
       </div>`).join('');
     renderScoreBoard(list);
@@ -712,10 +712,10 @@ function listenAnswers() {
       const rows = Object.entries(teams).map(([key, team], i) => {
         const a1 = answers[team.player1] ? '✅' : '⏳';
         const a2 = answers[team.player2] ? '✅' : '⏳';
-        const label = team.teamName ? escapeHtml(team.teamName) : `Đội ${i+1}: ${escapeHtml(team.player1)} & ${escapeHtml(team.player2||'?')}`;
+        const label = team.teamName || `Đội ${i+1}: ${team.player1} & ${team.player2||'?'}`;
         return `<div class="answer-row" id="ar-${key}">
           <div class="ar-team">${avatarImg(team.player1,22)} ${avatarImg(team.player2,22)} ${label}</div>
-          <div class="ar-ans">${escapeHtml(team.player1)}: ${a1} &nbsp; ${escapeHtml(team.player2||'?')}: ${a2}</div>
+          <div class="ar-ans">${team.player1}: ${a1} &nbsp; ${team.player2||'?'}: ${a2}</div>
           <div class="ar-result" id="ar-res-${key}">—</div>
         </div>`;
       });
@@ -835,6 +835,8 @@ function sendQuestion(idx) {
     payload.optionB = q.b;
   }
   db.ref('rooms/' + roomCode + '/game').set(payload);
+  // Giữ lại lịch sử Lucky đã reveal để audit/reload, nhưng không để nó chặn round thường kế tiếp.
+  db.ref('rooms/' + roomCode + '/luckyState/status').transaction(s => s === 'revealed' ? 'completed' : s);
   db.ref('rooms/' + roomCode + '/answers').remove();
   // Update admin UI — dùng chung hàm render với rehydrate-path
   lastKnownRevealed = false;
@@ -863,7 +865,7 @@ function computeRevealResults(game, answers, teams) {
   const qType = game.type || 'choice';
   const rows = [];
   const scoreUpdates = {};
-  const teamLabel = (team, i) => team.teamName ? escapeHtml(team.teamName) : `Đội ${i+1}: ${escapeHtml(team.player1)} & ${escapeHtml(team.player2||'?')}`;
+  const teamLabel = (team, i) => team.teamName ? team.teamName : `Đội ${i+1}: ${team.player1} & ${team.player2||'?'}`;
 
   // ── Tính match/pts/isUnique bằng GameLogic (pure function — game-logic.js) ──
   // Công thức GIỮ NGUYÊN 100% so với bản gốc (xem game-logic.js: computeChoiceResult /
@@ -879,7 +881,7 @@ function computeRevealResults(game, answers, teams) {
       rows.push(`
         <div class="answer-row ${match?'match':'nomatch'}">
           <div class="ar-team">${avatarImg(team.player1,22)} ${avatarImg(team.player2,22)} ${teamLabel(team,i)}</div>
-          <div class="ar-ans">${escapeHtml(team.player1)}: <strong>${escapeHtml(a1)||'—'}</strong> &nbsp; ${escapeHtml(team.player2||'?')}: <strong>${escapeHtml(a2)||'—'}</strong></div>
+          <div class="ar-ans">${team.player1}: <strong>${a1||'—'}</strong> &nbsp; ${team.player2||'?'}: <strong>${a2||'—'}</strong></div>
           <div class="ar-result ${match?'win':'lose'}">${match ? '🕵️ +2' : '😅 0'}</div>
         </div>`);
     });
@@ -894,7 +896,7 @@ function computeRevealResults(game, answers, teams) {
       rows.push(`
         <div class="answer-row ${r.match?'match':'nomatch'}">
           <div class="ar-team">${avatarImg(team.player1,22)} ${avatarImg(team.player2,22)} ${teamLabel(team,i)}</div>
-          <div class="ar-ans">${escapeHtml(team.player1)}: <strong>${escapeHtml(r.a1)||'—'}</strong> &nbsp; ${escapeHtml(team.player2||'?')}: <strong>${escapeHtml(r.a2)||'—'}</strong></div>
+          <div class="ar-ans">${team.player1}: <strong>${r.a1||'—'}</strong> &nbsp; ${team.player2||'?'}: <strong>${r.a2||'—'}</strong></div>
           <div class="ar-result ${r.match?'win':'lose'}">${label}</div>
         </div>`);
     });
@@ -906,7 +908,7 @@ function computeRevealResults(game, answers, teams) {
       rows.push(`
         <div class="answer-row ${match?'match':'nomatch'}">
           <div class="ar-team">${avatarImg(team.player1,22)} ${avatarImg(team.player2,22)} ${teamLabel(team,i)}</div>
-          <div class="ar-ans">${escapeHtml(team.player1)}: <strong>${resolveChoiceText(a1, game)||'—'}</strong> &nbsp; ${escapeHtml(team.player2||'?')}: <strong>${resolveChoiceText(a2, game)||'—'}</strong></div>
+          <div class="ar-ans">${team.player1}: <strong>${resolveChoiceText(a1, game)||'—'}</strong> &nbsp; ${team.player2||'?'}: <strong>${resolveChoiceText(a2, game)||'—'}</strong></div>
           <div class="ar-result ${match?'win':'lose'}">${match ? (game.special?'🌟 +3':'💞 +1') : '😅 0'}</div>
         </div>`);
     });
@@ -927,6 +929,9 @@ function renderRevealBoardHtml(rowsHtml) {
 document.getElementById('btn-reveal').addEventListener('click', revealAnswers);
 function revealAnswers() {
   if (!roomCode) return;
+  if (luckyStateCache && ['choosing_team','choosing_question','voting'].includes(luckyStateCache.status)) {
+    toast('🎲 Hãy hoàn tất Lucky Round trước khi reveal round thường.'); return;
+  }
   db.ref('rooms/' + roomCode + '/game/revealed').transaction(curr => {
     if (curr === true) return; // đã có người/thao tác khác reveal rồi -> abort, không ghi gì
     return true; // chốt quyền reveal cho lệnh gọi này
@@ -968,6 +973,9 @@ function renderRevealedReadOnly(game) {
 }
 // ── NEXT QUESTION ──
 document.getElementById('btn-next').addEventListener('click', () => {
+  if (luckyStateCache && ['choosing_team','choosing_question','voting'].includes(luckyStateCache.status)) {
+    toast('🎲 Hãy hoàn tất Lucky Round trước khi chuyển câu.'); return;
+  }
   currentRound++;
   if (currentRound >= questions.length) {
     endGame(); return;
@@ -1005,6 +1013,106 @@ document.getElementById('btn-end-game').addEventListener('click', () => {
   if (!confirm('Kết thúc game? Người chơi sẽ thấy màn hình kết quả.')) return;
   endGame();
 });
+// ── LUCKY ROUND ─────────────────────────────────────────────────────────
+// Lucky state không can thiệp game/answers thường. Reveal dùng transaction trên cả room
+// để score và trạng thái revealed được chốt cùng một commit, chống double-click/race.
+let luckyStateCache = null;
+function teamLabelByKey(key, teams) {
+  const entries = Object.entries(teams || {}); const i = entries.findIndex(([k]) => k === key);
+  const t = (teams || {})[key] || {};
+  return t.teamName || `Đội ${i >= 0 ? i + 1 : ''}: ${t.player1||'?'} & ${t.player2||'?'}`;
+}
+function listenLucky() {
+  db.ref('rooms/' + roomCode + '/luckyState').on('value', snap => {
+    luckyStateCache = snap.val(); renderLuckyAdmin(luckyStateCache);
+  });
+}
+function renderLuckyAdmin(state) {
+  const status = document.getElementById('lucky-admin-status');
+  const options = document.getElementById('lucky-admin-options');
+  const start = document.getElementById('btn-start-lucky');
+  const reveal = document.getElementById('btn-reveal-lucky');
+  if (!roomCode || !state || state.status === 'completed') {
+    status.textContent = 'Lucky Round chưa được bắt đầu. Admin chủ động chọn đội cuối bảng và câu hỏi.';
+    options.innerHTML = ''; start.disabled = !roomCode; reveal.disabled = true; return;
+  }
+  start.disabled = true; options.innerHTML = '';
+  if (state.status === 'choosing_team') {
+    status.textContent = 'Đang có nhiều đội đồng cuối bảng. Chọn duy nhất một đội chơi Lucky:';
+    options.innerHTML = (state.candidateTeamIds || []).map(key => `<button class="btn btn-purple lucky-choice" data-lucky-team="${key}">${escapeHtml(teamLabelByKey(key, state.teamSnapshot))}</button>`).join('');
+    reveal.disabled = true; return;
+  }
+  if (state.status === 'choosing_question') {
+    status.textContent = `Đội Lucky: ${teamLabelByKey(state.luckyTeamId, state.teamSnapshot)}. Chọn một Lucky Question:`;
+    options.innerHTML = luckyQuestions.map((q,i) => `<button class="btn btn-ghost lucky-choice" data-lucky-question="${i}"><b>${i+1}. ${escapeHtml(q.text)}</b><br><small>A. ${escapeHtml(q.a)} · B. ${escapeHtml(q.b)}</small></button>`).join('');
+    reveal.disabled = true; return;
+  }
+  const label = teamLabelByKey(state.luckyTeamId, state.teamSnapshot);
+  if (state.status === 'voting') {
+    const votes = Object.keys(state.votes || {}).length;
+    const eligible = (state.eligiblePlayerIds || []).length;
+    status.innerHTML = `🎲 <b>${escapeHtml(label)}</b> đang là Lucky Team.<br>Câu: ${escapeHtml(state.question)}<br>Vote thường: <b>${votes}/${eligible}</b> · Dự đoán Lucky: <b>${state.prediction ? 'đã gửi' : 'chưa gửi'}</b> · Mức điểm đã chốt: <b>${state.randomAmount}</b>`;
+    reveal.disabled = !(state.prediction && votes >= eligible); return;
+  }
+  if (state.status === 'revealed') {
+    const sign = state.scoreChange > 0 ? '+' : '';
+    status.innerHTML = `🎲 <b>${escapeHtml(label)}</b> · Kết quả <b>${state.actualResult === 'C' ? 'HÒA' : state.actualResult}</b> · Dự đoán <b>${state.prediction && state.prediction.value}</b><br>${state.win ? '🎉 CHÍNH XÁC' : '💥 SAI RỒI'}: <b>${sign}${state.scoreChange} điểm</b> · Điểm mới: <b>${state.newScore}</b>`;
+    reveal.disabled = true; return;
+  }
+}
+document.getElementById('btn-start-lucky').addEventListener('click', () => {
+  if (!roomCode) return;
+  db.ref('rooms/' + roomCode + '/teams').once('value').then(snap => {
+    const teams = snap.val() || {}; const valid = Object.entries(teams).filter(([,t]) => t.player1 && t.player2);
+    if (!valid.length) { toast('⚠️ Cần ít nhất một đội đủ 2 người.'); return; }
+    const min = Math.min(...valid.map(([,t]) => Number(t.score)||0));
+    const candidates = valid.filter(([,t]) => (Number(t.score)||0) === min).map(([k]) => k);
+    const snapshot = {}; valid.forEach(([k,t]) => snapshot[k] = {player1:t.player1,player2:t.player2,teamName:t.teamName||'',score:t.score||0});
+    const state = candidates.length === 1
+      ? { status:'choosing_question', luckyTeamId:candidates[0], teamSnapshot:snapshot, createdAt:firebase.database.ServerValue.TIMESTAMP }
+      : { status:'choosing_team', candidateTeamIds:candidates, teamSnapshot:snapshot, createdAt:firebase.database.ServerValue.TIMESTAMP };
+    db.ref('rooms/' + roomCode + '/luckyState').transaction(curr => (!curr || curr.status === 'completed') ? state : undefined,
+      (err, committed) => { if (err) toast('❌ ' + err.message); else if (!committed) toast('⚠️ Lucky Round đang diễn ra.'); });
+  });
+});
+document.getElementById('lucky-admin-options').addEventListener('click', e => {
+  const teamBtn = e.target.closest('[data-lucky-team]'); const qBtn = e.target.closest('[data-lucky-question]');
+  if (teamBtn) {
+    const key = teamBtn.dataset.luckyTeam;
+    db.ref('rooms/' + roomCode + '/luckyState').transaction(s => {
+      if (!s || s.status !== 'choosing_team' || !(s.candidateTeamIds||[]).includes(key)) return;
+      s.status='choosing_question'; s.luckyTeamId=key; delete s.candidateTeamIds; return s;
+    }); return;
+  }
+  if (qBtn) {
+    const idx = Number(qBtn.dataset.luckyQuestion), q = luckyQuestions[idx]; if (!q) return;
+    // Chọn amount trước transaction để retry không reroll.
+    const amount = [3,5,7][Math.floor(Math.random()*3)];
+    db.ref('rooms/' + roomCode + '/luckyState').transaction(s => {
+      if (!s || s.status !== 'choosing_question' || s.question) return;
+      const lucky = s.teamSnapshot && s.teamSnapshot[s.luckyTeamId]; if (!lucky) return;
+      s.status='voting'; s.questionIndex=idx; s.question=q.text; s.optionA=q.a; s.optionB=q.b;
+      s.randomAmount=amount; s.eligiblePlayerIds=Object.values(s.teamSnapshot).flatMap(t => [t.player1,t.player2]).filter(p => p && p !== lucky.player1 && p !== lucky.player2);
+      s.luckyPlayerIds=[lucky.player1,lucky.player2]; s.votes={}; s.startedAt=firebase.database.ServerValue.TIMESTAMP; return s;
+    });
+  }
+});
+document.getElementById('btn-reveal-lucky').addEventListener('click', () => {
+  if (!roomCode) return;
+  db.ref('rooms/' + roomCode).transaction(room => {
+    if (!room || !room.luckyState || room.luckyState.status !== 'voting' || !room.luckyState.prediction) return;
+    const s=room.luckyState, eligible=s.eligiblePlayerIds||[], votes=s.votes||{};
+    if (Object.keys(votes).length < eligible.length) return;
+    const calc=GameLogic.computeLuckyResult(votes, s.prediction.value, s.randomAmount);
+    const team=room.teams && room.teams[s.luckyTeamId]; if (!team) return;
+    const oldScore=Number(team.score)||0, newScore=Math.max(0, oldScore + calc.scoreChange);
+    team.score=newScore;
+    Object.assign(s, calc, { status:'revealed', revealed:true, revealedAt:firebase.database.ServerValue.TIMESTAMP, newScore:newScore, scoreBefore:oldScore, scoreApplied:true });
+    return room;
+  }, (err, committed) => {
+    if (err) toast('❌ ' + err.message); else if (committed) toast('🎯 Lucky đã reveal — điểm được cập nhật đúng một lần.');
+  });
+});
 // ── RESET ──
 document.getElementById('btn-reset').addEventListener('click', () => {
   if (!roomCode) { toast('⚠️ Chưa có phòng'); return; }
@@ -1028,7 +1136,7 @@ function renderScoreBoard(teams) {
   const medals = ['🥇','🥈','🥉'];
   document.getElementById('score-board').innerHTML = sorted.map((t,i)=>`
     <div class="team-row">
-      <div>${medals[i]||'#'+(i+1)} <span class="team-players" style="display:inline;">${t.teamName ? escapeHtml(t.teamName)+' · ' : ''}${escapeHtml(t.player1||'Đang chờ')} & ${escapeHtml(t.player2||'Đang chờ')}</span></div>
+      <div>${medals[i]||'#'+(i+1)} <span class="team-players" style="display:inline;">${t.teamName ? t.teamName+' · ' : ''}${t.player1||'Đang chờ'} & ${t.player2||'Đang chờ'}</span></div>
       <div class="team-score-badge">${t.score||0} điểm</div>
     </div>`).join('') || '<div style="color:var(--muted);font-size:0.85rem;text-align:center;padding:8px;">Chưa có dữ liệu</div>';
 }

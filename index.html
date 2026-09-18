@@ -404,16 +404,6 @@
   .ws-pts { font-weight: 900; color: var(--gold); }
   /* ── CONFETTI ── */
   /* (drawn via canvas) */
-  /* ── CONNECTION BANNER (mất kết nối Firebase) ── */
-  #connection-banner {
-    display: none; position: fixed; top: 0; left: 0; right: 0; z-index: 10000;
-    background: rgba(239,68,68,0.95); color: #fff; text-align: center;
-    padding: 10px 16px; font-size: 0.85rem; font-weight: 700;
-    box-shadow: 0 2px 12px rgba(0,0,0,0.4);
-    animation: bannerSlideDown 0.3s ease;
-  }
-  #connection-banner.show { display: block; }
-  @keyframes bannerSlideDown { from{transform:translateY(-100%)} to{transform:translateY(0)} }
   /* ── TOAST ── */
   #toast-container {
     position: fixed; top: 16px; left: 50%; transform: translateX(-50%);
@@ -622,8 +612,6 @@
 <div class="stars" id="stars"></div>
 <!-- Footer credit -->
 <div class="made-by-footer">Made By Nam Thần Sales With <span>♥</span></div>
-<!-- Connection banner -->
-<div id="connection-banner">⚠️ Mất kết nối — đang thử kết nối lại...</div>
 <!-- Toast -->
 <div id="toast-container"></div>
 <!-- Countdown overlay -->
@@ -813,6 +801,16 @@
       <div class="chosen-answer" id="chosen-display">—</div>
       <div class="chosen-sub" id="chosen-sub">Đang chờ đồng đội trả lời...</div>
     </div>
+    <div class="card" id="lucky-player-card" style="display:none;flex-direction:column;gap:14px;text-align:center;border-color:rgba(255,214,10,.45);">
+      <div style="font-size:1.25rem;font-weight:900;color:var(--gold);" id="lucky-player-title">🎲 LUCKY ROUND</div>
+      <div style="font-size:.92rem;color:var(--muted);line-height:1.5;" id="lucky-player-note"></div>
+      <div class="answer-grid" id="lucky-choice-grid">
+        <button class="btn-answer" data-lucky-choice="A"><span class="option-label">Dự đoán A</span><span id="lucky-opt-a">—</span></button>
+        <button class="btn-answer" data-lucky-choice="B"><span class="option-label">Dự đoán B</span><span id="lucky-opt-b">—</span></button>
+        <button class="btn-answer" data-lucky-choice="C" style="grid-column:1/-1;"><span class="option-label">Dự đoán C</span><span>HÒA — A và B bằng nhau</span></button>
+      </div>
+      <button class="btn btn-gold" id="btn-submit-lucky" disabled>Gửi dự đoán 🎯</button>
+    </div>
     <div class="team-score-banner" id="score-banner-q">
       <div><div class="tsb-label">Đội của bạn</div><div class="tsb-team" id="tsb-q-team">—</div></div>
       <div class="tsb-score" id="tsb-q-score">0</div>
@@ -893,12 +891,6 @@ function sfxGo()        { [523, 659, 784].forEach((f,i)=>setTimeout(()=>playTone
 function sfxWin()    {
   const freqs = [523,659,784,1047,1318];
   freqs.forEach((f,i)=>setTimeout(()=>playTone(f,'triangle',0.5,0.4),i*120));
-}
-// ─────────────────────────────────────────
-// ESCAPE HTML (an toàn khi chèn tên người chơi/tên đội/đáp án vào innerHTML)
-// ─────────────────────────────────────────
-function escapeHtml(s) {
-  return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 }
 // ─────────────────────────────────────────
 // TOAST
@@ -1017,28 +1009,13 @@ let partnerListenerAttached=false;
 // Kết hợp điều kiện myTeamKey (giống pattern partnerListenerAttached ở trên)
 // để không khoá guard nhầm khi player join TRƯỚC lúc admin ghép cặp.
 let myTeamListenerAttached=false;
-let selectedChoice=null, timeIsUp=false;
+let selectedChoice=null, timeIsUp=false, luckyPlayerChoice=null, luckyStateCache=null, latestGameCache=null;
 // ── ĐỒNG BỘ THỜI GIAN SERVER (để đếm giờ giống nhau trên mọi máy) ──
 let serverTimeOffset = 0;
 db.ref('.info/serverTimeOffset').on('value', snap => { serverTimeOffset = snap.val() || 0; });
-// ── TRẠNG THÁI KẾT NỐI (banner mất kết nối) ──
-// Chỉ hiện banner nếu ĐÃ TỪNG kết nối thành công rồi mất — không hiện lúc mới
-// vào trang (giai đoạn connected chuyển false->true ban đầu là bình thường,
-// không phải "mất kết nối").
-let hasConnectedOnce = false;
-db.ref('.info/connected').on('value', snap => {
-  const connected = snap.val() === true;
-  const banner = document.getElementById('connection-banner');
-  if (connected) {
-    hasConnectedOnce = true;
-    if (banner) banner.classList.remove('show');
-  } else if (hasConnectedOnce) {
-    if (banner) banner.classList.add('show');
-  }
-});
 function serverNow() { return Date.now() + serverTimeOffset; }
 // ── AVATAR (18 avatar ngẫu nhiên, không trùng nhau trong cùng 1 phòng) ──
-function avatarSrc(n) { return 'assets/avatars/avatar' + n + '.webp'; }
+function avatarSrc(n) { return 'assets/avatars/avatar' + n + '.png'; }
 function drawAvatar(callback) {
   let assigned = null;
   db.ref('rooms/' + myRoom + '/avatarPool').transaction(pool => {
@@ -1101,6 +1078,7 @@ function enterGameAsPlayer(name, room, avatarNum) {
   showScreen('lobby');
   findMyTeam();
   listenGame();
+  listenLuckyPlayer();
 }
 // ── Nếu URL có ?room=XXXXX VÀ máy này đã có session đã lưu cho đúng phòng đó
 // -> tự động khôi phục thẳng vào game, không bắt gõ lại tên / không qua màn Join.
@@ -1123,7 +1101,7 @@ function enterGameAsPlayer(name, room, avatarNum) {
     if (!snap.exists()) { clearLocalSession(code); return; }
     validateSession(code, localSess).then(player => {
       if (player) {
-        toast(`👋 Chào mừng trở lại, ${escapeHtml(localSess.name)}!`);
+        toast(`👋 Chào mừng trở lại, ${localSess.name}!`);
         enterGameAsPlayer(localSess.name, code, player.avatar);
       } else {
         clearLocalSession(code); // session cũ không còn hợp lệ -> để người dùng tự bấm Join
@@ -1159,7 +1137,7 @@ function joinRoom() {
     if (localSess && normalizeAnswer(localSess.name) === normalizeAnswer(myName)) {
       validateSession(myRoom, localSess).then(player => {
         if (player) {
-          toast(`👋 Chào mừng trở lại, ${escapeHtml(localSess.name)}!`);
+          toast(`👋 Chào mừng trở lại, ${localSess.name}!`);
           enterGameAsPlayer(localSess.name, myRoom, player.avatar);
         } else {
           // Session cũ không còn hợp lệ (phòng đã reset, hoặc host đã xoá player này) -> dọn sạch rồi join như bình thường
@@ -1190,7 +1168,7 @@ function joinRoom() {
         return;
       }
       if (!committed) {
-        toast('❌ Tên "' + escapeHtml(myName) + '" đã có người dùng trong phòng này! Hãy chọn tên khác.');
+        toast('❌ Tên "' + myName + '" đã có người dùng trong phòng này! Hãy chọn tên khác.');
         resetBtn();
         return;
       }
@@ -1199,7 +1177,7 @@ function joinRoom() {
         const sessionId = generateSessionId();
         db.ref('rooms/' + myRoom + '/players/' + myName).set({ name:myName, score:0, answer:'', avatar:avatarNum, sessionId });
         saveLocalSession(myRoom, myName, sessionId);
-        toast(`🎉 Chào ${escapeHtml(myName)}! Đã vào phòng ${escapeHtml(myRoom)}`);
+        toast(`🎉 Chào ${myName}! Đã vào phòng ${myRoom}`);
         enterGameAsPlayer(myName, myRoom, avatarNum);
       });
     });
@@ -1216,6 +1194,9 @@ function findMyTeam() {
       if (team.player1 === myName || team.player2 === myName) {
         myTeamKey = key;
         myTeam = team;
+        // Nếu F5 đúng giữa Lucky Round, listener Lucky có thể tới trước listener teams.
+        // Render lại ngay khi identity team đã rehydrate để không kẹt ở màn thường.
+        if (luckyStateCache && ['voting','revealed'].includes(luckyStateCache.status)) renderLuckyPlayer(luckyStateCache);
         const partner = team.player1 === myName ? team.player2 : team.player1;
         // Show partner
         const pd = document.getElementById('partner-display');
@@ -1295,7 +1276,9 @@ function renderPartnerAvatar(partnerName) {
 function listenGame() {
   db.ref('rooms/' + myRoom + '/game').on('value', snap => {
     const game = snap.val();
+    latestGameCache = game;
     if (!game) return;
+    if (luckyStateCache && ['voting','revealed'].includes(luckyStateCache.status)) return;
     if (game.status === 'ended') { hideHowtoGuide(); showEndForPlayer(); return; }
     if (game.status !== 'playing') return;
     hideHowtoGuide();
@@ -1323,6 +1306,67 @@ function listenGame() {
     }
   });
 }
+// ── LUCKY ROUND PLAYER FLOW ──────────────────────────────────────────────
+function hideLuckyPlayerUI() {
+  document.getElementById('lucky-player-card').style.display='none';
+}
+function listenLuckyPlayer() {
+  db.ref('rooms/' + myRoom + '/luckyState').on('value', snap => {
+    luckyStateCache=snap.val(); const s=luckyStateCache;
+    if (!s || !['voting','revealed'].includes(s.status) || !myTeamKey) {
+      hideLuckyPlayerUI();
+      if (s && s.status==='completed' && latestGameCache && latestGameCache.status==='playing') {
+        prevRound=latestGameCache.round||0; prevRevealed=!!latestGameCache.revealed;
+        renderQuestion(latestGameCache); applyAlreadyAnsweredIfNeeded(prevRound); showScreen('question');
+      }
+      return;
+    }
+    renderLuckyPlayer(s);
+  });
+}
+function renderLuckyPlayer(s) {
+  clearInterval(timerInterval); hasAnswered=false; timeIsUp=false; showScreen('question');
+  document.getElementById('round-badge').textContent='🎲 LUCKY ROUND';
+  document.getElementById('timer-circle').parentElement.style.display='none';
+  document.getElementById('partner-status-pill').style.display='none';
+  document.getElementById('special-badge-wrap').style.display='block';
+  document.getElementById('special-badge-text').textContent='🎲 Dự đoán số đông để lật ngược tình thế!';
+  document.getElementById('q-text').textContent=s.question || '...';
+  document.getElementById('answer-text-wrap').style.display='none';
+  document.getElementById('status-chosen').style.display='none';
+  const isLucky=s.luckyTeamId===myTeamKey, mine=(s.votes||{})[myName], prediction=s.prediction;
+  const regularGrid=document.getElementById('answer-grid'), regularSubmit=document.getElementById('btn-submit-choice');
+  const luckyCard=document.getElementById('lucky-player-card'); luckyCard.style.display=isLucky?'flex':'none';
+  if (!isLucky) {
+    regularGrid.style.display='grid'; regularSubmit.style.display='block';
+    document.getElementById('opt-a-text').textContent=s.optionA||'A'; document.getElementById('opt-b-text').textContent=s.optionB||'B';
+    document.getElementById('btn-a').disabled=!!mine || s.status==='revealed'; document.getElementById('btn-b').disabled=!!mine || s.status==='revealed';
+    regularSubmit.disabled=!!mine || s.status==='revealed'; regularSubmit.textContent=mine?'✅ Đã gửi':'Gửi vote 📨';
+    selectedChoice=mine||null;
+    if (mine) { document.getElementById('btn-'+mine.toLowerCase()).className='btn-answer selected-'+mine.toLowerCase(); }
+    return;
+  }
+  regularGrid.style.display='none'; regularSubmit.style.display='none';
+  document.getElementById('lucky-opt-a').textContent=s.optionA||'A'; document.getElementById('lucky-opt-b').textContent=s.optionB||'B';
+  const submitted=prediction && prediction.value;
+  document.getElementById('lucky-player-note').textContent=submitted
+    ? `Đội đã gửi dự đoán ${submitted === 'C' ? 'C — HÒA' : submitted}. Chờ admin reveal.`
+    : 'Bạn là đội Lucky 🎲 Hãy thống nhất với đồng đội. Chỉ một người được gửi dự đoán.';
+  document.querySelectorAll('[data-lucky-choice]').forEach(b => { b.disabled=!!submitted || s.status==='revealed'; b.classList.toggle('selected-a', luckyPlayerChoice===b.dataset.luckyChoice && b.dataset.luckyChoice!=='B'); b.classList.toggle('selected-b', luckyPlayerChoice==='B'&&b.dataset.luckyChoice==='B'); });
+  const submit=document.getElementById('btn-submit-lucky'); submit.disabled=!!submitted || !luckyPlayerChoice || s.status==='revealed'; submit.textContent=submitted?'✅ Đội đã gửi':'Gửi dự đoán 🎯';
+  if (s.status==='revealed') { document.getElementById('lucky-player-note').textContent=`${s.win?'🎉 Chính xác':'💥 Sai rồi'} — ${s.scoreChange>0?'+':''}${s.scoreChange} điểm.`; }
+}
+document.getElementById('lucky-choice-grid').addEventListener('click', e => {
+  const btn=e.target.closest('[data-lucky-choice]'); if (!btn || btn.disabled) return;
+  luckyPlayerChoice=btn.dataset.luckyChoice; renderLuckyPlayer(luckyStateCache);
+});
+document.getElementById('btn-submit-lucky').addEventListener('click', () => {
+  const choice=luckyPlayerChoice; if (!choice) return;
+  db.ref('rooms/' + myRoom + '/luckyState').transaction(s => {
+    if (!s || s.status!=='voting' || s.prediction || !(s.luckyPlayerIds||[]).includes(myName)) return;
+    s.prediction={value:choice, submittedBy:myName, timestamp:firebase.database.ServerValue.TIMESTAMP}; return s;
+  }, (err, committed) => { if (err) toast('❌ '+err.message); else if (!committed) toast('⚠️ Đội đã gửi dự đoán rồi.'); });
+});
 // ─────────────────────────────────────────
 // Kiểm tra đáp án đã gửi cho round hiện tại (dùng khi reconnect / vào lại giữa câu hỏi)
 // -> khoá UI trả lời để KHÔNG cho gửi đè lên đáp án cũ.
@@ -1357,6 +1401,9 @@ function lockAnsweredUI(answerVal) {
 let timerInterval;
 function renderQuestion(game) {
   currentRound = game.round || 0;
+  hideLuckyPlayerUI();
+  document.getElementById('timer-circle').parentElement.style.display='flex';
+  document.getElementById('partner-status-pill').style.display='flex';
   document.getElementById('round-badge').textContent = `Level ${game.level||1} · Câu ${currentRound+1} / 20`;
   document.getElementById('q-text').textContent = game.question || '...';
   document.getElementById('q-text').classList.remove('animate-in');
@@ -1465,6 +1512,15 @@ document.getElementById('btn-submit-choice').addEventListener('click', submitCho
 function submitChoiceAnswer() {
   if (hasAnswered || timeIsUp) return;
   if (!selectedChoice) { toast('⚠️ Chọn 1 đáp án trước đã!'); return; }
+  // Vote Lucky được ghi vào state riêng; không chạm answers của round thường.
+  if (luckyStateCache && luckyStateCache.status === 'voting' && luckyStateCache.luckyTeamId !== myTeamKey) {
+    const choice = selectedChoice;
+    db.ref('rooms/' + myRoom + '/luckyState').transaction(s => {
+      if (!s || s.status!=='voting' || !(s.eligiblePlayerIds||[]).includes(myName) || (s.votes||{})[myName]) return;
+      s.votes=s.votes||{}; s.votes[myName]=choice; return s;
+    }, (err, committed) => { if (err) toast('❌ '+err.message); else if (!committed) toast('⚠️ Bạn đã vote rồi.'); });
+    return;
+  }
   hasAnswered = true;
   sfxClick();
   clearInterval(timerInterval);
@@ -1561,11 +1617,11 @@ function showResultForPlayer(game) {
       document.getElementById('result-answers').innerHTML = `
         <div class="result-ans-box">
           <div class="rab-label">Bạn</div>
-          <div class="rab-val">${displayMyAns ? escapeHtml(displayMyAns) : '—'}</div>
+          <div class="rab-val">${displayMyAns||'—'}</div>
         </div>
         <div class="result-ans-box">
-          <div class="rab-label">${escapeHtml(partner)}</div>
-          <div class="rab-val">${displayPAns ? escapeHtml(displayPAns) : '—'}</div>
+          <div class="rab-label">${partner}</div>
+          <div class="rab-val">${displayPAns||'—'}</div>
         </div>`;
       document.getElementById('result-points-wrap').innerHTML = match
         ? `<div class="result-points">+${pts} điểm cho đội${qType==='text' && !isUnique ? ' (đội khác cũng đoán giống)' : ''}</div>` : '';
@@ -1582,7 +1638,7 @@ function showResultForPlayer(game) {
 function renderLeaderboard(teams) {
   const el = document.getElementById('leaderboard-list');
   if (!el) return;
-  const teamLabel = t => escapeHtml(t.teamName || (t.player1 + ' & ' + (t.player2||'?')));
+  const teamLabel = t => t.teamName || (t.player1 + ' & ' + (t.player2||'?'));
   const list = Object.entries(teams).map(([key, t]) => ({ key, ...t }));
   list.sort((a,b) => (b.score||0) - (a.score||0));
   const medals = ['🥇','🥈','🥉'];
@@ -1610,7 +1666,7 @@ function showEndForPlayer() {
     listEl.innerHTML = sorted.map((t,i) => `
       <div class="ws-row ${isMyTeam(t)?'my-team':''}">
         <span class="ws-rank">${medals[i]||'#'+(i+1)}</span>
-        <span class="ws-team-name">${escapeHtml(teamLabel(t))}${isMyTeam(t)?' 👈':''}</span>
+        <span class="ws-team-name">${teamLabel(t)}${isMyTeam(t)?' 👈':''}</span>
         <span class="ws-pts">${t.score||0}</span>
       </div>`).join('');
     const ws = document.getElementById('winner-screen');
@@ -1659,7 +1715,7 @@ function saveTeamName() {
         db.ref('rooms/' + myRoom + '/teamNameReservations/' + oldKey).remove();
       }
       document.getElementById('team-name-edit-row').classList.remove('show');
-      toast('✅ Đã đổi tên đội thành "' + escapeHtml(val) + '"');
+      toast('✅ Đã đổi tên đội thành "' + val + '"');
       sfxClick();
     });
   };
@@ -1671,7 +1727,7 @@ function saveTeamName() {
   }, (error, committed) => {
     if (error) { toast('❌ Lỗi: ' + error.message); return; }
     if (!committed) {
-      toast('❌ Tên đội "' + escapeHtml(val) + '" đã có đội khác dùng rồi!');
+      toast('❌ Tên đội "' + val + '" đã có đội khác dùng rồi!');
       return;
     }
     applyName();
@@ -1695,7 +1751,7 @@ window.demoSendL2 = function() {
   const val = document.getElementById('demo-l2-input').value.trim();
   if (!val) { toast('⚠️ Gõ tên trước đã!'); return; }
   sfxClick();
-  toast('✅ Đã gửi đáp án thử: ' + escapeHtml(val));
+  toast('✅ Đã gửi đáp án thử: ' + val);
   document.getElementById('demo-l2-input').value = '';
 };
 window.demoSendL3 = function() {
