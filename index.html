@@ -671,6 +671,7 @@
       </div>
       <div class="my-avatar-row" id="my-avatar-row" style="display:none;">
         <img id="my-avatar-img" class="avatar-thumb" style="width:40px;height:40px;" src="" alt="avatar">
+        <span id="my-avatar-fallback" class="partner-avatar" style="display:none;">👤</span>
         <span>Bạn là: <b id="my-avatar-name">—</b></span>
       </div>
     </div>
@@ -1015,10 +1016,20 @@ let serverTimeOffset = 0;
 db.ref('.info/serverTimeOffset').on('value', snap => { serverTimeOffset = snap.val() || 0; });
 function serverNow() { return Date.now() + serverTimeOffset; }
 // ── AVATAR (18 avatar ngẫu nhiên, không trùng nhau trong cùng 1 phòng) ──
-function avatarSrc(n) { return 'assets/avatars/avatar' + n + '.webp'; }
+// Bộ ảnh avatar hiện được lưu dưới dạng PNG. Dùng đúng định dạng ngay từ đầu
+// để trình duyệt không phải tải một file .webp không tồn tại trước.
+function avatarSrc(n) { return 'assets/avatars/avatar' + n + '.png'; }
 function fallbackAvatarImage(img, n) {
-  img.onerror = null;
-  img.src = 'assets/avatars/avatar' + n + '.png';
+  if (!img.dataset.pngFallback) {
+    img.dataset.pngFallback = '1';
+    img.src = 'assets/avatars/avatar' + n + '.png';
+    return;
+  }
+  img.style.display = 'none';
+  const fallback = img.id === 'my-avatar-img'
+    ? document.getElementById('my-avatar-fallback')
+    : document.getElementById('partner-avatar-fallback');
+  if (fallback) fallback.style.display = 'flex';
 }
 function drawAvatar(callback) {
   let assigned = null;
@@ -1077,8 +1088,15 @@ function enterGameAsPlayer(name, room, avatarNum) {
   if (av) {
     av.style.display = 'flex';
     const avatarImg = document.getElementById('my-avatar-img');
-    avatarImg.onerror = () => fallbackAvatarImage(avatarImg, avatarNum);
-    avatarImg.src = avatarSrc(avatarNum);
+    const fallback = document.getElementById('my-avatar-fallback');
+    avatarImg.dataset.pngFallback = '';
+    if (avatarNum) {
+      avatarImg.style.display = 'block'; fallback.style.display = 'none';
+      avatarImg.onerror = () => fallbackAvatarImage(avatarImg, avatarNum);
+      avatarImg.src = avatarSrc(avatarNum);
+    } else {
+      avatarImg.style.display = 'none'; fallback.style.display = 'flex';
+    }
     document.getElementById('my-avatar-name').textContent = name;
   }
   showScreen('lobby');
@@ -1267,6 +1285,7 @@ function renderPartnerAvatar(partnerName) {
     const fallback = document.getElementById('partner-avatar-fallback');
     if (!img || !fallback) return;
     if (num) {
+      img.dataset.pngFallback = '';
       img.onerror = () => fallbackAvatarImage(img, num);
       img.src = avatarSrc(num);
       img.style.display = 'block';
