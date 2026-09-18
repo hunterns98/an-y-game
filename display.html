@@ -352,7 +352,6 @@ let playersCache = {};
 let teamsCache = {};
 let answersCache = {};
 let gameCache = null;
-let luckyStateCache = null;
 let prevDisplayRound = -1;
 let displayTimerInterval;
 // ─────────────────────────────────────────
@@ -384,7 +383,6 @@ function connectRoom(code) {
     listenTeams();
     listenAnswers();
     listenGameDisplay();
-    listenLuckyDisplay();
   }).catch(e => showEnterError('❌ Lỗi: ' + e.message));
 }
 // QR luôn tự sinh lại theo đúng mã phòng hiện tại -> KHÔNG cần host tự thay ảnh QR mỗi trận
@@ -487,7 +485,6 @@ function listenGameDisplay() {
   db.ref('rooms/' + myRoom + '/game').on('value', snap => {
     const g = snap.val();
     gameCache = g;
-    if (luckyStateCache && ['voting','revealed'].includes(luckyStateCache.status)) return;
     if (!g || g.status !== 'ended') clearEndedConfetti();
     if (!g) { showScreen('waiting'); return; }
     if (g.status === 'ended') { showEnded(); return; }
@@ -506,56 +503,11 @@ function listenGameDisplay() {
     }
   });
 }
-// ── LUCKY ROUND DISPLAY ──────────────────────────────────────────────────
-function luckyTeamLabel(s) {
-  const entries=Object.entries((s&&s.teamSnapshot)||{}); const i=entries.findIndex(([k])=>k===s.luckyTeamId);
-  const t=(s.teamSnapshot||{})[s.luckyTeamId]||{}; return t.teamName || ('Đội '+(i>=0?i+1:''));
-}
-function listenLuckyDisplay() {
-  db.ref('rooms/' + myRoom + '/luckyState').on('value', snap => {
-    luckyStateCache=snap.val(); const s=luckyStateCache;
-    if (!s || !['voting','revealed'].includes(s.status)) {
-      if (s && s.status==='completed' && gameCache && gameCache.status==='playing') {
-        renderQuestionDisplay(gameCache); showScreen('question');
-        if (gameCache.revealed) showRevealView(gameCache); else { showProgressView(); startDisplayTimer(gameCache); }
-      }
-      return;
-    }
-    renderLuckyDisplay(s);
-  });
-}
-function renderLuckyDisplay(s) {
-  clearInterval(displayTimerInterval); showScreen('question');
-  document.getElementById('d-round-badge').textContent='🎲 LUCKY ROUND';
-  document.getElementById('d-timer-wrap').style.display='none';
-  document.getElementById('d-special-badge').style.display='inline-flex';
-  document.getElementById('d-special-badge').textContent='🎯 '+luckyTeamLabel(s)+' dự đoán số đông';
-  document.getElementById('d-question-text').textContent=s.question||'...';
-  document.getElementById('d-options-row').style.display='flex';
-  document.getElementById('d-opt-a').textContent=s.optionA||'A'; document.getElementById('d-opt-b').textContent=s.optionB||'B';
-  document.getElementById('d-round-leaderboard').style.display='none';
-  if (s.status==='voting') {
-    document.getElementById('d-progress-wrap').style.display='block';
-    document.getElementById('d-progress-count').textContent=Object.keys(s.votes||{}).length+' / '+(s.eligiblePlayerIds||[]).length;
-    document.getElementById('d-reveal-board').style.display='none'; return;
-  }
-  document.getElementById('d-progress-wrap').style.display='none';
-  const actual=s.actualResult==='C'?'HÒA':s.actualResult;
-  const prediction=s.prediction && (s.prediction.value==='C'?'C — HÒA':s.prediction.value);
-  const sign=s.scoreChange>0?'+':'';
-  document.getElementById('d-reveal-board').style.display='flex';
-  document.getElementById('d-reveal-board').innerHTML=`
-    <div class="reveal-row match"><div class="rr-team">🎲 Lucky Team</div><div class="rr-ans">${luckyTeamLabel(s)}</div><div class="rr-result win">${s.win?'🎉 WIN':'💥 LOSE'}</div></div>
-    <div class="reveal-row"><div class="rr-team">Kết quả bình chọn</div><div class="rr-ans">A — ${s.votesA} người &nbsp; B — ${s.votesB} người</div><div class="rr-result">${actual}</div></div>
-    <div class="reveal-row ${s.win?'match':'nomatch'}"><div class="rr-team">Dự đoán Lucky</div><div class="rr-ans">${prediction||'—'} · Mức Lucky ${s.randomAmount}</div><div class="rr-result ${s.win?'win':'lose'}">${sign}${s.scoreChange} điểm</div></div>
-    <div class="reveal-row"><div class="rr-team">Điểm mới</div><div class="rr-ans">${luckyTeamLabel(s)}</div><div class="rr-result win">${s.newScore}</div></div>`;
-}
 // ─────────────────────────────────────────
 // RENDER CÂU HỎI
 // ─────────────────────────────────────────
 function renderQuestionDisplay(g) {
   const qType = g.type || 'choice';
-  document.getElementById('d-timer-wrap').style.display='flex';
   document.getElementById('d-round-badge').textContent = `Level ${g.level||1} · Câu ${(g.round||0)+1} / 20`;
   const qText = document.getElementById('d-question-text');
   qText.textContent = g.question || '...';

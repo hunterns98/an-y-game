@@ -138,31 +138,10 @@
     return results;
   }
 
-  // ── LUCKY ROUND (độc lập với 3 level thường) ─────────────────────────
-  // votes là { playerName: 'A' | 'B' }. Lucky team không có mặt trong votes.
-  function computeLuckyResult(votes, prediction, amount) {
-    votes = votes || {};
-    var votesA = 0, votesB = 0;
-    Object.keys(votes).forEach(function (player) {
-      if (votes[player] === 'A') votesA += 1;
-      if (votes[player] === 'B') votesB += 1;
-    });
-    var actualResult = votesA === votesB ? 'C' : (votesA > votesB ? 'A' : 'B');
-    var win = prediction === actualResult;
-    return {
-      votesA: votesA,
-      votesB: votesB,
-      actualResult: actualResult,
-      win: win,
-      scoreChange: win ? Math.abs(Number(amount) || 0) : -Math.abs(Number(amount) || 0)
-    };
-  }
-
   global.GameLogic = {
     computeChoiceResult: computeChoiceResult,
     computeWhoIsResult: computeWhoIsResult,
     computeTextResults: computeTextResults,
-    computeRoundResults: computeRoundResults,
-    computeLuckyResult: computeLuckyResult
+    computeRoundResults: computeRoundResults
   };
 })(typeof window !== 'undefined' ? window : globalThis);
