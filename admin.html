@@ -55,6 +55,11 @@
   .auth-error { color: var(--red); font-size: 0.82rem; margin-top: 10px; min-height: 18px; }
   /* ── LAYOUT ── */
   #admin-panel { display: none; padding: 0 16px 60px; max-width: 900px; margin: 0 auto; }
+  .connection-banner { position:fixed; top:14px; left:50%; z-index:10000; transform:translate(-50%,-140%); transition:transform .3s ease; width:min(92vw,520px); padding:10px 16px; border-radius:12px; text-align:center; font-size:.82rem; font-weight:800; background:rgba(30,10,60,.97); border:1px solid var(--border); box-shadow:0 8px 24px rgba(0,0,0,.35); }
+  .connection-banner.show { transform:translate(-50%,0); }
+  .connection-banner.offline { color:#fca5a5; border-color:rgba(239,68,68,.55); background:rgba(70,8,30,.97); }
+  .connection-banner.online { color:var(--cyan); border-color:rgba(0,245,212,.45); }
+  #admin-panel.is-offline button { pointer-events:none; opacity:.42; }
   /* ── TOP BAR ── */
   .top-bar {
     display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center;
@@ -178,6 +183,9 @@
     border-radius: 99px; padding: 3px 12px;
     font-size: 0.8rem; font-weight: 900; color: var(--gold);
   }
+  .rank-shift { display:inline-block; margin-left:6px; font-size:.72rem; font-weight:900; animation:rankPop .5s cubic-bezier(.34,1.5,.64,1) both; }
+  @keyframes rankPop { from { opacity:0; transform:scale(.3) translateY(8px); } to { opacity:1; transform:scale(1) translateY(0); } }
+  .rank-shift.up { color:var(--green); } .rank-shift.down { color:#fca5a5; }
   /* ── QUESTION PANEL ── */
   .current-q-card {
     background: linear-gradient(135deg, rgba(155,93,229,0.12), rgba(255,45,120,0.07));
@@ -218,11 +226,26 @@
   }
   .answer-row.match  { border-color: var(--green); background: rgba(34,197,94,0.08); }
   .answer-row.nomatch { border-color: rgba(239,68,68,0.4); background: rgba(239,68,68,0.06); }
+  .answer-row.reveal-pending { opacity:0; transform:translateY(10px); animation:adminRevealIn 0.35s cubic-bezier(0.34,1.4,0.64,1) forwards; }
+  @keyframes adminRevealIn { to { opacity:1; transform:translateY(0); } }
+  #score-board.score-reveal-in { animation:scoreBoardIn 0.45s cubic-bezier(0.34,1.4,0.64,1); }
+  @keyframes scoreBoardIn { from { opacity:0; transform:translateY(12px) scale(0.98); } to { opacity:1; transform:translateY(0) scale(1); } }
   .ar-team { font-weight: 700; flex: 1; }
   .ar-ans  { font-size: 0.8rem; color: var(--muted); }
   .ar-result { font-weight: 800; font-size: 0.8rem; }
   .ar-result.win  { color: var(--green); }
   .ar-result.lose { color: var(--muted); }
+  /* ── ROUND READINESS ── */
+  .readiness-summary { display:flex; align-items:center; justify-content:space-between; gap:12px; font-size:0.9rem; font-weight:800; }
+  .readiness-summary.ready { color:var(--green); }
+  .readiness-summary.waiting { color:var(--gold); }
+  .readiness-list { display:flex; flex-direction:column; gap:7px; margin-top:12px; }
+  .readiness-row { display:flex; align-items:center; justify-content:space-between; gap:12px; padding:9px 12px; border-radius:10px; background:rgba(255,255,255,0.04); border:1px solid var(--border); font-size:0.8rem; }
+  .readiness-row.ready { border-color:rgba(34,197,94,0.4); }
+  .readiness-row.missing { border-color:rgba(255,214,10,0.35); }
+  .readiness-team { font-weight:800; }
+  .readiness-status { color:var(--muted); text-align:right; }
+  .team-warning { margin:12px 0 0; padding:10px 12px; border-radius:10px; border:1px solid rgba(255,214,10,0.35); background:rgba(255,214,10,0.08); color:var(--gold); font-size:0.82rem; font-weight:700; }
   /* ── ACTION BAR ── */
   .action-bar {
     display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 14px;
@@ -268,6 +291,7 @@
 </style>
 </head>
 <body>
+<div class="connection-banner" id="admin-connection-banner" role="status" aria-live="polite"></div>
 <!-- AUTH -->
 <div id="auth-gate">
   <div class="auth-card">
@@ -349,6 +373,7 @@
       <div class="section-label">Danh sách đội</div>
       <div class="card">
         <div id="team-list-display"></div>
+        <div class="team-warning" id="team-warning" style="display:none;"></div>
         <div class="divider"></div>
         <button class="btn btn-cyan btn-full" id="btn-start-game">🎮 BẮT ĐẦU GAME</button>
       </div>
@@ -392,6 +417,13 @@
         </div>
       </div>
     </div>
+    <div class="section" id="readiness-section">
+      <div class="section-label">Tiến độ vòng này</div>
+      <div class="card">
+        <div class="readiness-summary waiting" id="readiness-summary">Chờ người chơi trả lời...</div>
+        <div class="readiness-list" id="readiness-list"></div>
+      </div>
+    </div>
     <!-- Scoreboard -->
     <div class="section">
       <div class="section-label">Bảng điểm</div>
@@ -415,16 +447,16 @@ const questions = [
   { level:1, text:"Liên hoan cuối năm bạn chọn:", a:"Hát", b:"Nhảy", special:false },
   { level:1, text:"Bộ môn thể thao nếu phải chọn:", a:"Chạy bộ", b:"Bơi lội", special:false },
   { level:1, text:"Nếu phải chọn đi du lịch:", a:"Lên núi", b:"Xuống biển", special:false },
-  { level:1, text:"Nếu lựa chọn đồ uống unhealthy:", a:"Bia", b:"Rượu", special:false },
+  { level:1, text:"Nếu chọn món ăn vặt, bạn chọn:", a:"Bánh tráng", b:"Khoai chiên", special:false },
   { level:1, text:"Đến giờ nạp calo rồi, bạn chọn:", a:"Ăn lẩu", b:"Ăn nướng", special:false },
   { level:1, text:"Chuông báo thức kêu:", a:"Dậy ngay", b:"5 phút nữa", special:false },
   // ── LEVEL 2: Thấu Hiểu Trung (Ai là ai?) ──
-  { level:2, text:"Ai là người nóng tính hơn?", type:"who_is" },
-  { level:2, text:"Ai là người xinh gái hơn?", type:"who_is" },
-  { level:2, text:"Ai là người nói nhiều hơn?", type:"who_is" },
-  { level:2, text:"Ai là người hay quên hơn?", type:"who_is" },
-  { level:2, text:"Ai là người có tháng sinh nhỏ hơn?", type:"who_is" },
-  { level:2, text:"Ai là người hay quan tâm người khác hơn?", type:"who_is" },
+  { level:2, text:"Ai thường trả lời tin nhắn nhanh hơn?", type:"who_is" },
+  { level:2, text:"Ai mất nhiều thời gian chọn món hơn?", type:"who_is" },
+  { level:2, text:"Ai hay đề xuất kế hoạch đi chơi hơn?", type:"who_is" },
+  { level:2, text:"Ai nhớ chi tiết về nhau hơn?", type:"who_is" },
+  { level:2, text:"Ai hay mang theo đồ dự phòng hơn?", type:"who_is" },
+  { level:2, text:"Ai thường bắt chuyện trước hơn?", type:"who_is" },
   // ── LEVEL 3: Thấu Hiểu Sâu (Ăn Điểm Cao) ──
   { level:3, text:"Tỉnh nào bắt đầu bằng chữ 'T'?", type:"text", special:true },
   { level:3, text:"Món ăn nào dễ thấy trong ngày Tết?", type:"text", special:true },
@@ -435,7 +467,13 @@ const questions = [
 // ── STATE ──
 let roomCode = '';
 let currentRound = 0;
-let acceptingAnswers = true;
+let gameCache = null;
+let serverTimeOffset = 0;
+let roundLockTimer = null;
+let adminRevealTimer = null;
+let adminRevealKey = '';
+const ADMIN_REVEAL_INTRO_MS = 300;
+const ADMIN_REVEAL_STEP_MS = 420;
 let gamePhase = 'setup'; // setup | playing | ended
 // Trạng thái revealed đã biết gần nhất của round hiện tại (dùng để listenAnswers()
 // không ghi đè nhầm bảng kết quả điểm bằng pill ✅/⏳ sau khi đã reveal).
@@ -445,6 +483,8 @@ let lastKnownRevealed = false;
 // mỗi lần reveal). Reset về false ở đầu loadRoom() để nếu tải sang phòng khác
 // vẫn được gắn lại đúng 1 lần cho phòng mới.
 let answersListenerAttached = false;
+db.ref('.info/serverTimeOffset').on('value', snap => { serverTimeOffset = snap.val() || 0; });
+function serverNow() { return Date.now() + serverTimeOffset; }
 // ── ADMIN ROOM SESSION (rehydrate) — chỉ nhớ MÃ PHÒNG đang quản lý, không phải identity ──
 function adminRoomStorageKey() { return 'anygame_admin_room'; }
 // ── TOAST ──
@@ -455,6 +495,35 @@ function toast(msg, dur=2500) {
   clearTimeout(toastTimer);
   toastTimer = setTimeout(() => el.classList.remove('show'), dur);
 }
+// ── CONNECTION FEEDBACK ──
+let adminFirebaseConnected = false, adminConnectionWasLost = false, adminConnectionTimer;
+function showAdminConnection(message, kind='online', persistent=false) {
+  const el = document.getElementById('admin-connection-banner');
+  el.textContent = message;
+  el.className = 'connection-banner show ' + kind;
+  clearTimeout(adminConnectionTimer);
+  if (!persistent) adminConnectionTimer = setTimeout(() => el.classList.remove('show'), 2600);
+}
+db.ref('.info/connected').on('value', snap => {
+  const connected = snap.val() === true;
+  const panel = document.getElementById('admin-panel');
+  if (!connected) {
+    if (adminFirebaseConnected) {
+      adminConnectionWasLost = true;
+      showAdminConnection('⚠️ Mất kết nối — điều khiển game đang tạm khóa.', 'offline', true);
+    }
+    adminFirebaseConnected = false;
+    panel.classList.add('is-offline');
+  } else {
+    adminFirebaseConnected = true;
+    panel.classList.remove('is-offline');
+    if (adminConnectionWasLost) {
+      adminConnectionWasLost = false;
+      showAdminConnection('✅ Đã kết nối lại — trạng thái game đã đồng bộ.', 'online');
+    }
+  }
+});
+window.addEventListener('offline', () => showAdminConnection('⚠️ Bạn đang offline — điều khiển game đã tạm khóa.', 'offline', true));
 // ── AUTH ──
 document.getElementById('btn-auth').addEventListener('click', tryLogin);
 document.getElementById('auth-input').addEventListener('keypress', e => { if(e.key==='Enter') tryLogin(); });
@@ -546,6 +615,8 @@ function escapeHtml(s) {
 }
 // ── AVATAR THUMBNAIL (fallback 👤 nếu người chơi chưa có avatar — VD phòng tạo trước khi có tính năng này) ──
 let playersCache = {};
+let teamsCache = {};
+let answersCache = {};
 function avatarImg(name, size) {
   size = size || 28;
   const num = playersCache[name] && playersCache[name].avatar;
@@ -616,6 +687,7 @@ function cleanupPlayerFromTeams(name) {
 function listenTeams() {
   db.ref('rooms/' + roomCode + '/teams').on('value', snap => {
     const teams = snap.val() || {};
+    teamsCache = teams;
     const list = Object.values(teams);
     document.getElementById('stat-teams').textContent = list.length;
     if (list.length === 0) {
@@ -630,6 +702,8 @@ function listenTeams() {
         <div class="team-score-badge">${t.score||0} điểm</div>
       </div>`).join('');
     renderScoreBoard(list);
+    renderTeamStartWarning();
+    renderRoundReadiness();
   });
 }
 // ── LISTEN GAME (đồng thời là REHYDRATE cho Admin) ──
@@ -640,6 +714,7 @@ function listenTeams() {
 function listenGame() {
   db.ref('rooms/' + roomCode + '/game').on('value', snap => {
     const g = snap.val();
+    gameCache = g;
     if (!g) {
       // Chưa có game nào (phòng mới hoặc vừa Reset) -> màn Setup
       lastKnownRevealed = false;
@@ -662,19 +737,82 @@ function listenGame() {
       document.getElementById('phase-game').style.display = 'block';
       renderCurrentQuestionCard(g);
       applyControlButtonsState(g);
+      scheduleRoundLock(g);
       if (g.revealed) {
         renderRevealedReadOnly(g);
       }
+      renderRoundReadiness();
     }
     if (!answersListenerAttached) { answersListenerAttached = true; listenAnswers(); }
   });
+}
+
+function teamLabel(team, index) {
+  return team.teamName || `Đội ${index + 1}`;
+}
+function getRoundReadiness() {
+  const game = gameCache;
+  const teams = Object.entries(teamsCache || {});
+  if (!game || game.status !== 'playing') return { total: 0, ready: 0, missing: [], teams: [] };
+  const rows = teams.map(([key, team], index) => {
+    const members = [team.player1, team.player2].filter(Boolean);
+    const missing = members.filter(name => {
+      const answer = answersCache[name];
+      return !answer || answer.round !== game.round || answer.answer === undefined || answer.answer === '';
+    });
+    return { key, label: teamLabel(team, index), members, missing, ready: members.length === 2 && missing.length === 0 };
+  });
+  return {
+    total: rows.length,
+    ready: rows.filter(row => row.ready).length,
+    missing: rows.flatMap(row => row.missing),
+    teams: rows
+  };
+}
+function renderRoundReadiness() {
+  const summary = document.getElementById('readiness-summary');
+  const list = document.getElementById('readiness-list');
+  if (!summary || !list) return;
+  const data = getRoundReadiness();
+  if (!gameCache || gameCache.status !== 'playing') {
+    summary.textContent = 'Chờ vòng chơi bắt đầu...';
+    summary.className = 'readiness-summary waiting';
+    list.innerHTML = '';
+    return;
+  }
+  const allReady = data.total > 0 && data.ready === data.total;
+  summary.textContent = allReady
+    ? `✅ ${data.ready}/${data.total} đội đã sẵn sàng`
+    : `⏳ ${data.ready}/${data.total} đội sẵn sàng · còn ${data.missing.length} người`;
+  summary.className = 'readiness-summary ' + (allReady ? 'ready' : 'waiting');
+  list.innerHTML = data.teams.map(row => `
+    <div class="readiness-row ${row.ready ? 'ready' : 'missing'}">
+      <span class="readiness-team">${row.label}</span>
+      <span class="readiness-status">${row.ready ? '✅ Đã đủ đáp án' : '⏳ ' + (row.missing.join(', ') || 'Thiếu thành viên')}</span>
+    </div>`).join('');
+}
+function renderTeamStartWarning() {
+  const warning = document.getElementById('team-warning');
+  const startBtn = document.getElementById('btn-start-game');
+  if (!warning || !startBtn) return;
+  const incomplete = Object.values(teamsCache).filter(team => !team.player1 || !team.player2);
+  if (incomplete.length) {
+    warning.style.display = 'block';
+    warning.textContent = `⚠️ Có ${incomplete.length} đội thiếu đồng đội. Hãy chờ thêm người hoặc ghép lại trước khi bắt đầu.`;
+    startBtn.disabled = true;
+  } else {
+    warning.style.display = 'none';
+    startBtn.disabled = false;
+  }
 }
 // ── LISTEN ANSWERS (realtime) ──
 function listenAnswers() {
   db.ref('rooms/' + roomCode + '/answers').on('value', snap => {
     const answers = snap.val() || {};
+    answersCache = answers;
     const count = Object.keys(answers).length;
     document.getElementById('answer-count-badge').textContent = count > 0 ? `(${count} đã trả lời)` : '';
+    renderRoundReadiness();
     // Nếu round hiện tại ĐÃ reveal, bảng answer-board đang hiển thị kết quả có điểm
     // (do renderRevealedReadOnly / revealAnswers vẽ) — KHÔNG được ghi đè lại bằng
     // pill ✅/⏳ vô nghĩa nữa.
@@ -729,12 +867,22 @@ document.getElementById('btn-make-teams').addEventListener('click', () => {
     }
     db.ref('rooms/' + roomCode + '/teamNameReservations').remove(); // dọn tên đội cũ nếu ghép lại
     db.ref('rooms/' + roomCode + '/teams').set(teams);
-    toast('💞 Đã ghép ' + Object.keys(teams).length + ' đội!');
+    toast(list.length % 2
+      ? '⚠️ Đã ghép đội nhưng còn 1 người chưa có đồng đội.'
+      : '💞 Đã ghép ' + Object.keys(teams).length + ' đội!');
   });
 });
 // ── START GAME ──
 document.getElementById('btn-start-game').addEventListener('click', () => {
   if (!roomCode) { toast('⚠️ Chưa có phòng!'); return; }
+  const teams = Object.values(teamsCache);
+  if (!teams.length) { toast('⚠️ Chưa có đội để bắt đầu!'); return; }
+  const incomplete = teams.filter(team => !team.player1 || !team.player2);
+  if (incomplete.length) {
+    toast('⚠️ Không thể bắt đầu khi vẫn còn đội thiếu đồng đội.');
+    return;
+  }
+  if (!confirm(`Bắt đầu game với ${teams.length} đội? Người chơi mới sẽ không thể vào giữa trận.`)) return;
   currentRound = 0;
   sendQuestion(0);
   document.getElementById('phase-setup').style.display = 'none';
@@ -758,7 +906,7 @@ function renderCurrentQuestionCard(game) {
   } else if (qType === 'who_is') {
     document.getElementById('q-opts').style.display = 'none';
     document.getElementById('q-freetext-note').style.display = 'block';
-    document.getElementById('q-freetext-note').textContent = '🕵️ Người chơi gõ tên (bản thân hoặc đồng đội) — trùng tên là ăn ý!';
+    document.getElementById('q-freetext-note').textContent = '🕵️ Người chơi bí mật chọn bản thân hoặc đồng đội — cùng chọn một người là ăn ý!';
   } else {
     document.getElementById('q-opts').style.display = 'none';
     document.getElementById('q-freetext-note').style.display = 'block';
@@ -766,7 +914,7 @@ function renderCurrentQuestionCard(game) {
   }
   if (qType === 'who_is') {
     document.getElementById('q-special-flag').style.display = 'block';
-    document.getElementById('q-special-flag-text').textContent = '🕵️ Ai là ai? · Trùng tên +2 điểm';
+    document.getElementById('q-special-flag-text').textContent = '🕵️ Ai là ai? · Cùng chọn người +2 điểm';
   } else if (qType === 'text') {
     document.getElementById('q-special-flag').style.display = 'block';
     document.getElementById('q-special-flag-text').textContent = '✍️ Câu tự do · Trùng ý +1 — Trùng & độc nhất +3';
@@ -782,13 +930,18 @@ function renderCurrentQuestionCard(game) {
 function applyControlButtonsState(game) {
   const revealBtn = document.getElementById('btn-reveal');
   const nextBtn = document.getElementById('btn-next');
+  const lockBtn = document.getElementById('btn-toggle-accept');
   if (!game || game.status === 'ended') {
     revealBtn.disabled = true;
     nextBtn.disabled = true;
+    lockBtn.disabled = true;
     return;
   }
-  revealBtn.disabled = !!game.revealed;
-  nextBtn.disabled = false;
+  const phase = game.phase || (game.revealed ? 'results' : 'answering');
+  revealBtn.disabled = phase !== 'locked';
+  nextBtn.disabled = phase !== 'results';
+  lockBtn.disabled = phase !== 'answering';
+  updateToggleBtn(phase);
 }
 // ── SEND QUESTION ──
 function sendQuestion(idx) {
@@ -802,22 +955,24 @@ function sendQuestion(idx) {
     type: qType,
     special: !!q.special,
     revealed: false,
+    phase: 'answering',
+    acceptingAnswers: true,
     startedAt: firebase.database.ServerValue.TIMESTAMP
   };
   if (qType === 'choice') {
     payload.optionA = q.a;
     payload.optionB = q.b;
   }
-  db.ref('rooms/' + roomCode + '/game').set(payload);
-  db.ref('rooms/' + roomCode + '/answers').remove();
+  // Câu mới và việc xoá đáp án cũ phải đến cùng lúc. Nếu không, máy người chơi
+  // có thể thấy câu mới trong một khoảnh khắc nhưng vẫn đọc đáp án của câu trước.
+  db.ref('rooms/' + roomCode).update({ game: payload, answers: null });
   // Update admin UI — dùng chung hàm render với rehydrate-path
   lastKnownRevealed = false;
   renderCurrentQuestionCard(payload);
   applyControlButtonsState(payload);
   // Reset reveal display
   document.getElementById('answer-board').innerHTML = '<div style="color:var(--muted);font-size:0.85rem;text-align:center;padding:8px;">Chờ người chơi trả lời...</div>';
-  acceptingAnswers = true;
-  updateToggleBtn();
+  scheduleRoundLock(payload);
 }
 // ── TÍNH KẾT QUẢ REVEAL (THUẦN — không ghi Firebase, không đụng DOM) ──
 // Dùng chung cho cả nhánh ghi điểm thật (revealAnswers) lẫn nhánh chỉ-đọc khi rehydrate
@@ -887,45 +1042,74 @@ function computeRevealResults(game, answers, teams) {
   }
   return { rowsHtml: rows, scoreUpdates };
 }
-function renderRevealBoardHtml(rowsHtml) {
+function renderRevealBoardHtml(rowsHtml, game) {
   const board = document.getElementById('answer-board');
-  board.innerHTML = rowsHtml.join('') || '<div style="color:var(--muted);">Không có đáp án</div>';
+  const startedAt = game && typeof game.revealedAt === 'number' ? game.revealedAt : serverNow() - 999999;
+  const elapsed = Math.max(0, serverNow() - startedAt);
+  const leaderboardAt = ADMIN_REVEAL_INTRO_MS + rowsHtml.length * ADMIN_REVEAL_STEP_MS + 150;
+  const staged = elapsed < leaderboardAt;
+  const html = rowsHtml.map((row, index) => staged
+    ? row.replace('class="answer-row ', 'class="answer-row reveal-pending ').replace('">', `" style="animation-delay:${Math.max(0, ADMIN_REVEAL_INTRO_MS + index * ADMIN_REVEAL_STEP_MS - elapsed)}ms">`)
+    : row).join('');
+  board.innerHTML = html || '<div style="color:var(--muted);">Không có đáp án</div>';
+  if (adminRevealTimer) clearTimeout(adminRevealTimer);
+  const revealScoreBoard = () => {
+    const scoreBoard = document.getElementById('score-board');
+    scoreBoard.classList.remove('score-reveal-in');
+    requestAnimationFrame(() => scoreBoard.classList.add('score-reveal-in'));
+  };
+  if (elapsed >= leaderboardAt) revealScoreBoard();
+  else adminRevealTimer = setTimeout(revealScoreBoard, leaderboardAt - elapsed);
 }
-// ── REVEAL (GHI ĐIỂM — CHỈ 1 LẦN DUY NHẤT MỖI ROUND, KỂ CẢ DOUBLE-CLICK/RACE) ──
-// Cơ chế: dùng Firebase transaction trên đúng field `game/revealed` để "chốt quyền reveal"
-// một cách ATOMIC. Firebase RTDB đảm bảo transaction luôn đọc giá trị mới nhất và tự retry
-// nếu có xung đột -> CHỈ DUY NHẤT 1 lệnh gọi (dù từ 1 client double-click, 2 tab, hay 2 người
-// host khác nhau bấm gần như đồng thời) có thể chuyển revealed từ false -> true thành công.
-// Mọi lệnh gọi khác nhận committed=false và DỪNG NGAY, không tính/không ghi điểm gì thêm.
-// -> Không còn khoảng hở kiểu "đọc revealed=false rồi mới ghi true" như cách cũ (dễ dính race).
+// ── REVEAL + CHỐT ĐIỂM (một giao dịch nguyên tử cho cả room) ──
+// Không công bố kết quả trước khi điểm đã sẵn sàng. Cả teams, game.phase và revealed
+// được commit trong cùng transaction, nên player/display không thể nhìn leaderboard cũ.
 document.getElementById('btn-reveal').addEventListener('click', revealAnswers);
 function revealAnswers() {
   if (!roomCode) return;
-  db.ref('rooms/' + roomCode + '/game/revealed').transaction(curr => {
-    if (curr === true) return; // đã có người/thao tác khác reveal rồi -> abort, không ghi gì
-    return true; // chốt quyền reveal cho lệnh gọi này
+  const readiness = getRoundReadiness();
+  if (readiness.missing.length && !confirm(`Còn ${readiness.missing.length} người chưa trả lời: ${readiness.missing.join(', ')}. Reveal kết quả ngay?`)) return;
+  db.ref('rooms/' + roomCode).transaction(room => {
+    if (!room || !room.game || room.game.status !== 'playing') return;
+    const game = room.game;
+    const phase = game.phase || (game.revealed ? 'results' : 'answering');
+    if (phase !== 'locked') return;
+    const answers = room.answers || {};
+    const currentAnswers = {};
+    Object.entries(answers).forEach(([name, answer]) => {
+      if (answer && answer.round === game.round) currentAnswers[name] = answer;
+    });
+    const teams = room.teams || {};
+    const rankTeams = () => Object.entries(teams)
+      .sort(([, a], [, b]) => (b.score || 0) - (a.score || 0));
+    const beforeRank = {};
+    rankTeams().forEach(([key], index) => { beforeRank[key] = index + 1; });
+    const results = GameLogic.computeRoundResults(game, teams, currentAnswers);
+    Object.entries(teams).forEach(([key, team]) => {
+      const r = results[key];
+      team.stats = team.stats || { matches: 0, unique: 0 };
+      if (r && r.match) {
+        team.score = (team.score || 0) + r.pts;
+        team.stats.matches = (team.stats.matches || 0) + 1;
+        if (r.isUnique) team.stats.unique = (team.stats.unique || 0) + 1;
+      }
+    });
+    rankTeams().forEach(([key], index) => {
+      const from = beforeRank[key] || index + 1;
+      const to = index + 1;
+      teams[key].lastRankChange = { from, to, delta: from - to, round: game.round };
+    });
+    room.teams = teams;
+    game.acceptingAnswers = false;
+    game.phase = 'results';
+    game.revealed = true;
+    game.revealedAt = serverNow();
+    room.game = game;
+    return room;
   }, (error, committed) => {
     if (error) { toast('❌ Lỗi: ' + error.message); return; }
-    if (!committed) return; // thua trong race hoặc double-click -> im lặng dừng, an toàn tuyệt đối
-
-    // Chỉ đúng 1 lần gọi duy nhất cho mỗi round đi được tới đây.
-    db.ref('rooms/' + roomCode + '/game').once('value').then(gSnap => {
-      const game = gSnap.val() || {};
-      db.ref('rooms/' + roomCode + '/answers').once('value').then(aSnap => {
-        const answers = aSnap.val() || {};
-        db.ref('rooms/' + roomCode + '/teams').once('value').then(tSnap => {
-          const teams = tSnap.val() || {};
-          const { rowsHtml, scoreUpdates } = computeRevealResults(game, answers, teams);
-          renderRevealBoardHtml(rowsHtml);
-          Object.entries(scoreUpdates).forEach(([key, score]) => {
-            db.ref('rooms/' + roomCode + '/teams/' + key + '/score').set(score);
-          });
-          lastKnownRevealed = true;
-          applyControlButtonsState(game);
-          toast('🔓 Đã reveal! ' + Object.keys(scoreUpdates).length + ' đội ăn điểm');
-        });
-      });
-    });
+    if (!committed) { toast('⚠️ Hãy khóa đáp án trước khi reveal.'); return; }
+    toast('🔓 Đã chốt điểm và reveal kết quả!');
   });
 }
 // ── REHYDRATE (CHỈ ĐỌC): render lại bảng kết quả khi F5 vào đúng lúc round đã reveal.
@@ -936,7 +1120,7 @@ function renderRevealedReadOnly(game) {
     db.ref('rooms/' + roomCode + '/teams').once('value').then(tSnap => {
       const teams = tSnap.val() || {};
       const { rowsHtml } = computeRevealResults(game, answers, teams);
-      renderRevealBoardHtml(rowsHtml);
+      renderRevealBoardHtml(rowsHtml, game);
     });
   });
 }
@@ -950,22 +1134,48 @@ document.getElementById('btn-next').addEventListener('click', () => {
   toast(`➡️ Chuyển câu ${currentRound+1}`);
 });
 // ── TOGGLE ACCEPT ANSWERS ──
-document.getElementById('btn-toggle-accept').addEventListener('click', () => {
-  acceptingAnswers = !acceptingAnswers;
-  // Could extend to actually block answers via Firebase flag
-  updateToggleBtn();
-  toast(acceptingAnswers ? '✅ Đang nhận đáp án' : '🚫 Đã tắt nhận đáp án');
-});
-function updateToggleBtn() {
+document.getElementById('btn-toggle-accept').addEventListener('click', () => lockAnswers(false));
+function lockAnswers(auto=false) {
+  if (!roomCode || !gameCache) return;
+  const readiness = getRoundReadiness();
+  if (!auto && readiness.missing.length && !confirm(`Khóa đáp án khi còn ${readiness.missing.length} người chưa trả lời: ${readiness.missing.join(', ')}?`)) return;
+  db.ref('rooms/' + roomCode + '/game').transaction(game => {
+    if (!game || game.status !== 'playing' || game.round !== gameCache.round) return;
+    const phase = game.phase || (game.revealed ? 'results' : 'answering');
+    if (phase !== 'answering') return;
+    game.phase = 'locked';
+    game.acceptingAnswers = false;
+    game.lockedAt = serverNow();
+    return game;
+  }, (error, committed) => {
+    if (error) { toast('❌ Lỗi: ' + error.message); return; }
+    if (committed && !auto) toast('🔒 Đã khóa đáp án — sẵn sàng reveal');
+  });
+}
+function updateToggleBtn(phase) {
   const btn = document.getElementById('btn-toggle-accept');
   const dot = btn.querySelector('.dot');
-  if (acceptingAnswers) {
+  if (phase === 'answering') {
     dot.className = 'dot dot-open';
-    btn.childNodes[1].textContent = ' Nhận đáp án';
+    btn.childNodes[1].textContent = ' Khóa đáp án';
   } else {
     dot.className = 'dot dot-closed';
-    btn.childNodes[1].textContent = ' Đóng đáp án';
+    btn.childNodes[1].textContent = phase === 'locked' ? ' Đã khóa đáp án' : ' Đã có kết quả';
   }
+}
+
+// Khi hết 30 giây, chỉ host chuyển room sang locked. Transaction kiểm tra đúng round,
+// nên timer cũ không thể khóa nhầm câu mới sau F5 hoặc khi host bấm câu tiếp nhanh.
+function scheduleRoundLock(game) {
+  clearTimeout(roundLockTimer);
+  if (!game || game.status !== 'playing' || (game.phase || 'answering') !== 'answering') return;
+  const startedAt = game.startedAt;
+  if (!startedAt || typeof startedAt !== 'number') return;
+  const delay = Math.max(0, startedAt + 30000 - serverNow());
+  const round = game.round;
+  roundLockTimer = setTimeout(() => {
+    if (gameCache && gameCache.round === round) lockAnswers(true);
+  }, delay + 50);
 }
 // ── END GAME ──
 function endGame() {
@@ -1002,9 +1212,16 @@ function renderScoreBoard(teams) {
   const medals = ['🥇','🥈','🥉'];
   document.getElementById('score-board').innerHTML = sorted.map((t,i)=>`
     <div class="team-row">
-      <div>${medals[i]||'#'+(i+1)} <span class="team-players" style="display:inline;">${t.teamName ? t.teamName+' · ' : ''}${t.player1||'Đang chờ'} & ${t.player2||'Đang chờ'}</span></div>
+      <div>${medals[i]||'#'+(i+1)} <span class="team-players" style="display:inline;">${t.teamName ? t.teamName+' · ' : ''}${t.player1||'Đang chờ'} & ${t.player2||'Đang chờ'}${rankShiftHtml(t)}</span></div>
       <div class="team-score-badge">${t.score||0} điểm</div>
     </div>`).join('') || '<div style="color:var(--muted);font-size:0.85rem;text-align:center;padding:8px;">Chưa có dữ liệu</div>';
+}
+function rankShiftHtml(team) {
+  const change = team.lastRankChange;
+  if (!change || !change.delta) return '';
+  return change.delta > 0
+    ? `<span class="rank-shift up">▲ ${change.delta}</span>`
+    : `<span class="rank-shift down">▼ ${Math.abs(change.delta)}</span>`;
 }
 </script>
 </body>

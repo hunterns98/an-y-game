@@ -55,9 +55,14 @@
   }
   .room-pill span { font-size: 0.65rem; letter-spacing: 0.18em; color: var(--muted); text-transform: uppercase; }
   .room-pill strong { font-size: 1.15rem; font-weight: 900; color: var(--gold); letter-spacing: 0.2em; }
+  .d-sound-toggle { padding:8px 11px; border-radius:99px; border:1px solid var(--border); background:rgba(255,255,255,.07); color:var(--text); font-size:.72rem; font-weight:800; cursor:pointer; }
   /* ── SCREEN MANAGEMENT ── */
   .screen { display: none; flex-direction: column; align-items: center; width: 100%; max-width: 1100px; gap: 22px; flex: 1; justify-content: center; }
   .screen.active { display: flex; animation: screenIn 0.45s cubic-bezier(0.34,1.4,0.64,1); }
+  .connection-banner { position:fixed; top:14px; left:50%; z-index:1000; transform:translate(-50%,-140%); transition:transform .3s ease; width:min(90vw,520px); padding:10px 16px; border-radius:12px; text-align:center; font-size:.82rem; font-weight:800; background:rgba(20,4,45,.97); border:1px solid var(--border); box-shadow:0 8px 24px rgba(0,0,0,.35); }
+  .connection-banner.show { transform:translate(-50%,0); }
+  .connection-banner.offline { color:#fca5a5; border-color:rgba(239,68,68,.55); background:rgba(70,8,30,.97); }
+  .connection-banner.online { color:var(--cyan); border-color:rgba(0,245,212,.45); }
   @keyframes screenIn { from{opacity:0;transform:translateY(18px);} to{opacity:1;transform:translateY(0);} }
   /* ── ENTER ROOM SCREEN ── */
   .enter-card {
@@ -183,6 +188,20 @@
   }
   .reveal-row.match   { border-color: var(--green); background: rgba(34,197,94,0.1); }
   .reveal-row.nomatch { border-color: rgba(239,68,68,0.35); background: rgba(239,68,68,0.06); }
+  .reveal-row.reveal-pending { opacity:0; transform:translateY(16px) scale(0.97); animation:revealRowIn 0.42s cubic-bezier(0.34,1.4,0.64,1) forwards; }
+  @keyframes revealRowIn { to { opacity:1; transform:translateY(0) scale(1); } }
+  .reveal-intro { display:none; width:100%; text-align:center; padding:14px; border:1px solid rgba(0,245,212,0.35); border-radius:16px; background:rgba(0,245,212,0.08); color:var(--cyan); font-size:0.78rem; font-weight:900; letter-spacing:0.18em; animation:revealIntroPulse 0.7s ease-in-out infinite alternate; }
+  .reveal-intro.show { display:block; }
+  @keyframes revealIntroPulse { to { box-shadow:0 0 28px rgba(0,245,212,0.3); } }
+  .leaderboard-enter { animation:leaderboardIn 0.5s cubic-bezier(0.34,1.4,0.64,1); }
+  @keyframes leaderboardIn { from { opacity:0; transform:translateY(18px) scale(0.97); } to { opacity:1; transform:translateY(0) scale(1); } }
+  .rank-shift { display:inline-block; margin-left:8px; font-size:.75rem; font-weight:900; animation:rankPop .55s cubic-bezier(.34,1.5,.64,1) both; }
+  @keyframes rankPop { from { opacity:0; transform:scale(.3) translateY(8px); } to { opacity:1; transform:scale(1) translateY(0); } }
+  .rank-shift.up { color:var(--green); } .rank-shift.down { color:#fca5a5; }
+  .leader-spotlight { display:none; width:100%; padding:12px 18px; border-radius:16px; text-align:center; background:linear-gradient(135deg,rgba(255,214,10,.22),rgba(255,45,120,.12)); border:1px solid rgba(255,214,10,.45); color:var(--gold); font-weight:900; animation:spotlightPulse 1.2s ease-in-out infinite alternate; }
+  .leader-spotlight.show { display:block; } @keyframes spotlightPulse { to { box-shadow:0 0 30px rgba(255,214,10,.35); transform:scale(1.01); } }
+  .award-list { display:flex; flex-wrap:wrap; justify-content:center; gap:8px; margin-top:16px; }
+  .award-chip { padding:8px 12px; border-radius:99px; background:rgba(0,245,212,.1); border:1px solid rgba(0,245,212,.3); color:var(--text); font-size:.8rem; font-weight:800; }
   .rr-team   { font-weight: 800; flex: 1; }
   .rr-ans    { font-size: 0.88rem; color: var(--muted); flex: 1.4; }
   .rr-result { font-weight: 900; font-size: 0.95rem; white-space: nowrap; }
@@ -225,9 +244,11 @@
 </style>
 </head>
 <body>
+<div class="connection-banner" id="d-connection-banner" role="status" aria-live="polite"></div>
 <div class="stars" id="stars"></div>
 <div id="top-bar">
   <div class="brand">❤️ Ăn Ý — Màn hình lớn</div>
+  <button class="d-sound-toggle" id="d-sound-toggle" type="button">🔊 Âm thanh</button>
   <div class="room-pill"><span>Mã phòng</span><strong id="top-room-code">—</strong></div>
 </div>
 <div id="app">
@@ -284,7 +305,9 @@
       <div class="progress-label">Số đội đã trả lời</div>
       <div class="progress-count" id="d-progress-count">0 / 0</div>
     </div>
+    <div class="reveal-intro" id="d-reveal-intro">🔒 ĐÁP ÁN ĐÃ KHÓA · CÙNG XEM NÀO!</div>
     <div class="reveal-board" id="d-reveal-board"></div>
+    <div class="leader-spotlight" id="d-leader-spotlight"></div>
     <div class="ended-list" id="d-round-leaderboard" style="display:none;"></div>
   </div>
   <!-- ── SCREEN: ENDED ── -->
@@ -297,6 +320,7 @@
       <div id="d-ws-avatars" class="ws-avatars-row"></div>
       <div class="ended-score" id="d-ws-score">0 điểm</div>
       <div class="ended-sub">Đội chiến thắng 💞</div>
+      <div class="award-list" id="d-award-list"></div>
       <div class="ended-list" id="d-ws-list"></div>
     </div>
   </div>
@@ -335,6 +359,63 @@ function showScreen(id) {
   const el = document.getElementById('screen-' + id);
   if (el) el.classList.add('active');
 }
+// ── DISPLAY SFX (chỉ bắt đầu sau một thao tác người dùng; có thể tắt riêng) ──
+const DAC = window.AudioContext || window.webkitAudioContext;
+let dac, displaySfxEnabled = (() => { try { return localStorage.getItem('anygame_display_sfx') !== 'off'; } catch(e) { return true; } })();
+function getDisplayAC() {
+  if (!DAC) return null;
+  if (!dac) dac = new DAC();
+  if (dac.state === 'suspended') dac.resume();
+  return dac;
+}
+function displayTone(freq, dur=.18, vol=.22, type='triangle') {
+  if (!displaySfxEnabled) return;
+  try {
+    const a = getDisplayAC(); if (!a) return;
+    const osc = a.createOscillator(), gain = a.createGain();
+    osc.type = type; osc.frequency.value = freq; osc.connect(gain); gain.connect(a.destination);
+    gain.gain.setValueAtTime(vol, a.currentTime); gain.gain.exponentialRampToValueAtTime(.001, a.currentTime + dur);
+    osc.start(); osc.stop(a.currentTime + dur);
+  } catch(e) {}
+}
+function displayRevealSfx() { displayTone(620, .16, .2); }
+function displayLeaderboardSfx() { [523,659,784].forEach((f,i) => setTimeout(() => displayTone(f,.22,.26), i*75)); }
+function displayWinSfx() { [523,659,784,1047].forEach((f,i) => setTimeout(() => displayTone(f,.35,.3), i*90)); }
+function updateDisplaySoundToggle() { document.getElementById('d-sound-toggle').textContent = displaySfxEnabled ? '🔊 Âm thanh' : '🔇 Đã tắt tiếng'; }
+document.getElementById('d-sound-toggle').addEventListener('click', () => {
+  displaySfxEnabled = !displaySfxEnabled;
+  try { localStorage.setItem('anygame_display_sfx', displaySfxEnabled ? 'on' : 'off'); } catch(e) {}
+  getDisplayAC();
+  if (displaySfxEnabled) displayTone(660, .12, .2);
+  updateDisplaySoundToggle();
+});
+updateDisplaySoundToggle();
+// ── CONNECTION FEEDBACK ──
+let displayConnected = false, displayWasOffline = false, displayBannerTimer;
+function showDisplayConnection(message, kind='online', persistent=false) {
+  const el = document.getElementById('d-connection-banner');
+  el.textContent = message;
+  el.className = 'connection-banner show ' + kind;
+  clearTimeout(displayBannerTimer);
+  if (!persistent) displayBannerTimer = setTimeout(() => el.classList.remove('show'), 2600);
+}
+db.ref('.info/connected').on('value', snap => {
+  const connected = snap.val() === true;
+  if (!connected) {
+    if (displayConnected) {
+      displayWasOffline = true;
+      showDisplayConnection('⚠️ Mất kết nối màn hình — đang thử kết nối lại...', 'offline', true);
+    }
+    displayConnected = false;
+  } else {
+    displayConnected = true;
+    if (displayWasOffline) {
+      displayWasOffline = false;
+      showDisplayConnection('✅ Đã kết nối lại — màn hình đã đồng bộ.', 'online');
+    }
+  }
+});
+window.addEventListener('offline', () => showDisplayConnection('⚠️ Màn hình đang offline.', 'offline', true));
 // ─────────────────────────────────────────
 // ĐỒNG BỘ THỜI GIAN SERVER (đếm giờ giống y hệt màn hình người chơi)
 // ─────────────────────────────────────────
@@ -354,10 +435,18 @@ let answersCache = {};
 let gameCache = null;
 let prevDisplayRound = -1;
 let displayTimerInterval;
+let revealSequenceKey = '';
+let revealLeaderboardTimer = null;
+let revealIntroTimer = null;
+let revealSfxTimers = [];
+let revealSequenceComplete = false;
+const REVEAL_INTRO_MS = 500;
+const REVEAL_STEP_MS = 650;
 // ─────────────────────────────────────────
 // KẾT NỐI PHÒNG
 // ─────────────────────────────────────────
 document.getElementById('d-btn-connect').addEventListener('click', () => {
+  getDisplayAC();
   const code = document.getElementById('d-inp-room').value.trim().toUpperCase();
   if (!code) { showEnterError('⚠️ Nhập mã phòng!'); return; }
   connectRoom(code);
@@ -368,10 +457,15 @@ document.getElementById('d-inp-room').addEventListener('keypress', e => {
 function showEnterError(msg) { document.getElementById('d-enter-error').textContent = msg; }
 function connectRoom(code) {
   showEnterError('');
+  const button = document.getElementById('d-btn-connect');
+  button.disabled = true;
+  button.textContent = '⏳ Đang kết nối...';
   myRoom = code;
   db.ref('rooms/' + myRoom).once('value').then(snap => {
     if (!snap.exists()) {
       showEnterError('❌ Phòng "' + code + '" không tồn tại!');
+      button.disabled = false;
+      button.textContent = 'Hiển thị 📺';
       return;
     }
     document.getElementById('top-room-code').textContent = myRoom;
@@ -383,7 +477,11 @@ function connectRoom(code) {
     listenTeams();
     listenAnswers();
     listenGameDisplay();
-  }).catch(e => showEnterError('❌ Lỗi: ' + e.message));
+  }).catch(e => {
+    showEnterError('❌ Không thể kết nối phòng. Kiểm tra mạng rồi thử lại.');
+    button.disabled = false;
+    button.textContent = 'Hiển thị 📺';
+  });
 }
 // QR luôn tự sinh lại theo đúng mã phòng hiện tại -> KHÔNG cần host tự thay ảnh QR mỗi trận
 function renderJoinQR() {
@@ -442,6 +540,10 @@ function listenTeams() {
     teamsCache = snap.val() || {};
     renderWaitingTeams();
     renderProgress();
+    if (revealSequenceComplete && gameCache && ((gameCache.phase === 'results') || gameCache.revealed)) {
+      renderRevealBoard(gameCache);
+      renderRoundLeaderboard();
+    }
   });
 }
 function renderWaitingTeams() {
@@ -489,17 +591,20 @@ function listenGameDisplay() {
     if (!g) { showScreen('waiting'); return; }
     if (g.status === 'ended') { showEnded(); return; }
     if (g.status !== 'playing') { showScreen('waiting'); return; }
+    const phase = g.phase || (g.revealed ? 'results' : 'answering');
     const newRound = g.round || 0;
     if (newRound !== prevDisplayRound) {
       prevDisplayRound = newRound;
+      clearRevealSequence();
       renderQuestionDisplay(g);
       showScreen('question');
     }
-    if (g.revealed) {
+    if (phase === 'results') {
       showRevealView(g);
     } else {
-      showProgressView();
-      startDisplayTimer(g);
+      showProgressView(phase);
+      if (phase === 'answering') startDisplayTimer(g);
+      else clearInterval(displayTimerInterval);
     }
   });
 }
@@ -517,7 +622,7 @@ function renderQuestionDisplay(g) {
   const specialEl = document.getElementById('d-special-badge');
   if (qType === 'who_is') {
     specialEl.style.display = 'inline-flex';
-    specialEl.textContent = '🕵️ Ai là ai? · Trùng tên +2 điểm';
+    specialEl.textContent = '🕵️ Ai là ai? · Cùng chọn người +2 điểm';
   } else if (qType === 'text') {
     specialEl.style.display = 'inline-flex';
     specialEl.textContent = '✍️ Câu tự nhập · Trùng ý +1 — Trùng & độc nhất +3';
@@ -538,20 +643,60 @@ function renderQuestionDisplay(g) {
   }
   renderProgress();
 }
-function showProgressView() {
+function showProgressView(phase='answering') {
   document.getElementById('d-progress-wrap').style.display = 'block';
   document.getElementById('d-reveal-board').style.display = 'none';
   document.getElementById('d-round-leaderboard').style.display = 'none';
-  document.getElementById('d-timer-wrap').style.display = 'flex';
+  document.getElementById('d-leader-spotlight').classList.remove('show');
+  document.getElementById('d-timer-wrap').style.display = phase === 'answering' ? 'flex' : 'none';
+  document.getElementById('d-reveal-intro').classList.remove('show');
+  document.querySelector('#d-progress-wrap .progress-label').textContent = phase === 'locked'
+    ? '🔒 Đáp án đã khóa — chờ reveal'
+    : 'Số đội đã trả lời';
 }
 function showRevealView(g) {
   clearInterval(displayTimerInterval);
   document.getElementById('d-progress-wrap').style.display = 'none';
   document.getElementById('d-timer-wrap').style.display = 'none';
+  const key = `${g.round}:${g.revealedAt || 'legacy'}`;
+  if (key === revealSequenceKey) return;
+  clearRevealSequence();
+  revealSequenceKey = key;
+  const startedAt = typeof g.revealedAt === 'number' ? g.revealedAt : serverNow() - 999999;
+  const elapsed = Math.max(0, serverNow() - startedAt);
+  const rows = Object.keys(teamsCache).length;
+  const leaderboardAt = REVEAL_INTRO_MS + rows * REVEAL_STEP_MS + 250;
+  const intro = document.getElementById('d-reveal-intro');
+  intro.classList.toggle('show', elapsed < REVEAL_INTRO_MS);
+  if (elapsed < REVEAL_INTRO_MS) revealIntroTimer = setTimeout(() => intro.classList.remove('show'), REVEAL_INTRO_MS - elapsed);
   document.getElementById('d-reveal-board').style.display = 'flex';
-  renderRevealBoard(g);
-  document.getElementById('d-round-leaderboard').style.display = 'flex';
-  renderRoundLeaderboard();
+  document.getElementById('d-round-leaderboard').style.display = 'none';
+  renderRevealBoard(g, { staged: elapsed < leaderboardAt, elapsed });
+  if (elapsed < leaderboardAt) {
+    for (let i = 0; i < rows; i++) {
+      const delay = Math.max(0, REVEAL_INTRO_MS + i * REVEAL_STEP_MS - elapsed);
+      revealSfxTimers.push(setTimeout(displayRevealSfx, delay));
+    }
+  }
+  const finish = () => {
+    revealSequenceComplete = true;
+    intro.classList.remove('show');
+    const board = document.getElementById('d-round-leaderboard');
+    board.style.display = 'flex';
+    board.classList.remove('leaderboard-enter');
+    requestAnimationFrame(() => board.classList.add('leaderboard-enter'));
+    renderRoundLeaderboard();
+    if (elapsed < leaderboardAt) displayLeaderboardSfx();
+  };
+  if (elapsed >= leaderboardAt) finish();
+  else revealLeaderboardTimer = setTimeout(finish, leaderboardAt - elapsed);
+}
+function clearRevealSequence() {
+  if (revealLeaderboardTimer) { clearTimeout(revealLeaderboardTimer); revealLeaderboardTimer = null; }
+  if (revealIntroTimer) { clearTimeout(revealIntroTimer); revealIntroTimer = null; }
+  revealSfxTimers.forEach(clearTimeout); revealSfxTimers = [];
+  revealSequenceComplete = false;
+  revealSequenceKey = '';
 }
 // ── LEADERBOARD SAU MỖI CÂU (round-leaderboard) ──
 // Chỉ đọc lại teamsCache đã có sẵn (từ listenTeams(), KHÔNG tạo listener/query mới).
@@ -565,9 +710,32 @@ function renderRoundLeaderboard() {
   document.getElementById('d-round-leaderboard').innerHTML = sorted.map((t, i) => `
     <div class="d-ws-row">
       <span class="d-ws-rank">${medals[i] || '#' + (i + 1)}</span>
-      <span class="d-ws-team">${teamLabel(t)}</span>
+      <span class="d-ws-team">${teamLabel(t)}${rankShiftHtml(t)}</span>
       <span class="d-ws-pts">${t.score || 0}</span>
     </div>`).join('') || '<div class="reveal-empty">Chưa có dữ liệu</div>';
+  const spotlight = document.getElementById('d-leader-spotlight');
+  const leader = sorted[0];
+  if (leader) {
+    spotlight.textContent = `✨ SPOTLIGHT: ${teamLabel(leader)} đang dẫn đầu với ${leader.score || 0} điểm!`;
+    spotlight.classList.add('show');
+  } else spotlight.classList.remove('show');
+}
+function rankShiftHtml(team) {
+  const change = team.lastRankChange;
+  if (!change || !change.delta) return '';
+  return change.delta > 0
+    ? `<span class="rank-shift up">▲ ${change.delta}</span>`
+    : `<span class="rank-shift down">▼ ${Math.abs(change.delta)}</span>`;
+}
+function getAwards(teams) {
+  const list = Object.values(teams || {});
+  const label = team => team.teamName || ('Đội ' + (team._idx + 1));
+  const awards = [];
+  const mostMatch = [...list].sort((a,b) => ((b.stats && b.stats.matches) || 0) - ((a.stats && a.stats.matches) || 0))[0];
+  const mostUnique = [...list].sort((a,b) => ((b.stats && b.stats.unique) || 0) - ((a.stats && a.stats.unique) || 0))[0];
+  if (mostMatch && mostMatch.stats && mostMatch.stats.matches) awards.push(`💞 Ăn ý nhất: ${label(mostMatch)} · ${mostMatch.stats.matches} lần`);
+  if (mostUnique && mostUnique.stats && mostUnique.stats.unique) awards.push(`🌟 Độc nhất: ${label(mostUnique)} · ${mostUnique.stats.unique} lần`);
+  return awards;
 }
 // ─────────────────────────────────────────
 // TIMER (đồng bộ y hệt cách index.html dùng cho người chơi)
@@ -605,7 +773,7 @@ function revealRowHtml(label, p1, a1, p2, a2, match, resultLabel) {
     <div class="rr-result ${match?'win':'lose'}">${resultLabel}</div>
   </div>`;
 }
-function renderRevealBoard(g) {
+function renderRevealBoard(g, opts={}) {
   const qType = g.type || 'choice';
   const teams = teamsCache;
   const answers = answersCache;
@@ -639,7 +807,15 @@ function renderRevealBoard(g) {
       rows.push(revealRowHtml(teamLabel(team,i), team.player1, resolveChoiceText(r.a1, g), team.player2, resolveChoiceText(r.a2, g), r.match, label));
     });
   }
-  document.getElementById('d-reveal-board').innerHTML = rows.join('') || '<div class="reveal-empty">Không có đáp án</div>';
+  const elapsed = opts.elapsed || 0;
+  const stagedRows = opts.staged ? rows.map((row, index) => {
+    return row.replace('class="reveal-row ', `class="reveal-row reveal-pending `);
+  }) : rows;
+  // Chỉ thêm delay vào những hàng đang chờ reveal. Không delay khi F5 sau khi sequence đã xong.
+  const html = stagedRows.map((row, index) => opts.staged
+    ? row.replace('">', `" style="animation-delay:${Math.max(0, REVEAL_INTRO_MS + index * REVEAL_STEP_MS - elapsed)}ms">`)
+    : row).join('');
+  document.getElementById('d-reveal-board').innerHTML = html || '<div class="reveal-empty">Không có đáp án</div>';
 }
 // ─────────────────────────────────────────
 // MÀN KẾT THÚC
@@ -671,10 +847,12 @@ function showEnded() {
         <span class="d-ws-rank">${medals[i]||'#'+(i+1)}</span>
         ${avatarImg(t.player1,30)} ${avatarImg(t.player2,30)}
         <span class="d-ws-team">${teamLabel(t)}</span>
-        <span class="d-ws-pts">${t.score||0}</span>
-      </div>`).join('');
+       <span class="d-ws-pts">${t.score||0}</span>
+     </div>`).join('');
+    document.getElementById('d-award-list').innerHTML = getAwards(withIdx).map(a => `<span class="award-chip">${a}</span>`).join('');
   });
   if (!endedConfettiInterval) {
+    displayWinSfx();
     startDisplayConfetti();
     endedConfettiInterval = setInterval(startDisplayConfetti, 6000);
   }

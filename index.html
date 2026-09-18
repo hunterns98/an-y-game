@@ -105,7 +105,7 @@
   }
   /* ── HEADER ── */
   .game-header {
-    width: 100%; max-width: 480px;
+    width: 100%; max-width: 480px; position:relative;
     text-align: center;
     padding: 32px 0 20px;
   }
@@ -121,6 +121,7 @@
     font-size: 0.75rem; letter-spacing: 0.25em; color: var(--muted);
     text-transform: uppercase; margin-top: 6px;
   }
+  .sound-toggle { position:absolute; right:16px; top:25px; padding:8px 10px; border-radius:99px; border:1px solid var(--border); background:rgba(255,255,255,.07); color:var(--text); font-size:.72rem; font-weight:800; cursor:pointer; }
   /* ── CARD BASE (giả kính bằng gradient + viền, không dùng backdrop-filter để nhẹ GPU) ── */
   .card {
     background: linear-gradient(135deg, rgba(255,255,255,0.09), rgba(255,255,255,0.03));
@@ -300,6 +301,13 @@
   .result-card {
     text-align: center; padding: 28px 24px;
   }
+  .result-reveal-intro { display:none; text-align:center; padding:20px 12px; color:var(--cyan); font-size:0.78rem; font-weight:900; letter-spacing:0.16em; animation:resultRevealPulse 0.7s ease-in-out infinite alternate; }
+  .result-reveal-intro.show { display:block; }
+  @keyframes resultRevealPulse { to { text-shadow:0 0 20px rgba(0,245,212,0.8); transform:scale(1.03); } }
+  .result-details { display:block; }
+  .result-details.hidden { display:none; }
+  .leaderboard-card.reveal-in { animation:leaderboardIn 0.5s cubic-bezier(0.34,1.4,0.64,1); }
+  @keyframes leaderboardIn { from { opacity:0; transform:translateY(18px) scale(0.97); } to { opacity:1; transform:translateY(0) scale(1); } }
   .result-match {
     font-size: 2rem; margin-bottom: 6px;
   }
@@ -393,6 +401,9 @@
   .ws-score { font-size: 1.4rem; font-weight: 900; color: var(--cyan); margin-bottom: 6px; }
   .ws-sub { font-size: 0.75rem; letter-spacing: 0.2em; color: var(--purple); text-transform: uppercase; margin-bottom: 28px; }
   .ws-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 28px; width: 100%; max-width: 360px; }
+  .award-list { display:flex; flex-wrap:wrap; justify-content:center; gap:8px; max-width:420px; margin:0 auto 20px; }
+  .award-chip { padding:7px 11px; border-radius:99px; border:1px solid rgba(0,245,212,.32); background:rgba(0,245,212,.1); color:var(--text); font-size:.74rem; font-weight:800; }
+  .rank-shift { display:inline-block; margin-left:6px; font-size:.72rem; font-weight:900; animation:rankPop .55s cubic-bezier(.34,1.5,.64,1) both; } @keyframes rankPop { from{opacity:0;transform:scale(.3) translateY(8px)} to{opacity:1;transform:scale(1) translateY(0)} } .rank-shift.up{color:var(--cyan)} .rank-shift.down{color:#fca5a5}
   .ws-row {
     display: flex; align-items: center; justify-content: space-between;
     padding: 10px 16px; border-radius: 12px;
@@ -410,6 +421,15 @@
     z-index: 9999; display: flex; flex-direction: column; align-items: center; gap: 8px;
     pointer-events: none; width: 90%; max-width: 420px;
   }
+  .connection-banner { position:fixed; top:12px; left:50%; z-index:10000; transform:translate(-50%,-130%); transition:transform .3s ease; width:min(92vw,420px); padding:10px 14px; border-radius:12px; text-align:center; font-size:.8rem; font-weight:800; background:rgba(30,10,60,.97); border:1px solid var(--border); box-shadow:0 8px 24px rgba(0,0,0,.35); }
+  .connection-banner.show { transform:translate(-50%,0); }
+  .connection-banner.offline { color:#fca5a5; border-color:rgba(239,68,68,.55); background:rgba(70,8,30,.97); }
+  .connection-banner.online { color:var(--cyan); border-color:rgba(0,245,212,.45); }
+  #app-loading { display:none; position:fixed; inset:0; z-index:8500; align-items:center; justify-content:center; background:rgba(10,0,21,.86); text-align:center; padding:24px; }
+  #app-loading.show { display:flex; }
+  .loading-box { display:flex; flex-direction:column; gap:14px; align-items:center; color:var(--text); font-weight:800; }
+  .loading-spinner { width:42px; height:42px; border:4px solid rgba(255,255,255,.18); border-top-color:var(--cyan); border-radius:50%; animation:loadingSpin .8s linear infinite; }
+  @keyframes loadingSpin { to { transform:rotate(360deg); } }
   .toast {
     background: rgba(30,10,60,0.95);
     border: 1px solid rgba(255,255,255,0.15); border-radius: 14px;
@@ -545,6 +565,13 @@
     -webkit-tap-highlight-color: transparent;
   }
   #howto-card-wrap { display: flex; justify-content: center; width: 100%; }
+  .quick-rules-card { width:100%; max-width:480px; padding:18px; border-radius:var(--radius-lg); background:linear-gradient(135deg,rgba(155,93,229,.16),rgba(255,45,120,.07)); border:1px solid rgba(155,93,229,.35); }
+  .quick-rules-title { font-size:.72rem; font-weight:900; letter-spacing:.16em; color:var(--gold); text-transform:uppercase; margin-bottom:12px; text-align:center; }
+  .quick-rules-row { display:flex; align-items:center; gap:10px; padding:8px 0; font-size:.84rem; color:var(--muted); }
+  .quick-rules-row + .quick-rules-row { border-top:1px solid rgba(255,255,255,.08); }
+  .quick-rules-row span { width:23px; height:23px; flex:0 0 23px; display:flex; align-items:center; justify-content:center; border-radius:50%; background:rgba(0,245,212,.15); color:var(--cyan); font-size:.72rem; font-weight:900; }
+  .quick-rules-row p { margin:0; }
+  .quick-rules-row b { color:var(--text); }
   /* ── PARTNER TAG ── */
   .partner-tag {
     display: flex; align-items: center; gap: 10px;
@@ -591,6 +618,11 @@
   .partner-status-pill.answered {
     background: rgba(0,245,212,0.12); border-color: rgba(0,245,212,0.4); color: var(--cyan);
   }
+  .who-choice-hint { font-size:.8rem; color:var(--muted); line-height:1.45; text-align:center; }
+  .who-choice-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+  .btn-who-choice { min-height:74px; padding:12px; border:1.5px solid var(--border); border-radius:16px; background:rgba(255,255,255,.05); color:var(--text); font-weight:800; cursor:pointer; transition:all .18s; }
+  .btn-who-choice .who-role { display:block; color:var(--muted); text-transform:uppercase; letter-spacing:.13em; font-size:.62rem; margin-bottom:5px; }
+  .btn-who-choice.selected { border-color:var(--cyan); background:rgba(0,245,212,.14); box-shadow:0 0 20px rgba(0,245,212,.22); }
   /* ── LEADERBOARD (màn kết quả) ── */
   .leaderboard-card { padding: 20px 18px; }
   .leaderboard-title {
@@ -614,6 +646,8 @@
 <div class="made-by-footer">Made By Nam Thần Sales With <span>♥</span></div>
 <!-- Toast -->
 <div id="toast-container"></div>
+<div class="connection-banner" id="connection-banner" role="status" aria-live="polite"></div>
+<div id="app-loading" role="status" aria-live="polite"><div class="loading-box"><div class="loading-spinner"></div><div id="app-loading-text">Đang kết nối...</div></div></div>
 <!-- Countdown overlay -->
 <div id="countdown-overlay">
   <span class="countdown-num" id="count-num">3</span>
@@ -628,6 +662,7 @@
     <div class="ws-name" id="ws-name">—</div>
     <div class="ws-score" id="ws-score">0 điểm</div>
     <div class="ws-sub">Đội chiến thắng 💞</div>
+    <div class="award-list" id="ws-award-list"></div>
     <div class="ws-list" id="ws-list"></div>
     <button class="btn btn-ghost" style="max-width:280px;" id="btn-ws-back">📊 Xem lại</button>
   </div>
@@ -636,6 +671,7 @@
 <div id="app">
   <!-- HEADER -->
   <div class="game-header">
+    <button class="sound-toggle" id="sound-toggle" type="button">🔊 Âm thanh</button>
     <div class="logo-text">❤️ Ăn Ý</div>
     <div class="logo-sub">Bạn hiểu đồng đội đến đâu?</div>
   </div>
@@ -701,69 +737,15 @@
       <div><div class="tsb-label">Điểm đội</div><div class="tsb-team" id="tsb-team">—</div></div>
       <div class="tsb-score" id="tsb-score">0</div>
     </div>
-    <!-- HOW TO PLAY / DEMO GUIDE -->
+    <!-- QUICK ONBOARDING: luật chi tiết chỉ xuất hiện đúng lúc vào từng level -->
     <div id="howto-card-wrap">
-    <div class="howto-card" id="howto-card">
-      <div class="howto-title">🎮 HƯỚNG DẪN CHƠI NHANH</div>
-      <div class="howto-tabs">
-        <button class="howto-tab-btn active" data-tab="1" onclick="switchHowtoTab(1)">Level 1<br>Thấu Hiểu Nông</button>
-        <button class="howto-tab-btn" data-tab="2" onclick="switchHowtoTab(2)">Level 2<br>Thấu Hiểu Trung</button>
-        <button class="howto-tab-btn" data-tab="3" onclick="switchHowtoTab(3)">Level 3<br>Thấu Hiểu Sâu</button>
-      </div>
-      <div class="howto-scroll">
-        <!-- LEVEL 1 -->
-        <div class="howto-panel active" id="howto-panel-1">
-          <div class="howto-rule-box">
-            <b>Luật chơi:</b> Trả lời câu hỏi có 2 lựa chọn <b>A hoặc B</b>.<br>
-            Nếu <b>CẢ HAI</b> thành viên cùng chọn đáp án giống nhau → <span class="howto-pts good">+1 điểm</span>.<br>
-            Chọn khác nhau → <span class="howto-pts zero">0 điểm</span>.
-          </div>
-          <div>
-            <div class="howto-demo-label">Thử ngay</div>
-            <div class="howto-demo-q">Nếu mẹ và người yêu cùng rơi xuống nước, bạn sẽ cứu?</div>
-            <div class="howto-demo-grid">
-              <button class="howto-demo-btn" id="demo-l1-a" onclick="demoPickL1('a')">👩 Cứu Mẹ</button>
-              <button class="howto-demo-btn" id="demo-l1-b" onclick="demoPickL1('b')">💑 Cứu Người Yêu</button>
-            </div>
-          </div>
-        </div>
-        <!-- LEVEL 2 -->
-        <div class="howto-panel" id="howto-panel-2">
-          <div class="howto-rule-box">
-            <b>Luật chơi:</b> Bí mật gõ tên bạn hoặc đồng đội để trả lời cho câu hỏi BTC đưa ra (VD: Ai nóng tính hơn?).<br>
-            Nếu <b>TRÙNG KHỚP</b> (Cùng chọn 1 tên) → <span class="howto-pts good">+2 điểm</span>.<br>
-            Khác nhau → <span class="howto-pts zero">0 điểm</span>.
-          </div>
-          <div>
-            <div class="howto-demo-label">Thử ngay</div>
-            <div class="howto-demo-q">Ai là người hay bật người khác hơn?</div>
-            <div class="howto-demo-input-row">
-              <input id="demo-l2-input" placeholder="Gõ tên bạn hoặc đồng đội..." maxlength="20">
-              <button class="howto-demo-send" onclick="demoSendL2()">Gửi</button>
-            </div>
-          </div>
-        </div>
-        <!-- LEVEL 3 -->
-        <div class="howto-panel" id="howto-panel-3">
-          <div class="howto-rule-box">
-            <b>Luật chơi:</b> Câu hỏi tự điền đáp án bạn nghĩ ra.<br>
-            Điền khác với đồng đội → <span class="howto-pts zero">0 điểm</span>.<br>
-            Điền trùng câu trả lời với đồng đội → <span class="howto-pts good">+1 điểm</span>.<br>
-            Điền trùng + là đáp án <b>DUY NHẤT</b> (không đội nào khác trùng) → <span class="howto-pts great">+3 điểm 🌟</span>.
-          </div>
-          <div>
-            <div class="howto-demo-label">Thử ngay</div>
-            <div class="howto-demo-q">Hãy điền tên 1 ứng dụng mạng xã hội?</div>
-            <div class="howto-demo-input-row">
-              <input id="demo-l3-input" placeholder="Gõ thử đáp án..." maxlength="30">
-              <button class="howto-demo-send" onclick="demoSendL3()">Gửi thử</button>
-            </div>
-          </div>
-        </div>
+      <div class="quick-rules-card" id="howto-card">
+        <div class="quick-rules-title">🎮 Chơi trong 30 giây</div>
+        <div class="quick-rules-row"><span>1</span><p>Trả lời <b>bí mật</b>, đừng nói với đồng đội.</p></div>
+        <div class="quick-rules-row"><span>2</span><p>Cùng ý với đồng đội là có điểm.</p></div>
+        <div class="quick-rules-row"><span>3</span><p>Luật điểm từng Level sẽ hiện ngay trước câu hỏi.</p></div>
       </div>
     </div>
-    </div>
-    <!-- /HOW TO PLAY -->
   </div>
   <!-- ── SCREEN: QUESTION ── -->
   <div class="screen" id="screen-question">
@@ -791,6 +773,14 @@
       </button>
     </div>
     <button class="btn btn-primary" id="btn-submit-choice" disabled>Gửi đáp án 📨</button>
+    <div class="card" id="who-answer-wrap" style="display:none;flex-direction:column;gap:12px;">
+      <p class="who-choice-hint">Chọn bí mật người bạn nghĩ phù hợp nhất. Cùng chọn một người là <b>+2 điểm</b>.</p>
+      <div class="who-choice-grid">
+        <button class="btn-who-choice" id="btn-who-self" type="button"><span class="who-role">Bạn</span><span id="who-self-name">—</span></button>
+        <button class="btn-who-choice" id="btn-who-partner" type="button"><span class="who-role">Đồng đội</span><span id="who-partner-name">—</span></button>
+      </div>
+      <button class="btn btn-primary" id="btn-submit-who" disabled>Chốt lựa chọn 🕵️</button>
+    </div>
     <div class="card" id="answer-text-wrap" style="display:none;flex-direction:column;gap:12px;">
       <input class="field-input" id="inp-free-answer" placeholder="Nhập đáp án của bạn..." maxlength="60" autocomplete="off">
       <button class="btn btn-primary" id="btn-submit-free">Gửi đáp án 📨</button>
@@ -809,11 +799,14 @@
   <!-- ── SCREEN: RESULT ── -->
   <div class="screen" id="screen-result">
     <div class="card result-card" id="result-card">
-      <div class="result-match" id="result-match">—</div>
-      <div class="result-title" id="result-title">—</div>
-      <div class="result-answers" id="result-answers"></div>
-      <div id="result-points-wrap"></div>
-      <p class="result-wait">Chờ host chuyển câu tiếp...</p>
+      <div class="result-reveal-intro" id="result-reveal-intro">🔒 ĐÁP ÁN ĐÃ KHÓA<br>ĐANG MỞ KẾT QUẢ...</div>
+      <div class="result-details" id="result-details">
+        <div class="result-match" id="result-match">—</div>
+        <div class="result-title" id="result-title">—</div>
+        <div class="result-answers" id="result-answers"></div>
+        <div id="result-points-wrap"></div>
+        <p class="result-wait">Chờ host chuyển câu tiếp...</p>
+      </div>
     </div>
     <div class="team-score-banner" id="score-banner-r">
       <div><div class="tsb-label">Tổng điểm đội</div><div class="tsb-team" id="tsb-r-team">—</div></div>
@@ -855,12 +848,14 @@
 // ─────────────────────────────────────────
 const AC = window.AudioContext || window.webkitAudioContext;
 let ac;
+let sfxEnabled = (() => { try { return localStorage.getItem('anygame_sfx') !== 'off'; } catch(e) { return true; } })();
 function getAC() {
   if (!ac) ac = new AC();
   if (ac.state === 'suspended') ac.resume();
   return ac;
 }
 function playTone(freq, type, dur, vol=0.3) {
+  if (!sfxEnabled) return;
   try {
     const a = getAC();
     const osc = a.createOscillator(), g = a.createGain();
@@ -871,6 +866,17 @@ function playTone(freq, type, dur, vol=0.3) {
     osc.start(); osc.stop(a.currentTime + dur);
   } catch(e){}
 }
+function updateSoundToggle() {
+  const btn = document.getElementById('sound-toggle');
+  btn.textContent = sfxEnabled ? '🔊 Âm thanh' : '🔇 Đã tắt tiếng';
+}
+document.getElementById('sound-toggle').addEventListener('click', () => {
+  sfxEnabled = !sfxEnabled;
+  try { localStorage.setItem('anygame_sfx', sfxEnabled ? 'on' : 'off'); } catch(e) {}
+  if (sfxEnabled) sfxClick();
+  updateSoundToggle();
+});
+updateSoundToggle();
 function sfxClick()   { playTone(440, 'sine', 0.12, 0.25); }
 function sfxSuccess() {
   [523, 659, 784, 1047].forEach((f, i) => setTimeout(() => playTone(f,'triangle',0.3,0.35), i*90));
@@ -894,6 +900,41 @@ function toast(msg, duration=2600) {
     el.addEventListener('animationend', () => el.remove());
   }, duration);
 }
+// ─────────────────────────────────────────
+// CONNECTION / LOADING FEEDBACK
+// ─────────────────────────────────────────
+let firebaseConnected = false, connectionWasLost = false, connectionBannerTimer;
+function showConnectionBanner(message, kind='online', persistent=false) {
+  const el = document.getElementById('connection-banner');
+  if (!el) return;
+  el.textContent = message;
+  el.className = 'connection-banner show ' + kind;
+  clearTimeout(connectionBannerTimer);
+  if (!persistent) connectionBannerTimer = setTimeout(() => el.classList.remove('show'), 2600);
+}
+function setAppLoading(show, message='Đang kết nối...') {
+  const el = document.getElementById('app-loading');
+  if (!el) return;
+  document.getElementById('app-loading-text').textContent = message;
+  el.classList.toggle('show', show);
+}
+db.ref('.info/connected').on('value', snap => {
+  const connected = snap.val() === true;
+  if (!connected) {
+    if (firebaseConnected) {
+      connectionWasLost = true;
+      showConnectionBanner('⚠️ Mất kết nối — đang thử kết nối lại...', 'offline', true);
+    }
+    firebaseConnected = false;
+    return;
+  }
+  firebaseConnected = true;
+  if (connectionWasLost) {
+    connectionWasLost = false;
+    showConnectionBanner('✅ Đã kết nối lại — dữ liệu đang đồng bộ.', 'online');
+  }
+});
+window.addEventListener('offline', () => showConnectionBanner('⚠️ Bạn đang offline — chưa thể gửi đáp án.', 'offline', true));
 // ─────────────────────────────────────────
 // SCREEN MANAGEMENT
 // ─────────────────────────────────────────
@@ -993,13 +1034,17 @@ function runCountdown(cb) {
 let myName='', myRoom='', myTeam='', myTeamKey='', myAvatar=null;
 let hasAnswered=false, currentRound=0;
 let prevRound=-1, prevRevealed=false, prevStatus='';
+let activeGame=null, teamsCache={};
+let playerRevealTimers=[];
+const PLAYER_REVEAL_INTRO_MS=500, PLAYER_REVEAL_STEP_MS=650;
 let partnerListenerAttached=false;
 // Guard: đảm bảo listener trên teams/{myTeamKey} chỉ đăng ký ĐÚNG 1 LẦN cho
 // cả session — tránh chồng listener mỗi khi node `teams` (toàn phòng) đổi.
 // Kết hợp điều kiện myTeamKey (giống pattern partnerListenerAttached ở trên)
 // để không khoá guard nhầm khi player join TRƯỚC lúc admin ghép cặp.
 let myTeamListenerAttached=false;
-let selectedChoice=null, timeIsUp=false;
+let selectedChoice=null, selectedWho=null, timeIsUp=false;
+let answerUiTimer=null;
 // ── ĐỒNG BỘ THỜI GIAN SERVER (để đếm giờ giống nhau trên mọi máy) ──
 let serverTimeOffset = 0;
 db.ref('.info/serverTimeOffset').on('value', snap => { serverTimeOffset = snap.val() || 0; });
@@ -1065,6 +1110,7 @@ function enterGameAsPlayer(name, room, avatarNum) {
     document.getElementById('my-avatar-img').src = avatarSrc(avatarNum);
     document.getElementById('my-avatar-name').textContent = name;
   }
+  setAppLoading(false);
   showScreen('lobby');
   findMyTeam();
   listenGame();
@@ -1086,17 +1132,22 @@ function enterGameAsPlayer(name, room, avatarNum) {
   const nameEl = document.getElementById('inp-name');
   if (nameEl) nameEl.value = localSess.name;
   toast('🔄 Đang khôi phục phiên chơi...');
+  setAppLoading(true, 'Đang khôi phục phiên chơi...');
   db.ref('rooms/' + code).once('value').then(snap => {
-    if (!snap.exists()) { clearLocalSession(code); return; }
+    if (!snap.exists()) { clearLocalSession(code); setAppLoading(false); return; }
     validateSession(code, localSess).then(player => {
       if (player) {
         toast(`👋 Chào mừng trở lại, ${localSess.name}!`);
         enterGameAsPlayer(localSess.name, code, player.avatar);
       } else {
         clearLocalSession(code); // session cũ không còn hợp lệ -> để người dùng tự bấm Join
+        setAppLoading(false);
       }
+    }).catch(() => {
+      setAppLoading(false);
+      showConnectionBanner('⚠️ Chưa thể xác thực phiên chơi. Hãy thử lại khi mạng ổn định.', 'offline', true);
     });
-  }).catch(()=>{});
+  }).catch(()=>{ setAppLoading(false); showConnectionBanner('⚠️ Không thể khôi phục lúc này. Kiểm tra kết nối rồi thử lại.', 'offline', true); });
 })();
 // ─────────────────────────────────────────
 // JOIN
@@ -1134,6 +1185,16 @@ function joinRoom() {
           doFreshJoin();
         }
       }).catch(e => { toast('❌ Lỗi: ' + e.message); resetBtn(); });
+      return;
+    }
+    // Người mới không được chen vào một ván đã chạy/kết thúc. Người chơi có phiên
+    // hợp lệ ở nhánh trên vẫn được khôi phục bình thường sau F5 hoặc mất mạng.
+    const room = snap.val() || {};
+    if (room.game && (room.game.status === 'playing' || room.game.status === 'ended')) {
+      toast(room.game.status === 'ended'
+        ? '🏁 Ván này đã kết thúc. Hãy chờ host tạo phòng mới nhé.'
+        : '🔒 Game đã bắt đầu; phòng hiện không nhận người chơi mới.');
+      resetBtn();
       return;
     }
     doFreshJoin();
@@ -1179,6 +1240,7 @@ function findMyTeam() {
   db.ref('rooms/' + myRoom + '/teams').on('value', snap => {
     const teams = snap.val();
     if (!teams) return;
+    teamsCache = teams;
     Object.entries(teams).forEach(([key, team]) => {
       if (team.player1 === myName || team.player2 === myName) {
         myTeamKey = key;
@@ -1200,6 +1262,9 @@ function findMyTeam() {
         }
       }
     });
+    if (activeGame && (activeGame.phase === 'results' || activeGame.revealed) && document.getElementById('screen-result').classList.contains('active')) {
+      renderLeaderboard(teams);
+    }
     // keep updating score
     if (myTeamKey && !myTeamListenerAttached) {
       myTeamListenerAttached = true;
@@ -1263,14 +1328,16 @@ function listenGame() {
   db.ref('rooms/' + myRoom + '/game').on('value', snap => {
     const game = snap.val();
     if (!game) return;
+    activeGame = game;
     if (game.status === 'ended') { hideHowtoGuide(); showEndForPlayer(); return; }
     if (game.status !== 'playing') return;
     hideHowtoGuide();
     const newRound = game.round || 0;
-    const revealed = !!game.revealed;
+    const phase = game.phase || (game.revealed ? 'results' : 'answering');
     // New round
     if (newRound !== prevRound) {
       prevRound = newRound; prevRevealed = false;
+      clearPlayerRevealSequence();
       hasAnswered = false;
       renderQuestion(game);
       // Nếu vòng này (round hiện tại) mình ĐÃ có đáp án sẵn trên Firebase (VD: vừa reconnect
@@ -1283,12 +1350,62 @@ function listenGame() {
         showScreen('question');
       }
     }
-    // Reveal
-    if (revealed && !prevRevealed) {
+    // Khi host khóa, tất cả máy đều dừng ở cùng một trạng thái. Đây là trạng thái
+    // Firebase thật, không còn chỉ là timer cục bộ của từng điện thoại.
+    if (phase === 'locked') {
+      clearInterval(timerInterval);
+      lockRoundUI();
+    }
+    // Kết quả chỉ hiện sau khi host đã chốt điểm cùng transaction với phase=results.
+    if (phase === 'results' && !prevRevealed) {
       prevRevealed = true;
-      showResultForPlayer(game);
+      startPlayerRevealSequence(game);
     }
   });
+}
+
+function clearPlayerRevealSequence() {
+  playerRevealTimers.forEach(clearTimeout);
+  playerRevealTimers = [];
+}
+function startPlayerRevealSequence(game) {
+  clearPlayerRevealSequence();
+  showScreen('result');
+  const intro = document.getElementById('result-reveal-intro');
+  const details = document.getElementById('result-details');
+  const leaderboard = document.getElementById('leaderboard-card');
+  intro.classList.add('show');
+  details.classList.add('hidden');
+  leaderboard.style.display = 'none';
+  const startedAt = typeof game.revealedAt === 'number' ? game.revealedAt : serverNow() - 999999;
+  const elapsed = Math.max(0, serverNow() - startedAt);
+  const entries = Object.keys(teamsCache);
+  const teamIndex = Math.max(0, entries.indexOf(myTeamKey));
+  const revealAt = PLAYER_REVEAL_INTRO_MS + teamIndex * PLAYER_REVEAL_STEP_MS;
+  const leaderboardAt = PLAYER_REVEAL_INTRO_MS + entries.length * PLAYER_REVEAL_STEP_MS + 250;
+  const reveal = () => showResultForPlayer(game, Math.max(0, leaderboardAt - Math.max(elapsed, revealAt)));
+  if (elapsed >= revealAt) reveal();
+  else playerRevealTimers.push(setTimeout(reveal, revealAt - elapsed));
+}
+
+function lockRoundUI() {
+  document.getElementById('btn-a').disabled = true;
+  document.getElementById('btn-b').disabled = true;
+  document.getElementById('btn-submit-choice').disabled = true;
+  document.getElementById('btn-who-self').disabled = true;
+  document.getElementById('btn-who-partner').disabled = true;
+  document.getElementById('btn-submit-who').disabled = true;
+  document.getElementById('inp-free-answer').disabled = true;
+  document.getElementById('btn-submit-free').disabled = true;
+  if (!hasAnswered) {
+    document.getElementById('status-chosen').style.display = 'block';
+    document.getElementById('chosen-emoji').textContent = '🔒';
+    document.getElementById('chosen-label').textContent = 'Đáp án đã khóa';
+    document.getElementById('chosen-display').textContent = '—';
+    document.getElementById('chosen-sub').textContent = 'Chờ host reveal kết quả...';
+  } else {
+    document.getElementById('chosen-sub').textContent = 'Đáp án đã khóa — chờ host reveal...';
+  }
 }
 // ─────────────────────────────────────────
 // Kiểm tra đáp án đã gửi cho round hiện tại (dùng khi reconnect / vào lại giữa câu hỏi)
@@ -1309,6 +1426,10 @@ function lockAnsweredUI(answerVal) {
   document.getElementById('btn-b').disabled = true;
   document.getElementById('btn-submit-choice').disabled = true;
   document.getElementById('btn-submit-choice').textContent = '✅ Đã gửi';
+  document.getElementById('btn-who-self').disabled = true;
+  document.getElementById('btn-who-partner').disabled = true;
+  document.getElementById('btn-submit-who').disabled = true;
+  document.getElementById('btn-submit-who').textContent = '✅ Đã gửi';
   document.getElementById('inp-free-answer').disabled = true;
   document.getElementById('btn-submit-free').disabled = true;
   document.getElementById('btn-submit-free').textContent = '✅ Đã gửi';
@@ -1332,7 +1453,7 @@ function renderQuestion(game) {
   // Special / free-text badge
   if (qType === 'who_is') {
     document.getElementById('special-badge-wrap').style.display = 'block';
-    document.getElementById('special-badge-text').textContent = '🕵️ Ai là ai? · Trùng tên +2 điểm';
+    document.getElementById('special-badge-text').textContent = '🕵️ Ai là ai? · Cùng chọn người +2 điểm';
   } else if (qType === 'text') {
     document.getElementById('special-badge-wrap').style.display = 'block';
     document.getElementById('special-badge-text').textContent = '✍️ Câu tự nhập · Trùng ý +1 — Trùng & độc nhất +3';
@@ -1343,18 +1464,34 @@ function renderQuestion(game) {
     document.getElementById('special-badge-wrap').style.display = 'none';
   }
   // Toggle answer UI by question type
-  if (qType === 'text' || qType === 'who_is') {
+  if (qType === 'who_is') {
     document.getElementById('answer-grid').style.display = 'none';
     document.getElementById('btn-submit-choice').style.display = 'none';
+    document.getElementById('answer-text-wrap').style.display = 'none';
+    document.getElementById('who-answer-wrap').style.display = 'flex';
+    const partner = myTeam && (myTeam.player1 === myName ? myTeam.player2 : myTeam.player1);
+    document.getElementById('who-self-name').textContent = myName;
+    document.getElementById('who-partner-name').textContent = partner || 'Đồng đội';
+    document.getElementById('btn-who-self').disabled = false;
+    document.getElementById('btn-who-partner').disabled = !partner;
+    document.getElementById('btn-who-self').classList.remove('selected');
+    document.getElementById('btn-who-partner').classList.remove('selected');
+    document.getElementById('btn-submit-who').disabled = true;
+    document.getElementById('btn-submit-who').textContent = 'Chốt lựa chọn 🕵️';
+    selectedWho = null;
+  } else if (qType === 'text') {
+    document.getElementById('answer-grid').style.display = 'none';
+    document.getElementById('btn-submit-choice').style.display = 'none';
+    document.getElementById('who-answer-wrap').style.display = 'none';
     document.getElementById('answer-text-wrap').style.display = 'flex';
     document.getElementById('inp-free-answer').value = '';
     document.getElementById('inp-free-answer').disabled = false;
-    document.getElementById('inp-free-answer').placeholder = qType === 'who_is'
-      ? 'Gõ tên bạn hoặc đồng đội...' : 'Nhập đáp án của bạn...';
+    document.getElementById('inp-free-answer').placeholder = 'Nhập đáp án của bạn...';
     document.getElementById('btn-submit-free').disabled = false;
-    document.getElementById('btn-submit-free').textContent = qType === 'who_is' ? 'Gửi 🕵️' : 'Gửi đáp án 📨';
+    document.getElementById('btn-submit-free').textContent = 'Gửi đáp án 📨';
   } else {
     document.getElementById('answer-grid').style.display = 'grid';
+    document.getElementById('who-answer-wrap').style.display = 'none';
     document.getElementById('answer-text-wrap').style.display = 'none';
     document.getElementById('opt-a-text').textContent = game.optionA || '—';
     document.getElementById('opt-b-text').textContent = game.optionB || '—';
@@ -1405,6 +1542,9 @@ function handleTimeUp() {
   document.getElementById('btn-a').disabled = true;
   document.getElementById('btn-b').disabled = true;
   document.getElementById('btn-submit-choice').disabled = true;
+  document.getElementById('btn-who-self').disabled = true;
+  document.getElementById('btn-who-partner').disabled = true;
+  document.getElementById('btn-submit-who').disabled = true;
   document.getElementById('inp-free-answer').disabled = true;
   document.getElementById('btn-submit-free').disabled = true;
   if (hasAnswered) return; // đã gửi đáp án trước khi hết giờ -> không cần đổi gì thêm
@@ -1440,15 +1580,44 @@ function submitChoiceAnswer() {
   document.getElementById('btn-b').disabled = true;
   document.getElementById('btn-submit-choice').disabled = true;
   document.getElementById('btn-submit-choice').textContent = '✅ Đã gửi';
-  setTimeout(() => {
+  clearTimeout(answerUiTimer);
+  answerUiTimer = setTimeout(() => {
     document.getElementById('status-chosen').style.display = 'block';
     document.getElementById('chosen-display').textContent = choice + ' — ' +
       (choice==='A' ? document.getElementById('opt-a-text').textContent : document.getElementById('opt-b-text').textContent);
   }, 300);
-  db.ref('rooms/' + myRoom + '/answers/' + myName).set({
-    answer: choice, round: currentRound, timestamp: Date.now()
-  });
+  submitAnswer(choice);
 }
+// ── LEVEL 2: chọn người bằng chip, tránh lỗi gõ tên nhưng vẫn giữ đáp án bí mật ──
+function chooseWho(name) {
+  if (hasAnswered || timeIsUp || !name) return;
+  selectedWho = name;
+  sfxClick();
+  document.getElementById('btn-who-self').classList.toggle('selected', name === myName);
+  document.getElementById('btn-who-partner').classList.toggle('selected', name !== myName);
+  document.getElementById('btn-submit-who').disabled = false;
+}
+document.getElementById('btn-who-self').addEventListener('click', () => chooseWho(myName));
+document.getElementById('btn-who-partner').addEventListener('click', () => {
+  const partner = myTeam && (myTeam.player1 === myName ? myTeam.player2 : myTeam.player1);
+  chooseWho(partner);
+});
+document.getElementById('btn-submit-who').addEventListener('click', () => {
+  if (hasAnswered || timeIsUp || !selectedWho) return;
+  hasAnswered = true;
+  sfxClick();
+  clearInterval(timerInterval);
+  document.getElementById('btn-who-self').disabled = true;
+  document.getElementById('btn-who-partner').disabled = true;
+  document.getElementById('btn-submit-who').disabled = true;
+  document.getElementById('btn-submit-who').textContent = '✅ Đã gửi';
+  clearTimeout(answerUiTimer);
+  answerUiTimer = setTimeout(() => {
+    document.getElementById('status-chosen').style.display = 'block';
+    document.getElementById('chosen-display').textContent = selectedWho;
+  }, 250);
+  submitAnswer(selectedWho);
+});
 // ─────────────────────────────────────────
 // SUBMIT FREE-TEXT ANSWER (câu tự nhập)
 // ─────────────────────────────────────────
@@ -1464,12 +1633,46 @@ function submitFreeAnswer() {
   document.getElementById('inp-free-answer').disabled = true;
   document.getElementById('btn-submit-free').disabled = true;
   document.getElementById('btn-submit-free').textContent = '✅ Đã gửi';
-  setTimeout(() => {
+  clearTimeout(answerUiTimer);
+  answerUiTimer = setTimeout(() => {
     document.getElementById('status-chosen').style.display = 'block';
     document.getElementById('chosen-display').textContent = val;
   }, 250);
-  db.ref('rooms/' + myRoom + '/answers/' + myName).set({
-    answer: val, round: currentRound, timestamp: Date.now()
+  submitAnswer(val);
+}
+
+// Gửi đáp án qua transaction của cả room để việc "đã khóa" có hiệu lực thật.
+// Một thao tác gửi đến muộn hoặc gửi lặp sẽ bị Firebase từ chối thay vì âm thầm
+// xuất hiện sau khi host đã chuyển sang reveal.
+function submitAnswer(answer) {
+  const round = currentRound;
+  if (!firebaseConnected && navigator.onLine === false) {
+    hasAnswered = false;
+    toast('⚠️ Bạn đang offline — đáp án chưa được gửi.');
+    if (activeGame) renderQuestion(activeGame);
+    return;
+  }
+  document.getElementById('chosen-sub').textContent = '⏳ Đang gửi đáp án...';
+  db.ref('rooms/' + myRoom).transaction(room => {
+    if (!room || !room.game || !room.players || !room.players[myName]) return;
+    const game = room.game;
+    const phase = game.phase || (game.revealed ? 'results' : 'answering');
+    const expired = typeof game.startedAt === 'number' && serverNow() >= game.startedAt + 30000;
+    if (game.status !== 'playing' || game.round !== round || phase !== 'answering' || game.acceptingAnswers === false || expired) return;
+    room.answers = room.answers || {};
+    const existing = room.answers[myName];
+    if (existing && existing.round === round) return;
+    room.answers[myName] = { answer, round, timestamp: serverNow() };
+    return room;
+  }, (error, committed) => {
+    if (error || !committed) {
+      hasAnswered = false;
+      clearTimeout(answerUiTimer);
+      toast(error ? '❌ Không gửi được đáp án. Kiểm tra kết nối rồi thử lại.' : '🔒 Đáp án đã khóa trước khi gửi.');
+      if (activeGame && (activeGame.phase || 'answering') === 'answering') renderQuestion(activeGame);
+      return;
+    }
+    document.getElementById('chosen-sub').textContent = '✅ Đáp án đã lưu — đang chờ đồng đội trả lời...';
   });
 }
 // ─────────────────────────────────────────
@@ -1483,7 +1686,7 @@ function resolveChoiceText(val, game) {
   if (val === 'B') return game.optionB || 'B';
   return val;
 }
-function showResultForPlayer(game) {
+function showResultForPlayer(game, leaderboardDelay=0) {
   db.ref('rooms/' + myRoom + '/answers').once('value').then(aSnap => {
     const answers = aSnap.val() || {};
     db.ref('rooms/' + myRoom + '/teams').once('value').then(tSnap => {
@@ -1537,6 +1740,18 @@ function showResultForPlayer(game) {
       document.getElementById('result-points-wrap').innerHTML = match
         ? `<div class="result-points">+${pts} điểm cho đội${qType==='text' && !isUnique ? ' (đội khác cũng đoán giống)' : ''}</div>` : '';
       renderLeaderboard(teams);
+      const intro = document.getElementById('result-reveal-intro');
+      const details = document.getElementById('result-details');
+      const leaderboard = document.getElementById('leaderboard-card');
+      intro.classList.remove('show');
+      details.classList.remove('hidden');
+      const showLeaderboard = () => {
+        leaderboard.style.display = 'block';
+        leaderboard.classList.remove('reveal-in');
+        requestAnimationFrame(() => leaderboard.classList.add('reveal-in'));
+      };
+      if (leaderboardDelay > 0) playerRevealTimers.push(setTimeout(showLeaderboard, leaderboardDelay));
+      else showLeaderboard();
       showScreen('result');
       if (match) { sfxSuccess(); floatScore(pts); }
       else sfxFail();
@@ -1556,9 +1771,26 @@ function renderLeaderboard(teams) {
   el.innerHTML = list.map((t,i) => `
     <div class="ws-row ${t.key===myTeamKey?'my-team':''}">
       <span class="ws-rank">${medals[i]||'#'+(i+1)}</span>
-      <span class="ws-team-name">${teamLabel(t)}${t.key===myTeamKey?' 👈':''}</span>
+      <span class="ws-team-name">${teamLabel(t)}${rankShiftHtml(t)}${t.key===myTeamKey?' 👈':''}</span>
       <span class="ws-pts">${t.score||0}</span>
     </div>`).join('');
+}
+function rankShiftHtml(team) {
+  const change = team.lastRankChange;
+  if (!change || !change.delta) return '';
+  return change.delta > 0
+    ? `<span class="rank-shift up">▲ ${change.delta}</span>`
+    : `<span class="rank-shift down">▼ ${Math.abs(change.delta)}</span>`;
+}
+function getPlayerAwards(teams) {
+  const label = team => team.teamName || (team.player1 + ' & ' + team.player2);
+  const values = Object.values(teams || {});
+  const mostMatch = [...values].sort((a,b) => ((b.stats && b.stats.matches) || 0) - ((a.stats && a.stats.matches) || 0))[0];
+  const mostUnique = [...values].sort((a,b) => ((b.stats && b.stats.unique) || 0) - ((a.stats && a.stats.unique) || 0))[0];
+  const awards = [];
+  if (mostMatch && mostMatch.stats && mostMatch.stats.matches) awards.push(`💞 Ăn ý nhất: ${label(mostMatch)} · ${mostMatch.stats.matches} lần`);
+  if (mostUnique && mostUnique.stats && mostUnique.stats.unique) awards.push(`🌟 Độc nhất: ${label(mostUnique)} · ${mostUnique.stats.unique} lần`);
+  return awards;
 }
 // ─────────────────────────────────────────
 // END GAME
@@ -1578,8 +1810,9 @@ function showEndForPlayer() {
       <div class="ws-row ${isMyTeam(t)?'my-team':''}">
         <span class="ws-rank">${medals[i]||'#'+(i+1)}</span>
         <span class="ws-team-name">${teamLabel(t)}${isMyTeam(t)?' 👈':''}</span>
-        <span class="ws-pts">${t.score||0}</span>
-      </div>`).join('');
+      <span class="ws-pts">${t.score||0}</span>
+    </div>`).join('');
+    document.getElementById('ws-award-list').innerHTML = getPlayerAwards(teams).map(a => `<span class="award-chip">${a}</span>`).join('');
     const ws = document.getElementById('winner-screen');
     ws.classList.add('show');
     sfxWin();
