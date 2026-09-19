@@ -873,6 +873,7 @@
 <script src="https://www.gstatic.com/firebasejs/12.14.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/12.14.0/firebase-database-compat.js"></script>
 <script src="firebase.js"></script>
+<script src="avatar-config.js"></script>
 <script src="game-logic.js"></script>
 <script>
 // ─────────────────────────────────────────
@@ -1101,8 +1102,15 @@ let serverTimeOffset = 0;
 db.ref('.info/serverTimeOffset').on('value', snap => { serverTimeOffset = snap.val() || 0; });
 function serverNow() { return Date.now() + serverTimeOffset; }
 // ── AVATAR (18 avatar ngẫu nhiên, không trùng nhau trong cùng 1 phòng) ──
-function avatarSrc(n) { return 'assets/avatars/avatar' + n + '.png'; }
+function avatarSrc(name, n) { return PlayerAvatars.srcFor(name, n); }
+function setAvatarImage(img, name, n) {
+  if (!img) return;
+  img.onerror = () => { img.onerror = null; img.src = PlayerAvatars.fallbackSrc(n); };
+  img.src = avatarSrc(name, n);
+}
 function drawAvatar(callback) {
+  const fixedAvatar = PlayerAvatars.numberFor(myName);
+  if (fixedAvatar) { callback(fixedAvatar); return; }
   let assigned = null;
   db.ref('rooms/' + myRoom + '/avatarPool').transaction(pool => {
     if (!Array.isArray(pool) || pool.length === 0) {
@@ -1114,7 +1122,7 @@ function drawAvatar(callback) {
     return newPool;
   }, (error, committed) => {
     if (error || !committed || assigned == null) {
-      assigned = Math.floor(Math.random() * 18) + 1; // hồ hết -> random (có thể trùng)
+      assigned = PlayerAvatars.randomNumber(); // tên ngoài danh sách: random từ avatar khách
     }
     callback(assigned);
   });
@@ -1158,7 +1166,7 @@ function enterGameAsPlayer(name, room, avatarNum) {
   const av = document.getElementById('my-avatar-row');
   if (av) {
     av.style.display = 'flex';
-    document.getElementById('my-avatar-img').src = avatarSrc(avatarNum);
+    setAvatarImage(document.getElementById('my-avatar-img'), name, avatarNum);
     document.getElementById('my-avatar-name').textContent = name;
   }
   setAppLoading(false);
@@ -1363,7 +1371,7 @@ function renderPartnerAvatar(partnerName) {
     const fallback = document.getElementById('partner-avatar-fallback');
     if (!img || !fallback) return;
     if (num) {
-      img.src = avatarSrc(num);
+      setAvatarImage(img, partnerName, num);
       img.style.display = 'block';
       fallback.style.display = 'none';
     } else {

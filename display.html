@@ -333,6 +333,7 @@
 <script src="https://www.gstatic.com/firebasejs/12.14.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/12.14.0/firebase-database-compat.js"></script>
 <script src="firebase.js"></script>
+<script src="avatar-config.js"></script>
 <script src="game-logic.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <script>
@@ -520,7 +521,8 @@ function avatarImg(name, size) {
   size = size || 28;
   const num = playersCache[name] && playersCache[name].avatar;
   if (!num) return `<span style="font-size:${Math.round(size*0.7)}px;line-height:1;">👤</span>`;
-  return `<img class="avatar-thumb" style="width:${size}px;height:${size}px;" src="assets/avatars/avatar${num}.png" alt="">`;
+  const fallback = PlayerAvatars.fallbackSrc(num);
+  return `<img class="avatar-thumb" style="width:${size}px;height:${size}px;" src="${PlayerAvatars.srcFor(name,num)}" onerror="this.onerror=null;this.src='${fallback}'" alt="">`;
 }
 // ─────────────────────────────────────────
 // LẮNG NGHE NGƯỜI CHƠI (màn chờ)
