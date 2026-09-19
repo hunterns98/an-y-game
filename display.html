@@ -223,7 +223,15 @@
   .lb-rest-row { display:grid; grid-template-columns:46px 1fr auto; align-items:center; gap:12px; padding:10px 14px; border-bottom:1px solid rgba(255,255,255,.18); text-align:left; font-size:1rem; }
   .lb-rest-rank { color:var(--muted); font-weight:900; } .lb-rest-team { font-weight:800; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; } .lb-rest-score { color:var(--gold); font-weight:900; }
   .lb-tie-note { margin:0 auto 14px; padding:7px 12px; width:max-content; max-width:100%; border-radius:99px; color:var(--cyan); background:rgba(0,245,212,.1); border:1px solid rgba(0,245,212,.26); font-size:.75rem; font-weight:800; }
-  @media (max-width:700px) { .podium-grid { gap:7px; } .podium-card { min-height:150px; padding:15px 7px 12px; border-radius:18px; } .podium-card.rank-1 { min-height:184px; } .podium-medal { width:48px; height:48px; font-size:1.8rem; } .rank-1 .podium-medal { width:60px; height:60px; font-size:2.3rem; } .podium-avatars img { width:28px!important; height:28px!important; } .podium-team { font-size:.8rem; } .podium-points { font-size:.85rem; } }
+  .champion-hero { position:relative; overflow:hidden; width:min(100%,620px); margin:0 auto 24px; padding:22px 26px 20px; border:1px solid rgba(255,214,10,.72); border-radius:28px; background:radial-gradient(circle at 50% 0,rgba(255,214,10,.34),transparent 52%),linear-gradient(145deg,rgba(255,45,120,.22),rgba(80,27,157,.35)); box-shadow:0 0 44px rgba(255,214,10,.22),0 14px 34px rgba(0,0,0,.28); animation:championEnter .8s cubic-bezier(.2,1.4,.4,1) both; }
+  .champion-hero::before,.champion-hero::after { content:'✦'; position:absolute; color:var(--gold); font-size:1.5rem; opacity:.8; animation:championSparkle 1.3s ease-in-out infinite alternate; }.champion-hero::before{left:11%;top:22%;}.champion-hero::after{right:11%;top:36%;animation-delay:.45s;}
+  @keyframes championEnter { from{opacity:0;transform:translateY(30px) scale(.85)} to{opacity:1;transform:none} } @keyframes championSparkle { to{transform:scale(1.5) rotate(25deg);opacity:.25} }
+  .champion-kicker { position:relative; z-index:1; color:var(--gold); font-size:.78rem; letter-spacing:.22em; font-weight:950; }
+  .champion-avatars { position:relative; z-index:1; display:flex; justify-content:center; margin:10px 0 -7px; }
+  .champion-avatars .avatar-thumb { width:112px!important; height:112px!important; margin:0 -13px; border:4px solid var(--gold); box-shadow:0 8px 24px rgba(0,0,0,.4); }
+  .champion-team { position:relative; z-index:1; font-size:clamp(1.55rem,4vw,2.35rem); font-weight:950; text-shadow:0 3px 9px rgba(0,0,0,.35); }
+  .champion-score { position:relative; z-index:1; margin-top:4px; font-size:1.04rem; font-weight:900; color:var(--cyan); }
+  @media (max-width:700px) { .podium-grid { gap:7px; } .podium-card { min-height:150px; padding:15px 7px 12px; border-radius:18px; } .podium-card.rank-1 { min-height:184px; } .podium-medal { width:48px; height:48px; font-size:1.8rem; } .rank-1 .podium-medal { width:60px; height:60px; font-size:2.3rem; } .podium-avatars img { width:28px!important; height:28px!important; } .podium-team { font-size:.8rem; } .podium-points { font-size:.85rem; } .champion-avatars .avatar-thumb { width:78px!important; height:78px!important; } }
   /* ── ENDED SCREEN ── */
   #screen-ended { position: relative; }
   #d-confetti-canvas { position: fixed; inset: 0; pointer-events: none; z-index: 0; }
@@ -735,9 +743,16 @@ function renderPodiumLeaderboard(targetId, sorted, mode='round') {
     return `<div class="lb-rest-row"><span class="lb-rest-rank">${rankAt(absoluteIndex)}.</span><span class="lb-rest-team">${teamLabel(team)}${rankShiftHtml(team)}</span><span class="lb-rest-score">${team.score || 0}</span></div>`;
   }).join('');
   const heading = mode === 'final' ? 'Bảng xếp hạng chung cuộc' : 'Bảng xếp hạng hiện tại';
+  const champion = mode === 'final' && !tiedFirst ? `<section class="champion-hero" aria-label="Đội vô địch">
+      <div class="champion-kicker">🏆 ĐỘI VÔ ĐỊCH 🏆</div>
+      <div class="champion-avatars">${avatarImg(sorted[0].player1,112)}${avatarImg(sorted[0].player2,112)}</div>
+      <div class="champion-team">${teamLabel(sorted[0])}</div>
+      <div class="champion-score">${topScore} điểm · Ăn Ý hết mình!</div>
+    </section>` : '';
   target.innerHTML = `<div class="lb-eyebrow">${mode === 'final' ? '🏆 GAME OVER' : '🏁 ROUND COMPLETE'}</div>
     <h2 class="lb-title">${heading}</h2>
     <div class="lb-divider"></div>
+    ${champion}
     ${tiedFirst ? '<div class="lb-tie-note">🤝 ĐỒNG HẠNG DẪN ĐẦU</div>' : ''}
     <div class="podium-grid">${podium}</div>
     ${rest ? `<div class="lb-rest">${rest}</div>` : ''}`;
