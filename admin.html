@@ -1052,37 +1052,33 @@ function renderRevealBoardHtml(rowsHtml, game) {
   if (elapsed >= leaderboardAt) revealScoreBoard();
   else adminRevealTimer = setTimeout(revealScoreBoard, leaderboardAt - elapsed);
 }
-// ── REVEAL + CHỐT ĐIỂM (một giao dịch nguyên tử cho cả room) ──
-// Không công bố kết quả trước khi điểm đã sẵn sàng. Cả teams, game.phase và revealed
-// được commit trong cùng transaction, nên player/display không thể nhìn leaderboard cũ.
+// ── REVEAL + CHỐT ĐIỂM ──
+// Đọc từng node thật từ Firebase rồi dùng multi-location update. Không dùng root
+// transaction vì root không được hydrate đầy đủ khi app chỉ lắng nghe node con.
 document.getElementById('btn-reveal').addEventListener('click', revealAnswers);
 function revealAnswers() {
   if (!roomCode) return;
   const readiness = getRoundReadiness();
   if (readiness.missing.length && !confirm(`Còn ${readiness.missing.length} người chưa trả lời: ${readiness.missing.join(', ')}. Reveal kết quả ngay?`)) return;
-  const roomRef = db.ref('rooms/' + roomCode);
-  let revealAbortReason = '';
-  // Đọc trước root để transaction có snapshot room đầy đủ ở local cache; tránh
-  // transaction đầu tiên bị abort khi admin vừa reload hoặc vừa reconnect.
-  roomRef.once('value').then(snap => {
-    if (!snap.exists()) throw new Error('Phòng không còn tồn tại.');
-    return roomRef.transaction(room => {
-    if (!room || !room.game) {
-      revealAbortReason = 'Không tìm thấy dữ liệu vòng chơi.';
-      return;
-    }
-    const game = room.game;
+  const baseRef = db.ref('rooms/' + roomCode);
+  document.getElementById('btn-reveal').disabled = true;
+  return Promise.all([
+    baseRef.child('game').once('value'),
+    baseRef.child('answers').once('value'),
+    baseRef.child('teams').once('value')
+  ]).then(([gameSnap, answersSnap, teamsSnap]) => {
+    const game = gameSnap.val();
+    if (!game) throw new Error('Không tìm thấy dữ liệu vòng chơi.');
     const phase = game.phase || (game.revealed ? 'results' : 'answering');
     if (game.revealed || phase === 'results') {
-      revealAbortReason = 'Câu này đã được reveal rồi.';
-      return;
+      throw new Error('Câu này đã được reveal rồi.');
     }
-    const answers = room.answers || {};
+    const answers = answersSnap.val() || {};
     const currentAnswers = {};
     Object.entries(answers).forEach(([name, answer]) => {
       if (answer && answer.round === game.round) currentAnswers[name] = answer;
     });
-    const teams = room.teams || {};
+    const teams = teamsSnap.val() || {};
     const rankTeams = () => Object.entries(teams)
       .sort(([, a], [, b]) => (b.score || 0) - (a.score || 0));
     const beforeRank = {};
@@ -1102,26 +1098,31 @@ function revealAnswers() {
       const to = index + 1;
       teams[key].lastRankChange = { from, to, delta: from - to, round: game.round };
     });
-    room.teams = teams;
     game.phase = 'results';
     game.revealed = true;
     game.revealedAt = serverNow();
-    room.game = game;
-    return room;
-    });
-  }).then(result => {
-    if (!result.committed) {
-      toast('⚠️ ' + (revealAbortReason || 'Không thể chốt vòng này. Hãy tải lại trang Admin rồi thử lại.'));
-      return;
-    }
+    // Snapshot đáp án được dùng cho reveal; đáp án đến muộn không thể làm phần
+    // hiển thị khác với điểm đã chốt.
+    game.finalAnswers = currentAnswers;
+    return baseRef.update({ game, teams });
+  }).then(() => {
     toast('🔓 Đã chốt điểm và reveal kết quả!');
   }).catch(error => {
     toast('❌ Không thể reveal: ' + error.message);
+  }).finally(() => {
+    if (gameCache && !gameCache.revealed) document.getElementById('btn-reveal').disabled = false;
   });
 }
 // ── REHYDRATE (CHỈ ĐỌC): render lại bảng kết quả khi F5 vào đúng lúc round đã reveal.
 // Tuyệt đối KHÔNG ghi điểm, KHÔNG set game.revealed — chỉ tính lại để hiển thị.
 function renderRevealedReadOnly(game) {
+  if (game.finalAnswers) {
+    db.ref('rooms/' + roomCode + '/teams').once('value').then(tSnap => {
+      const { rowsHtml } = computeRevealResults(game, game.finalAnswers, tSnap.val() || {});
+      renderRevealBoardHtml(rowsHtml, game);
+    });
+    return;
+  }
   db.ref('rooms/' + roomCode + '/answers').once('value').then(aSnap => {
     const answers = aSnap.val() || {};
     db.ref('rooms/' + roomCode + '/teams').once('value').then(tSnap => {

@@ -775,7 +775,7 @@ function revealRowHtml(label, p1, a1, p2, a2, match, resultLabel) {
 function renderRevealBoard(g, opts={}) {
   const qType = g.type || 'choice';
   const teams = teamsCache;
-  const answers = answersCache;
+  const answers = g.finalAnswers || answersCache;
   const teamLabel = (t, i) => t.teamName || ('Đội ' + (i+1));
   const rows = [];
 

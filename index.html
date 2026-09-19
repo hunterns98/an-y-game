@@ -1667,10 +1667,9 @@ function submitFreeAnswer() {
   submitAnswer(val);
 }
 
-// Gửi đáp án qua transaction của cả room để không ghi lọt sau khi host Reveal.
-// Đồng hồ ở UI là nguồn quyết định thời hạn trả lời (timeIsUp). Transaction chỉ
-// bảo vệ đúng vòng và trạng thái Reveal; không kiểm tra thời gian lần nữa vì nó có
-// thể chạy lại muộn khi Firebase đang đồng bộ, gây “đồng hồ còn giây mà hết giờ”.
+// Ghi trực tiếp vào ô đáp án của người chơi. Không dùng transaction ở root `room`:
+// Firebase chỉ hydrate các node đang lắng nghe (game/players), nên root transaction
+// có thể nhận null dù các màn hình vẫn đang hiển thị đúng dữ liệu.
 function submitAnswer(answer) {
   const round = currentRound;
   const submittedAt = serverNow();
@@ -1682,34 +1681,24 @@ function submitAnswer(answer) {
     return;
   }
   document.getElementById('chosen-sub').textContent = '⏳ Đang gửi đáp án...';
-  const roomRef = db.ref('rooms/' + myRoom);
-  // Preload root snapshot trước transaction để callback không abort vì cache room
-  // chưa được hydrate (đặc biệt khi vừa reconnect/F5 giữa một câu).
-  roomRef.once('value').then(snap => {
-    if (!snap.exists()) throw new Error('Phòng không còn tồn tại.');
-    return roomRef.transaction(room => {
-    if (!room || !room.game || !room.players || !room.players[myName]) {
-      answerAbortReason = 'Không tìm thấy thông tin người chơi hoặc vòng chơi.';
-      return;
-    }
-    const game = room.game;
+  const gameRef = db.ref('rooms/' + myRoom + '/game');
+  const answerRef = db.ref('rooms/' + myRoom + '/answers/' + myName);
+  gameRef.once('value').then(snap => {
+    const game = snap.val();
+    if (!game) throw new Error('Không tìm thấy vòng chơi. Hãy tải lại trang.');
     const phase = game.phase || (game.revealed ? 'results' : 'answering');
     if (game.status !== 'playing' || game.round !== round) {
-      answerAbortReason = 'Host đã chuyển sang câu khác.';
-      return;
+      throw new Error('Host đã chuyển sang câu khác.');
     }
     if (phase === 'results' || game.revealed) {
-      answerAbortReason = 'Host đã reveal kết quả của câu này.';
-      return;
+      throw new Error('Host đã reveal kết quả của câu này.');
     }
-    room.answers = room.answers || {};
-    const existing = room.answers[myName];
+    return answerRef.transaction(existing => {
     if (existing && existing.round === round) {
       answerAbortReason = 'Bạn đã gửi đáp án cho câu này rồi.';
       return;
     }
-    room.answers[myName] = { answer, round, timestamp: submittedAt };
-    return room;
+    return { answer, round, timestamp: submittedAt };
     });
   }).then(result => {
     if (!result.committed) {
@@ -1720,10 +1709,10 @@ function submitAnswer(answer) {
       return;
     }
     document.getElementById('chosen-sub').textContent = '✅ Đáp án đã lưu — đang chờ đồng đội trả lời...';
-  }).catch(() => {
+  }).catch(error => {
     hasAnswered = false;
     clearTimeout(answerUiTimer);
-    toast('❌ Không gửi được đáp án. Kiểm tra kết nối rồi thử lại.');
+    toast('❌ ' + (error && error.message ? error.message : 'Không gửi được đáp án. Kiểm tra kết nối rồi thử lại.'));
     if (activeGame && (activeGame.phase || 'answering') !== 'results') renderQuestion(activeGame);
   });
 }
@@ -1739,8 +1728,9 @@ function resolveChoiceText(val, game) {
   return val;
 }
 function showResultForPlayer(game, leaderboardDelay=0) {
-  db.ref('rooms/' + myRoom + '/answers').once('value').then(aSnap => {
-    const answers = aSnap.val() || {};
+  const finalAnswers = game.finalAnswers;
+  const answersPromise = finalAnswers ? Promise.resolve(finalAnswers) : db.ref('rooms/' + myRoom + '/answers').once('value').then(aSnap => aSnap.val() || {});
+  answersPromise.then(answers => {
     db.ref('rooms/' + myRoom + '/teams').once('value').then(tSnap => {
       const teams = tSnap.val() || {};
       const team = teams[myTeamKey]; if (!team) return;
