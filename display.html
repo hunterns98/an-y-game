@@ -603,8 +603,9 @@ function listenGameDisplay() {
       showRevealView(g);
     } else {
       showProgressView(phase);
-      if (phase === 'answering') startDisplayTimer(g);
-      else clearInterval(displayTimerInterval);
+      // `locked` chỉ còn có thể xuất hiện ở phòng từ phiên bản cũ; vẫn hiển thị
+      // đồng hồ bình thường để phòng đó tiếp tục được chơi sau khi tải lại.
+      if (phase !== 'results') startDisplayTimer(g);
     }
   });
 }
@@ -648,11 +649,9 @@ function showProgressView(phase='answering') {
   document.getElementById('d-reveal-board').style.display = 'none';
   document.getElementById('d-round-leaderboard').style.display = 'none';
   document.getElementById('d-leader-spotlight').classList.remove('show');
-  document.getElementById('d-timer-wrap').style.display = phase === 'answering' ? 'flex' : 'none';
+  document.getElementById('d-timer-wrap').style.display = phase !== 'results' ? 'flex' : 'none';
   document.getElementById('d-reveal-intro').classList.remove('show');
-  document.querySelector('#d-progress-wrap .progress-label').textContent = phase === 'locked'
-    ? '🔒 Đáp án đã khóa — chờ reveal'
-    : 'Số đội đã trả lời';
+  document.querySelector('#d-progress-wrap .progress-label').textContent = 'Số đội đã trả lời';
 }
 function showRevealView(g) {
   clearInterval(displayTimerInterval);

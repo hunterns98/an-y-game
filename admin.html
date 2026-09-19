@@ -399,12 +399,9 @@
     <div class="section">
       <div class="section-label">Điều khiển</div>
       <div class="card">
-        <div class="action-bar three">
+        <div class="action-bar">
           <button class="btn btn-cyan" id="btn-reveal">🔓 Reveal đáp án</button>
           <button class="btn btn-gold" id="btn-next">➡️ Câu tiếp</button>
-          <button class="btn btn-ghost" id="btn-toggle-accept">
-            <span class="dot dot-open"></span> Nhận đáp án
-          </button>
         </div>
       </div>
     </div>
@@ -469,7 +466,6 @@ let roomCode = '';
 let currentRound = 0;
 let gameCache = null;
 let serverTimeOffset = 0;
-let roundLockTimer = null;
 let adminRevealTimer = null;
 let adminRevealKey = '';
 const ADMIN_REVEAL_INTRO_MS = 300;
@@ -737,7 +733,6 @@ function listenGame() {
       document.getElementById('phase-game').style.display = 'block';
       renderCurrentQuestionCard(g);
       applyControlButtonsState(g);
-      scheduleRoundLock(g);
       if (g.revealed) {
         renderRevealedReadOnly(g);
       }
@@ -930,18 +925,16 @@ function renderCurrentQuestionCard(game) {
 function applyControlButtonsState(game) {
   const revealBtn = document.getElementById('btn-reveal');
   const nextBtn = document.getElementById('btn-next');
-  const lockBtn = document.getElementById('btn-toggle-accept');
   if (!game || game.status === 'ended') {
     revealBtn.disabled = true;
     nextBtn.disabled = true;
-    lockBtn.disabled = true;
     return;
   }
   const phase = game.phase || (game.revealed ? 'results' : 'answering');
-  revealBtn.disabled = phase !== 'locked';
+  // Không có bước “khóa đáp án”: host reveal trực tiếp sau khi người chơi trả lời.
+  // Vẫn nhận cả trạng thái locked cũ để các phòng đang chạy có thể thoát vòng an toàn.
+  revealBtn.disabled = phase === 'results';
   nextBtn.disabled = phase !== 'results';
-  lockBtn.disabled = phase !== 'answering';
-  updateToggleBtn(phase);
 }
 // ── SEND QUESTION ──
 function sendQuestion(idx) {
@@ -956,7 +949,6 @@ function sendQuestion(idx) {
     special: !!q.special,
     revealed: false,
     phase: 'answering',
-    acceptingAnswers: true,
     startedAt: firebase.database.ServerValue.TIMESTAMP
   };
   if (qType === 'choice') {
@@ -972,7 +964,6 @@ function sendQuestion(idx) {
   applyControlButtonsState(payload);
   // Reset reveal display
   document.getElementById('answer-board').innerHTML = '<div style="color:var(--muted);font-size:0.85rem;text-align:center;padding:8px;">Chờ người chơi trả lời...</div>';
-  scheduleRoundLock(payload);
 }
 // ── TÍNH KẾT QUẢ REVEAL (THUẦN — không ghi Firebase, không đụng DOM) ──
 // Dùng chung cho cả nhánh ghi điểm thật (revealAnswers) lẫn nhánh chỉ-đọc khi rehydrate
@@ -1069,11 +1060,16 @@ function revealAnswers() {
   if (!roomCode) return;
   const readiness = getRoundReadiness();
   if (readiness.missing.length && !confirm(`Còn ${readiness.missing.length} người chưa trả lời: ${readiness.missing.join(', ')}. Reveal kết quả ngay?`)) return;
-  db.ref('rooms/' + roomCode).transaction(room => {
+  const roomRef = db.ref('rooms/' + roomCode);
+  // Đọc trước root để transaction có snapshot room đầy đủ ở local cache; tránh
+  // transaction đầu tiên bị abort khi admin vừa reload hoặc vừa reconnect.
+  roomRef.once('value').then(snap => {
+    if (!snap.exists()) throw new Error('Phòng không còn tồn tại.');
+    return roomRef.transaction(room => {
     if (!room || !room.game || room.game.status !== 'playing') return;
     const game = room.game;
     const phase = game.phase || (game.revealed ? 'results' : 'answering');
-    if (phase !== 'locked') return;
+    if (phase === 'results') return;
     const answers = room.answers || {};
     const currentAnswers = {};
     Object.entries(answers).forEach(([name, answer]) => {
@@ -1100,16 +1096,17 @@ function revealAnswers() {
       teams[key].lastRankChange = { from, to, delta: from - to, round: game.round };
     });
     room.teams = teams;
-    game.acceptingAnswers = false;
     game.phase = 'results';
     game.revealed = true;
     game.revealedAt = serverNow();
     room.game = game;
     return room;
-  }, (error, committed) => {
-    if (error) { toast('❌ Lỗi: ' + error.message); return; }
-    if (!committed) { toast('⚠️ Hãy khóa đáp án trước khi reveal.'); return; }
+    });
+  }).then(result => {
+    if (!result.committed) { toast('⚠️ Trạng thái vòng đã thay đổi. Hãy chờ đồng bộ rồi thử lại.'); return; }
     toast('🔓 Đã chốt điểm và reveal kết quả!');
+  }).catch(error => {
+    toast('❌ Không thể reveal: ' + error.message);
   });
 }
 // ── REHYDRATE (CHỈ ĐỌC): render lại bảng kết quả khi F5 vào đúng lúc round đã reveal.
@@ -1133,50 +1130,6 @@ document.getElementById('btn-next').addEventListener('click', () => {
   sendQuestion(currentRound);
   toast(`➡️ Chuyển câu ${currentRound+1}`);
 });
-// ── TOGGLE ACCEPT ANSWERS ──
-document.getElementById('btn-toggle-accept').addEventListener('click', () => lockAnswers(false));
-function lockAnswers(auto=false) {
-  if (!roomCode || !gameCache) return;
-  const readiness = getRoundReadiness();
-  if (!auto && readiness.missing.length && !confirm(`Khóa đáp án khi còn ${readiness.missing.length} người chưa trả lời: ${readiness.missing.join(', ')}?`)) return;
-  db.ref('rooms/' + roomCode + '/game').transaction(game => {
-    if (!game || game.status !== 'playing' || game.round !== gameCache.round) return;
-    const phase = game.phase || (game.revealed ? 'results' : 'answering');
-    if (phase !== 'answering') return;
-    game.phase = 'locked';
-    game.acceptingAnswers = false;
-    game.lockedAt = serverNow();
-    return game;
-  }, (error, committed) => {
-    if (error) { toast('❌ Lỗi: ' + error.message); return; }
-    if (committed && !auto) toast('🔒 Đã khóa đáp án — sẵn sàng reveal');
-  });
-}
-function updateToggleBtn(phase) {
-  const btn = document.getElementById('btn-toggle-accept');
-  const dot = btn.querySelector('.dot');
-  if (phase === 'answering') {
-    dot.className = 'dot dot-open';
-    btn.childNodes[1].textContent = ' Khóa đáp án';
-  } else {
-    dot.className = 'dot dot-closed';
-    btn.childNodes[1].textContent = phase === 'locked' ? ' Đã khóa đáp án' : ' Đã có kết quả';
-  }
-}
-
-// Khi hết 30 giây, chỉ host chuyển room sang locked. Transaction kiểm tra đúng round,
-// nên timer cũ không thể khóa nhầm câu mới sau F5 hoặc khi host bấm câu tiếp nhanh.
-function scheduleRoundLock(game) {
-  clearTimeout(roundLockTimer);
-  if (!game || game.status !== 'playing' || (game.phase || 'answering') !== 'answering') return;
-  const startedAt = game.startedAt;
-  if (!startedAt || typeof startedAt !== 'number') return;
-  const delay = Math.max(0, startedAt + 30000 - serverNow());
-  const round = game.round;
-  roundLockTimer = setTimeout(() => {
-    if (gameCache && gameCache.round === round) lockAnswers(true);
-  }, delay + 50);
-}
 // ── END GAME ──
 function endGame() {
   db.ref('rooms/' + roomCode + '/game/status').set('ended');

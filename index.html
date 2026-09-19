@@ -1401,12 +1401,6 @@ function listenGame() {
         showScreen('question');
       }
     }
-    // Khi host khóa, tất cả máy đều dừng ở cùng một trạng thái. Đây là trạng thái
-    // Firebase thật, không còn chỉ là timer cục bộ của từng điện thoại.
-    if (phase === 'locked') {
-      clearInterval(timerInterval);
-      lockRoundUI();
-    }
     // Kết quả chỉ hiện sau khi host đã chốt điểm cùng transaction với phase=results.
     if (phase === 'results' && !prevRevealed) {
       prevRevealed = true;
@@ -1439,25 +1433,6 @@ function startPlayerRevealSequence(game) {
   else playerRevealTimers.push(setTimeout(reveal, revealAt - elapsed));
 }
 
-function lockRoundUI() {
-  document.getElementById('btn-a').disabled = true;
-  document.getElementById('btn-b').disabled = true;
-  document.getElementById('btn-submit-choice').disabled = true;
-  document.getElementById('btn-who-self').disabled = true;
-  document.getElementById('btn-who-partner').disabled = true;
-  document.getElementById('btn-submit-who').disabled = true;
-  document.getElementById('inp-free-answer').disabled = true;
-  document.getElementById('btn-submit-free').disabled = true;
-  if (!hasAnswered) {
-    document.getElementById('status-chosen').style.display = 'block';
-    document.getElementById('chosen-emoji').textContent = '🔒';
-    document.getElementById('chosen-label').textContent = 'Đáp án đã khóa';
-    document.getElementById('chosen-display').textContent = '—';
-    document.getElementById('chosen-sub').textContent = 'Chờ host reveal kết quả...';
-  } else {
-    document.getElementById('chosen-sub').textContent = 'Đáp án đã khóa — chờ host reveal...';
-  }
-}
 // ─────────────────────────────────────────
 // Kiểm tra đáp án đã gửi cho round hiện tại (dùng khi reconnect / vào lại giữa câu hỏi)
 // -> khoá UI trả lời để KHÔNG cho gửi đè lên đáp án cũ.
@@ -1692,9 +1667,8 @@ function submitFreeAnswer() {
   submitAnswer(val);
 }
 
-// Gửi đáp án qua transaction của cả room để việc "đã khóa" có hiệu lực thật.
-// Một thao tác gửi đến muộn hoặc gửi lặp sẽ bị Firebase từ chối thay vì âm thầm
-// xuất hiện sau khi host đã chuyển sang reveal.
+// Gửi đáp án qua transaction của cả room để không ghi lọt sau khi host Reveal.
+// Không còn trạng thái khóa: đáp án được nhận đến hết đồng hồ đếm ngược.
 function submitAnswer(answer) {
   const round = currentRound;
   if (!firebaseConnected && navigator.onLine === false) {
@@ -1714,7 +1688,7 @@ function submitAnswer(answer) {
     const game = room.game;
     const phase = game.phase || (game.revealed ? 'results' : 'answering');
     const expired = typeof game.startedAt === 'number' && serverNow() >= game.startedAt + 30000;
-    if (game.status !== 'playing' || game.round !== round || phase !== 'answering' || game.acceptingAnswers === false || expired) return;
+    if (game.status !== 'playing' || game.round !== round || phase === 'results' || expired) return;
     room.answers = room.answers || {};
     const existing = room.answers[myName];
     if (existing && existing.round === round) return;
@@ -1725,8 +1699,8 @@ function submitAnswer(answer) {
     if (!result.committed) {
       hasAnswered = false;
       clearTimeout(answerUiTimer);
-      toast('🔒 Đáp án đã khóa hoặc đã được gửi trước đó.');
-      if (activeGame && (activeGame.phase || 'answering') === 'answering') renderQuestion(activeGame);
+      toast('⌛ Đã hết giờ, câu đã reveal hoặc đáp án này đã được gửi trước đó.');
+      if (activeGame && (activeGame.phase || 'answering') !== 'results') renderQuestion(activeGame);
       return;
     }
     document.getElementById('chosen-sub').textContent = '✅ Đáp án đã lưu — đang chờ đồng đội trả lời...';
@@ -1734,7 +1708,7 @@ function submitAnswer(answer) {
     hasAnswered = false;
     clearTimeout(answerUiTimer);
     toast('❌ Không gửi được đáp án. Kiểm tra kết nối rồi thử lại.');
-    if (activeGame && (activeGame.phase || 'answering') === 'answering') renderQuestion(activeGame);
+    if (activeGame && (activeGame.phase || 'answering') !== 'results') renderQuestion(activeGame);
   });
 }
 // ─────────────────────────────────────────
