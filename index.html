@@ -1668,9 +1668,13 @@ function submitFreeAnswer() {
 }
 
 // Gửi đáp án qua transaction của cả room để không ghi lọt sau khi host Reveal.
-// Không còn trạng thái khóa: đáp án được nhận đến hết đồng hồ đếm ngược.
+// Đồng hồ ở UI là nguồn quyết định thời hạn trả lời (timeIsUp). Transaction chỉ
+// bảo vệ đúng vòng và trạng thái Reveal; không kiểm tra thời gian lần nữa vì nó có
+// thể chạy lại muộn khi Firebase đang đồng bộ, gây “đồng hồ còn giây mà hết giờ”.
 function submitAnswer(answer) {
   const round = currentRound;
+  const submittedAt = serverNow();
+  let answerAbortReason = '';
   if (!firebaseConnected && navigator.onLine === false) {
     hasAnswered = false;
     toast('⚠️ Bạn đang offline — đáp án chưa được gửi.');
@@ -1684,22 +1688,34 @@ function submitAnswer(answer) {
   roomRef.once('value').then(snap => {
     if (!snap.exists()) throw new Error('Phòng không còn tồn tại.');
     return roomRef.transaction(room => {
-    if (!room || !room.game || !room.players || !room.players[myName]) return;
+    if (!room || !room.game || !room.players || !room.players[myName]) {
+      answerAbortReason = 'Không tìm thấy thông tin người chơi hoặc vòng chơi.';
+      return;
+    }
     const game = room.game;
     const phase = game.phase || (game.revealed ? 'results' : 'answering');
-    const expired = typeof game.startedAt === 'number' && serverNow() >= game.startedAt + 30000;
-    if (game.status !== 'playing' || game.round !== round || phase === 'results' || expired) return;
+    if (game.status !== 'playing' || game.round !== round) {
+      answerAbortReason = 'Host đã chuyển sang câu khác.';
+      return;
+    }
+    if (phase === 'results' || game.revealed) {
+      answerAbortReason = 'Host đã reveal kết quả của câu này.';
+      return;
+    }
     room.answers = room.answers || {};
     const existing = room.answers[myName];
-    if (existing && existing.round === round) return;
-    room.answers[myName] = { answer, round, timestamp: serverNow() };
+    if (existing && existing.round === round) {
+      answerAbortReason = 'Bạn đã gửi đáp án cho câu này rồi.';
+      return;
+    }
+    room.answers[myName] = { answer, round, timestamp: submittedAt };
     return room;
     });
   }).then(result => {
     if (!result.committed) {
       hasAnswered = false;
       clearTimeout(answerUiTimer);
-      toast('⌛ Đã hết giờ, câu đã reveal hoặc đáp án này đã được gửi trước đó.');
+      toast('⚠️ ' + (answerAbortReason || 'Không thể lưu đáp án. Hãy thử lại.'));
       if (activeGame && (activeGame.phase || 'answering') !== 'results') renderQuestion(activeGame);
       return;
     }
