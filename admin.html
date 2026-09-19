@@ -1053,8 +1053,9 @@ function renderRevealBoardHtml(rowsHtml, game) {
   else adminRevealTimer = setTimeout(revealScoreBoard, leaderboardAt - elapsed);
 }
 // ── REVEAL + CHỐT ĐIỂM ──
-// Đọc từng node thật từ Firebase rồi dùng multi-location update. Không dùng root
-// transaction vì root không được hydrate đầy đủ khi app chỉ lắng nghe node con.
+// Dùng state realtime đã đồng bộ để tính, sau đó multi-location update. Không đọc
+// `once()` lại khi Reveal vì một số phiên Firebase có thể trả snapshot rỗng dù UI
+// đang có game/đội/đáp án đầy đủ từ các listener.
 document.getElementById('btn-reveal').addEventListener('click', revealAnswers);
 function revealAnswers() {
   if (!roomCode) return;
@@ -1062,23 +1063,19 @@ function revealAnswers() {
   if (readiness.missing.length && !confirm(`Còn ${readiness.missing.length} người chưa trả lời: ${readiness.missing.join(', ')}. Reveal kết quả ngay?`)) return;
   const baseRef = db.ref('rooms/' + roomCode);
   document.getElementById('btn-reveal').disabled = true;
-  return Promise.all([
-    baseRef.child('game').once('value'),
-    baseRef.child('answers').once('value'),
-    baseRef.child('teams').once('value')
-  ]).then(([gameSnap, answersSnap, teamsSnap]) => {
-    const game = gameSnap.val();
-    if (!game) throw new Error('Không tìm thấy dữ liệu vòng chơi.');
+  return Promise.resolve().then(() => {
+    const game = gameCache ? { ...gameCache } : null;
+    if (!game) throw new Error('Đang đồng bộ dữ liệu vòng chơi — hãy thử lại sau giây lát.');
     const phase = game.phase || (game.revealed ? 'results' : 'answering');
     if (game.revealed || phase === 'results') {
       throw new Error('Câu này đã được reveal rồi.');
     }
-    const answers = answersSnap.val() || {};
+    const answers = answersCache || {};
     const currentAnswers = {};
     Object.entries(answers).forEach(([name, answer]) => {
       if (answer && answer.round === game.round) currentAnswers[name] = answer;
     });
-    const teams = teamsSnap.val() || {};
+    const teams = JSON.parse(JSON.stringify(teamsCache || {}));
     const rankTeams = () => Object.entries(teams)
       .sort(([, a], [, b]) => (b.score || 0) - (a.score || 0));
     const beforeRank = {};
@@ -1104,6 +1101,7 @@ function revealAnswers() {
     // Snapshot đáp án được dùng cho reveal; đáp án đến muộn không thể làm phần
     // hiển thị khác với điểm đã chốt.
     game.finalAnswers = currentAnswers;
+    gameCache = game;
     return baseRef.update({ game, teams });
   }).then(() => {
     toast('🔓 Đã chốt điểm và reveal kết quả!');

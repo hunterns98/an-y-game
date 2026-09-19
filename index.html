@@ -1681,11 +1681,13 @@ function submitAnswer(answer) {
     return;
   }
   document.getElementById('chosen-sub').textContent = '⏳ Đang gửi đáp án...';
-  const gameRef = db.ref('rooms/' + myRoom + '/game');
   const answerRef = db.ref('rooms/' + myRoom + '/answers/' + myName);
-  gameRef.once('value').then(snap => {
-    const game = snap.val();
-    if (!game) throw new Error('Không tìm thấy vòng chơi. Hãy tải lại trang.');
+  // activeGame đến từ listener realtime đã dùng để vẽ chính câu hỏi này. Tránh
+  // đọc `once()` lần nữa vì một số phiên Firebase trả snapshot rỗng trong lúc
+  // listener vẫn đã đồng bộ dữ liệu.
+  Promise.resolve().then(() => {
+    const game = activeGame;
+    if (!game) throw new Error('Đang đồng bộ vòng chơi — hãy thử lại sau giây lát.');
     const phase = game.phase || (game.revealed ? 'results' : 'answering');
     if (game.status !== 'playing' || game.round !== round) {
       throw new Error('Host đã chuyển sang câu khác.');
