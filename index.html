@@ -737,15 +737,66 @@
       <div><div class="tsb-label">Điểm đội</div><div class="tsb-team" id="tsb-team">—</div></div>
       <div class="tsb-score" id="tsb-score">0</div>
     </div>
-    <!-- QUICK ONBOARDING: luật chi tiết chỉ xuất hiện đúng lúc vào từng level -->
+    <!-- HOW TO PLAY / DEMO GUIDE -->
     <div id="howto-card-wrap">
-      <div class="quick-rules-card" id="howto-card">
-        <div class="quick-rules-title">🎮 Chơi trong 30 giây</div>
-        <div class="quick-rules-row"><span>1</span><p>Trả lời <b>bí mật</b>, đừng nói với đồng đội.</p></div>
-        <div class="quick-rules-row"><span>2</span><p>Cùng ý với đồng đội là có điểm.</p></div>
-        <div class="quick-rules-row"><span>3</span><p>Luật điểm từng Level sẽ hiện ngay trước câu hỏi.</p></div>
+    <div class="howto-card" id="howto-card">
+      <div class="howto-title">🎮 HƯỚNG DẪN CHƠI NHANH</div>
+      <div class="howto-tabs">
+        <button class="howto-tab-btn active" data-tab="1" onclick="switchHowtoTab(1)">Level 1<br>Thấu Hiểu Nông</button>
+        <button class="howto-tab-btn" data-tab="2" onclick="switchHowtoTab(2)">Level 2<br>Thấu Hiểu Trung</button>
+        <button class="howto-tab-btn" data-tab="3" onclick="switchHowtoTab(3)">Level 3<br>Thấu Hiểu Sâu</button>
+      </div>
+      <div class="howto-scroll">
+        <div class="howto-panel active" id="howto-panel-1">
+          <div class="howto-rule-box">
+            <b>Luật chơi:</b> Trả lời câu hỏi có 2 lựa chọn <b>A hoặc B</b>.<br>
+            Nếu <b>CẢ HAI</b> thành viên cùng chọn đáp án giống nhau → <span class="howto-pts good">+1 điểm</span>.<br>
+            Chọn khác nhau → <span class="howto-pts zero">0 điểm</span>.
+          </div>
+          <div>
+            <div class="howto-demo-label">Thử ngay</div>
+            <div class="howto-demo-q">Nếu mẹ và người yêu cùng rơi xuống nước, bạn sẽ cứu?</div>
+            <div class="howto-demo-grid">
+              <button class="howto-demo-btn" id="demo-l1-a" onclick="demoPickL1('a')">👩 Cứu Mẹ</button>
+              <button class="howto-demo-btn" id="demo-l1-b" onclick="demoPickL1('b')">💑 Cứu Người Yêu</button>
+            </div>
+          </div>
+        </div>
+        <div class="howto-panel" id="howto-panel-2">
+          <div class="howto-rule-box">
+            <b>Luật chơi:</b> Bí mật chọn <b>bạn hoặc đồng đội</b> cho câu hỏi BTC đưa ra.<br>
+            Nếu <b>TRÙNG KHỚP</b> (cùng chọn một người) → <span class="howto-pts good">+2 điểm</span>.<br>
+            Khác nhau → <span class="howto-pts zero">0 điểm</span>.
+          </div>
+          <div>
+            <div class="howto-demo-label">Thử ngay</div>
+            <div class="howto-demo-q">Ai là người hay bắt chuyện trước hơn?</div>
+            <div class="howto-demo-grid">
+              <button class="howto-demo-btn" id="demo-l2-self" onclick="demoPickL2('self')">🙋 Bạn</button>
+              <button class="howto-demo-btn" id="demo-l2-partner" onclick="demoPickL2('partner')">💞 Đồng đội</button>
+            </div>
+          </div>
+        </div>
+        <div class="howto-panel" id="howto-panel-3">
+          <div class="howto-rule-box">
+            <b>Luật chơi:</b> Câu hỏi tự điền đáp án bạn nghĩ ra.<br>
+            Điền khác với đồng đội → <span class="howto-pts zero">0 điểm</span>.<br>
+            Điền trùng câu trả lời với đồng đội → <span class="howto-pts good">+1 điểm</span>.<br>
+            Điền trùng + là đáp án <b>DUY NHẤT</b> (không đội nào khác trùng) → <span class="howto-pts great">+3 điểm 🌟</span>.
+          </div>
+          <div>
+            <div class="howto-demo-label">Thử ngay</div>
+            <div class="howto-demo-q">Hãy điền tên 1 ứng dụng mạng xã hội?</div>
+            <div class="howto-demo-input-row">
+              <input id="demo-l3-input" placeholder="Gõ thử đáp án..." maxlength="30">
+              <button class="howto-demo-send" onclick="demoSendL3()">Gửi thử</button>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
+    </div>
+    <!-- /HOW TO PLAY -->
   </div>
   <!-- ── SCREEN: QUESTION ── -->
   <div class="screen" id="screen-question">
@@ -1653,7 +1704,12 @@ function submitAnswer(answer) {
     return;
   }
   document.getElementById('chosen-sub').textContent = '⏳ Đang gửi đáp án...';
-  db.ref('rooms/' + myRoom).transaction(room => {
+  const roomRef = db.ref('rooms/' + myRoom);
+  // Preload root snapshot trước transaction để callback không abort vì cache room
+  // chưa được hydrate (đặc biệt khi vừa reconnect/F5 giữa một câu).
+  roomRef.once('value').then(snap => {
+    if (!snap.exists()) throw new Error('Phòng không còn tồn tại.');
+    return roomRef.transaction(room => {
     if (!room || !room.game || !room.players || !room.players[myName]) return;
     const game = room.game;
     const phase = game.phase || (game.revealed ? 'results' : 'answering');
@@ -1664,15 +1720,21 @@ function submitAnswer(answer) {
     if (existing && existing.round === round) return;
     room.answers[myName] = { answer, round, timestamp: serverNow() };
     return room;
-  }, (error, committed) => {
-    if (error || !committed) {
+    });
+  }).then(result => {
+    if (!result.committed) {
       hasAnswered = false;
       clearTimeout(answerUiTimer);
-      toast(error ? '❌ Không gửi được đáp án. Kiểm tra kết nối rồi thử lại.' : '🔒 Đáp án đã khóa trước khi gửi.');
+      toast('🔒 Đáp án đã khóa hoặc đã được gửi trước đó.');
       if (activeGame && (activeGame.phase || 'answering') === 'answering') renderQuestion(activeGame);
       return;
     }
     document.getElementById('chosen-sub').textContent = '✅ Đáp án đã lưu — đang chờ đồng đội trả lời...';
+  }).catch(() => {
+    hasAnswered = false;
+    clearTimeout(answerUiTimer);
+    toast('❌ Không gửi được đáp án. Kiểm tra kết nối rồi thử lại.');
+    if (activeGame && (activeGame.phase || 'answering') === 'answering') renderQuestion(activeGame);
   });
 }
 // ─────────────────────────────────────────
@@ -1891,12 +1953,10 @@ window.demoPickL1 = function(choice) {
   document.getElementById('demo-l1-a').classList.toggle('picked', choice === 'a');
   document.getElementById('demo-l1-b').classList.toggle('picked', choice === 'b');
 };
-window.demoSendL2 = function() {
-  const val = document.getElementById('demo-l2-input').value.trim();
-  if (!val) { toast('⚠️ Gõ tên trước đã!'); return; }
+window.demoPickL2 = function(choice) {
   sfxClick();
-  toast('✅ Đã gửi đáp án thử: ' + val);
-  document.getElementById('demo-l2-input').value = '';
+  document.getElementById('demo-l2-self').classList.toggle('picked', choice === 'self');
+  document.getElementById('demo-l2-partner').classList.toggle('picked', choice === 'partner');
 };
 window.demoSendL3 = function() {
   const val = document.getElementById('demo-l3-input').value.trim();
