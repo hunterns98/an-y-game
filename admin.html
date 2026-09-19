@@ -1061,15 +1061,22 @@ function revealAnswers() {
   const readiness = getRoundReadiness();
   if (readiness.missing.length && !confirm(`Còn ${readiness.missing.length} người chưa trả lời: ${readiness.missing.join(', ')}. Reveal kết quả ngay?`)) return;
   const roomRef = db.ref('rooms/' + roomCode);
+  let revealAbortReason = '';
   // Đọc trước root để transaction có snapshot room đầy đủ ở local cache; tránh
   // transaction đầu tiên bị abort khi admin vừa reload hoặc vừa reconnect.
   roomRef.once('value').then(snap => {
     if (!snap.exists()) throw new Error('Phòng không còn tồn tại.');
     return roomRef.transaction(room => {
-    if (!room || !room.game || room.game.status !== 'playing') return;
+    if (!room || !room.game) {
+      revealAbortReason = 'Không tìm thấy dữ liệu vòng chơi.';
+      return;
+    }
     const game = room.game;
     const phase = game.phase || (game.revealed ? 'results' : 'answering');
-    if (phase === 'results') return;
+    if (game.revealed || phase === 'results') {
+      revealAbortReason = 'Câu này đã được reveal rồi.';
+      return;
+    }
     const answers = room.answers || {};
     const currentAnswers = {};
     Object.entries(answers).forEach(([name, answer]) => {
@@ -1103,7 +1110,10 @@ function revealAnswers() {
     return room;
     });
   }).then(result => {
-    if (!result.committed) { toast('⚠️ Trạng thái vòng đã thay đổi. Hãy chờ đồng bộ rồi thử lại.'); return; }
+    if (!result.committed) {
+      toast('⚠️ ' + (revealAbortReason || 'Không thể chốt vòng này. Hãy tải lại trang Admin rồi thử lại.'));
+      return;
+    }
     toast('🔓 Đã chốt điểm và reveal kết quả!');
   }).catch(error => {
     toast('❌ Không thể reveal: ' + error.message);
