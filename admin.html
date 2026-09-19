@@ -337,6 +337,8 @@
         <div class="card" style="display:flex;flex-direction:column;gap:12px;">
           <input class="inp" id="inp-host-name" placeholder="Tên host (tùy chọn)..." maxlength="20">
           <button class="btn btn-gold btn-full" id="btn-create">✨ Tạo phòng</button>
+          <button class="btn btn-purple btn-full" id="btn-create-demo">🧪 Tạo phòng demo 8 đội</button>
+          <p style="font-size:.72rem;color:var(--muted);line-height:1.45;">Phòng demo dùng dữ liệu giả, không ảnh hưởng phòng đang chơi.</p>
           <div id="room-code-display" style="display:none;">
             <div class="room-code-badge">
               <div class="rc-code" id="rc-code-val">—</div>
@@ -402,6 +404,10 @@
         <div class="action-bar">
           <button class="btn btn-cyan" id="btn-reveal">🔓 Reveal đáp án</button>
           <button class="btn btn-gold" id="btn-next">➡️ Câu tiếp</button>
+        </div>
+        <div id="demo-tools" style="display:none;margin-top:12px;padding-top:12px;border-top:1px solid var(--border);">
+          <div style="font-size:.72rem;color:var(--purple);font-weight:900;letter-spacing:.12em;margin-bottom:8px;">🧪 CÔNG CỤ PHÒNG DEMO</div>
+          <div class="action-bar"><button class="btn btn-purple" id="btn-fill-demo">⚡ Điền đáp án mẫu</button><button class="btn btn-ghost" id="btn-demo-final">🏆 Mở chung kết giả lập</button></div>
         </div>
       </div>
     </div>
@@ -473,6 +479,7 @@ let hostStartCountdownKey = '';
 const ADMIN_REVEAL_INTRO_MS = 300;
 const ADMIN_REVEAL_STEP_MS = 420;
 let gamePhase = 'setup'; // setup | playing | ended
+let roomIsDemo = false;
 // Trạng thái revealed đã biết gần nhất của round hiện tại (dùng để listenAnswers()
 // không ghi đè nhầm bảng kết quả điểm bằng pill ✅/⏳ sau khi đã reveal).
 let lastKnownRevealed = false;
@@ -561,6 +568,30 @@ function createRoom() {
     toast('✅ Đã tạo phòng: ' + code);
   });
 }
+// ── DEMO ROOM ──
+// Một phòng test thật trên Firebase nhưng được đánh dấu isDemo. Tên/điểm giả giúp
+// host tự chạy toàn bộ flow mà không cần 16 điện thoại thật.
+document.getElementById('btn-create-demo').addEventListener('click', createDemoRoom);
+function createDemoRoom(attempt = 0) {
+  if (attempt >= 5) { toast('❌ Không tạo được mã demo. Hãy thử lại.'); return; }
+  const code = ('D' + Math.random().toString(36).slice(2, 6)).toUpperCase();
+  const demoNames = Array.from({length:16}, (_, i) => `Demo ${String(i + 1).padStart(2, '0')}`);
+  const players = {}, nameReservations = {}, teams = {};
+  demoNames.forEach((name, index) => {
+    players[name] = { name, avatar:index + 1, score:0, answer:'', sessionId:`demo-${index + 1}` };
+    nameReservations[normalizeAnswer(name)] = name;
+  });
+  for (let i = 0; i < 8; i++) {
+    teams[`team${i + 1}`] = { teamName:`Đội Demo ${i + 1}`, player1:demoNames[i * 2], player2:demoNames[i * 2 + 1], score:0 };
+  }
+  const payload = { host:'Host Demo', status:'waiting', currentRound:-1, isDemo:true, createdAt:firebase.database.ServerValue.TIMESTAMP, avatarPool:shuffledAvatarPool(), players, nameReservations, teams };
+  db.ref('rooms/' + code).transaction(current => current === null ? payload : undefined, (error, committed) => {
+    if (error) { toast('❌ Không thể tạo demo: ' + error.message); return; }
+    if (!committed) { createDemoRoom(attempt + 1); return; }
+    loadRoom(code);
+    toast(`🧪 Đã tạo phòng demo ${code}: 8 đội / 16 người`);
+  });
+}
 // ── LOAD EXISTING ROOM ──
 document.getElementById('btn-load-room').addEventListener('click', () => {
   const code = document.getElementById('inp-existing-code').value.trim().toUpperCase();
@@ -579,9 +610,18 @@ function loadRoom(code) {
   document.getElementById('rc-code-val').textContent = code;
   document.getElementById('room-code-display').style.display = 'block';
   try { localStorage.setItem(adminRoomStorageKey(), code); } catch(e) {}
+  db.ref('rooms/' + code + '/isDemo').once('value').then(snap => {
+    if (roomCode !== code) return;
+    roomIsDemo = snap.val() === true;
+    renderDemoTools();
+  });
   listenPlayers();
   listenTeams();
   listenGame();
+}
+function renderDemoTools() {
+  const tools = document.getElementById('demo-tools');
+  if (tools) tools.style.display = roomIsDemo && gamePhase === 'playing' ? 'block' : 'none';
 }
 // ── AUTO-LOAD PHÒNG ĐANG QUẢN LÝ SAU KHI PIN HỢP LỆ (rehydrate cho Admin) ──
 // Chỉ ĐỌC từ Firebase để kiểm tra phòng còn tồn tại hay không — không ghi gì cả.
@@ -718,6 +758,7 @@ function listenGame() {
       // Chưa có game nào (phòng mới hoặc vừa Reset) -> màn Setup
       lastKnownRevealed = false;
       gamePhase = 'setup';
+      renderDemoTools();
       updateStatusBadge('waiting');
       document.getElementById('phase-setup').style.display = 'block';
       document.getElementById('phase-game').style.display = 'none';
@@ -729,6 +770,7 @@ function listenGame() {
     currentRound = g.round || 0;
     lastKnownRevealed = !!g.revealed;
     gamePhase = g.status === 'ended' ? 'ended' : (g.status === 'playing' ? 'playing' : 'setup');
+    renderDemoTools();
 
     if (g.status === 'starting') {
       // Countdown được ghi lên Firebase nên host F5 giữa lúc đếm vẫn tự mở câu 1
@@ -913,6 +955,41 @@ function armHostStartCountdown(game) {
       toast('🎮 Game bắt đầu!');
     }
   }, Math.max(0, Number(game.countdownEndsAt) - serverNow()));
+}
+// Điền đủ 16 đáp án giả cho round hiện tại. Pattern cố ý tạo cả đội trùng/khác
+// nhau để host thấy readiness, reveal, streak và rank-change như một ván thật.
+document.getElementById('btn-fill-demo').addEventListener('click', fillDemoAnswers);
+function fillDemoAnswers() {
+  if (!roomIsDemo || !gameCache || gameCache.status !== 'playing' || gameCache.revealed) {
+    toast('⚠️ Chỉ dùng được khi phòng demo đang nhận đáp án.'); return;
+  }
+  const updates = {};
+  Object.entries(teamsCache).forEach(([key, team], index) => {
+    let a1, a2;
+    if (gameCache.type === 'who_is') {
+      a1 = team.player1; a2 = index % 3 === 0 ? team.player2 : team.player1;
+    } else if (gameCache.type === 'text') {
+      a1 = `ý tưởng demo ${index % 4}`; a2 = index % 3 === 0 ? `khác ý ${index}` : a1;
+    } else {
+      a1 = index % 2 === 0 ? 'A' : 'B'; a2 = index % 3 === 0 ? (a1 === 'A' ? 'B' : 'A') : a1;
+    }
+    updates[`answers/${team.player1}`] = { answer:a1, round:gameCache.round, timestamp:serverNow() };
+    updates[`answers/${team.player2}`] = { answer:a2, round:gameCache.round, timestamp:serverNow() + 1 };
+  });
+  db.ref('rooms/' + roomCode).update(updates).then(() => toast('⚡ Đã điền đáp án mẫu cho 8 đội.')).catch(error => toast('❌ Lỗi demo: ' + error.message));
+}
+document.getElementById('btn-demo-final').addEventListener('click', openDemoFinal);
+function openDemoFinal() {
+  if (!roomIsDemo) return;
+  if (!confirm('Mở chung kết giả lập? Điểm demo hiện tại sẽ được thay bằng bảng điểm mẫu.')) return;
+  const scores = [28, 22, 19, 16, 13, 10, 7, 4];
+  const teams = JSON.parse(JSON.stringify(teamsCache || {}));
+  Object.entries(teams).forEach(([key, team], index) => {
+    team.score = scores[index] || 0;
+    team.stats = { matches:Math.max(1, 7 - index), unique:index === 0 ? 3 : Math.max(0, 2 - Math.floor(index / 3)), currentStreak:index === 0 ? 3 : 0, bestStreak:Math.max(1, 4 - Math.floor(index / 2)), bestComeback:index === 2 ? 4 : Math.max(0, 2 - Math.floor(index / 3)) };
+    team.lastRankChange = { from:Math.min(8, index + 3), to:index + 1, delta:Math.max(0, 2 - Math.floor(index / 3)), round:18 };
+  });
+  db.ref('rooms/' + roomCode).update({ teams, game:{ status:'ended', round:18, level:3, phase:'results', revealed:true, totalRounds:questions.length, endedAt:serverNow() } }).then(() => toast('🏆 Đã mở chung kết giả lập.')).catch(error => toast('❌ Lỗi demo: ' + error.message));
 }
 // ── RENDER: Thẻ câu hỏi hiện tại (tách để click-path và rehydrate-path dùng chung) ──
 // Đọc trực tiếp từ object `game` (đúng schema Firebase game node) — KHÔNG dùng lại
