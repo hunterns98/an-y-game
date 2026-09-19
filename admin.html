@@ -468,6 +468,8 @@ let gameCache = null;
 let serverTimeOffset = 0;
 let adminRevealTimer = null;
 let adminRevealKey = '';
+let hostStartCountdownTimer = null;
+let hostStartCountdownKey = '';
 const ADMIN_REVEAL_INTRO_MS = 300;
 const ADMIN_REVEAL_STEP_MS = 420;
 let gamePhase = 'setup'; // setup | playing | ended
@@ -728,6 +730,17 @@ function listenGame() {
     lastKnownRevealed = !!g.revealed;
     gamePhase = g.status === 'ended' ? 'ended' : (g.status === 'playing' ? 'playing' : 'setup');
 
+    if (g.status === 'starting') {
+      // Countdown được ghi lên Firebase nên host F5 giữa lúc đếm vẫn tự mở câu 1
+      // đúng thời điểm, thay vì để phòng bị kẹt ở màn “chuẩn bị”.
+      armHostStartCountdown(g);
+      document.getElementById('phase-setup').style.display = 'block';
+      document.getElementById('phase-game').style.display = 'none';
+      if (!answersListenerAttached) { answersListenerAttached = true; listenAnswers(); }
+      return;
+    }
+    if (hostStartCountdownTimer) { clearTimeout(hostStartCountdownTimer); hostStartCountdownTimer = null; }
+
     if (g.status === 'playing' || g.status === 'ended') {
       // Đảm bảo đúng phase-game hiển thị, dù do thao tác Start trước đó hay F5 lại giữa chừng
       document.getElementById('phase-setup').style.display = 'none';
@@ -836,6 +849,7 @@ function updateStatusBadge(status) {
   const badge = document.getElementById('status-badge');
   const map = {
     waiting: ['⏳ CHỜ',    'status-waiting'],
+    starting:['⏱️ CHUẨN BỊ','status-waiting'],
     playing: ['🔥 ĐANG CHƠI','status-playing'],
     ended:   ['🏁 KẾT THÚC','status-ended']
   };
@@ -878,14 +892,28 @@ document.getElementById('btn-start-game').addEventListener('click', () => {
     toast('⚠️ Không thể bắt đầu khi vẫn còn đội thiếu đồng đội.');
     return;
   }
-  if (!confirm(`Bắt đầu game với ${teams.length} đội? Người chơi mới sẽ không thể vào giữa trận.`)) return;
+  if (!confirm(`Bắt đầu game với ${teams.length} đội? Mọi màn hình sẽ cùng đếm 3 giây, sau đó mở câu 1.`)) return;
   currentRound = 0;
-  sendQuestion(0);
-  document.getElementById('phase-setup').style.display = 'none';
-  document.getElementById('phase-game').style.display = 'block';
-  gamePhase = 'playing';
-  toast('🎮 Game bắt đầu!');
+  const countdownEndsAt = serverNow() + 3200;
+  db.ref('rooms/' + roomCode + '/game').set({
+    status: 'starting', round: -1, phase: 'countdown', countdownEndsAt,
+    totalRounds: questions.length
+  }).then(() => {
+    toast('⏱️ Cả phòng đang đếm ngược: 3 · 2 · 1...', 3400);
+  }).catch(error => toast('❌ Không thể bắt đầu: ' + error.message));
 });
+function armHostStartCountdown(game) {
+  const key = String(game.countdownEndsAt || '');
+  if (!key || key === hostStartCountdownKey) return;
+  hostStartCountdownKey = key;
+  if (hostStartCountdownTimer) clearTimeout(hostStartCountdownTimer);
+  hostStartCountdownTimer = setTimeout(() => {
+    if (gameCache && gameCache.status === 'starting' && String(gameCache.countdownEndsAt || '') === key) {
+      sendQuestion(0);
+      toast('🎮 Game bắt đầu!');
+    }
+  }, Math.max(0, Number(game.countdownEndsAt) - serverNow()));
+}
 // ── RENDER: Thẻ câu hỏi hiện tại (tách để click-path và rehydrate-path dùng chung) ──
 // Đọc trực tiếp từ object `game` (đúng schema Firebase game node) — KHÔNG dùng lại
 // mảng questions[] cục bộ, đúng nguyên tắc "Firebase game node là source of truth".
@@ -948,6 +976,7 @@ function sendQuestion(idx) {
     question: q.text,
     type: qType,
     special: !!q.special,
+    totalRounds: questions.length,
     revealed: false,
     phase: 'answering',
     startedAt: firebase.database.ServerValue.TIMESTAMP
@@ -1084,17 +1113,22 @@ function revealAnswers() {
     const results = GameLogic.computeRoundResults(game, teams, currentAnswers);
     Object.entries(teams).forEach(([key, team]) => {
       const r = results[key];
-      team.stats = team.stats || { matches: 0, unique: 0 };
+      team.stats = team.stats || { matches: 0, unique: 0, currentStreak: 0, bestStreak: 0, bestComeback: 0 };
       if (r && r.match) {
         team.score = (team.score || 0) + r.pts;
         team.stats.matches = (team.stats.matches || 0) + 1;
         if (r.isUnique) team.stats.unique = (team.stats.unique || 0) + 1;
+        team.stats.currentStreak = (team.stats.currentStreak || 0) + 1;
+        team.stats.bestStreak = Math.max(team.stats.bestStreak || 0, team.stats.currentStreak);
+      } else {
+        team.stats.currentStreak = 0;
       }
     });
     rankTeams().forEach(([key], index) => {
       const from = beforeRank[key] || index + 1;
       const to = index + 1;
       teams[key].lastRankChange = { from, to, delta: from - to, round: game.round };
+      teams[key].stats.bestComeback = Math.max((teams[key].stats && teams[key].stats.bestComeback) || 0, Math.max(0, from - to));
     });
     game.phase = 'results';
     game.revealed = true;

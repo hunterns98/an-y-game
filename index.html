@@ -651,7 +651,7 @@
 <!-- Countdown overlay -->
 <div id="countdown-overlay">
   <span class="countdown-num" id="count-num">3</span>
-  <span class="countdown-label">Chuẩn bị!</span>
+  <span class="countdown-label" id="count-label">Chuẩn bị!</span>
 </div>
 <!-- Winner Screen -->
 <div id="winner-screen">
@@ -801,7 +801,7 @@
   <!-- ── SCREEN: QUESTION ── -->
   <div class="screen" id="screen-question">
     <div style="width:100%;max-width:480px;display:flex;justify-content:space-between;align-items:center;padding:0 4px;">
-      <div id="round-badge" class="q-round-badge">Câu 1 / 20</div>
+      <div id="round-badge" class="q-round-badge">Câu 1 / 19</div>
       <div class="timer-wrap"><div class="timer-circle" id="timer-circle">—</div></div>
     </div>
     <div class="partner-status-pill" id="partner-status-pill">
@@ -1062,6 +1062,8 @@ function floatScore(pts) {
 function runCountdown(cb) {
   const overlay = document.getElementById('countdown-overlay');
   const numEl = document.getElementById('count-num');
+  const labelEl = document.getElementById('count-label');
+  if (labelEl) labelEl.textContent = 'Chuẩn bị!';
   let n = 3;
   overlay.classList.add('show');
   const tick = () => {
@@ -1080,6 +1082,28 @@ function runCountdown(cb) {
   };
   tick();
 }
+function runSyncedGameStartCountdown(game) {
+  const endsAt = Number(game.countdownEndsAt || 0);
+  const key = String(endsAt);
+  if (!endsAt || key === gameStartCountdownKey) return;
+  gameStartCountdownKey = key;
+  if (gameStartCountdownTimer) clearInterval(gameStartCountdownTimer);
+  const overlay = document.getElementById('countdown-overlay');
+  const numEl = document.getElementById('count-num');
+  const labelEl = document.getElementById('count-label');
+  overlay.classList.add('show');
+  const tick = () => {
+    const remaining = Math.max(0, Math.ceil((endsAt - serverNow()) / 1000));
+    numEl.textContent = remaining > 0 ? remaining : 'GO!';
+    if (labelEl) labelEl.textContent = remaining > 0 ? 'Cả đội sẵn sàng?' : 'Bắt đầu!';
+    numEl.style.animation = 'none'; requestAnimationFrame(() => { numEl.style.animation = ''; });
+    if (remaining === 0) {
+      clearInterval(gameStartCountdownTimer); gameStartCountdownTimer = null;
+      sfxGo(); setTimeout(() => overlay.classList.remove('show'), 650);
+    } else sfxCountdown();
+  };
+  tick(); gameStartCountdownTimer = setInterval(tick, 180);
+}
 // ─────────────────────────────────────────
 // STATE
 // ─────────────────────────────────────────
@@ -1088,6 +1112,8 @@ let hasAnswered=false, currentRound=0;
 let prevRound=-1, prevRevealed=false, prevStatus='';
 let activeGame=null, teamsCache={};
 let playerRevealTimers=[];
+let gameStartCountdownKey = '';
+let gameStartCountdownTimer = null;
 const PLAYER_REVEAL_INTRO_MS=500, PLAYER_REVEAL_STEP_MS=650;
 let partnerListenerAttached=false;
 // Guard: đảm bảo listener trên teams/{myTeamKey} chỉ đăng ký ĐÚNG 1 LẦN cho
@@ -1389,7 +1415,10 @@ function listenGame() {
     if (!game) return;
     activeGame = game;
     if (game.status === 'ended') { hideHowtoGuide(); showEndForPlayer(); return; }
+    if (game.status === 'starting') { showScreen('lobby'); runSyncedGameStartCountdown(game); return; }
     if (game.status !== 'playing') return;
+    if (gameStartCountdownTimer) { clearInterval(gameStartCountdownTimer); gameStartCountdownTimer = null; }
+    document.getElementById('countdown-overlay').classList.remove('show');
     hideHowtoGuide();
     const newRound = game.round || 0;
     const phase = game.phase || (game.revealed ? 'results' : 'answering');
@@ -1479,7 +1508,7 @@ function lockAnsweredUI(answerVal) {
 let timerInterval;
 function renderQuestion(game) {
   currentRound = game.round || 0;
-  document.getElementById('round-badge').textContent = `Level ${game.level||1} · Câu ${currentRound+1} / 20`;
+  document.getElementById('round-badge').textContent = `Level ${game.level||1} · Câu ${currentRound+1} / ${game.totalRounds || 19}`;
   document.getElementById('q-text').textContent = game.question || '...';
   document.getElementById('q-text').classList.remove('animate-in');
   requestAnimationFrame(() => document.getElementById('q-text').classList.add('animate-in'));
@@ -1823,7 +1852,7 @@ function renderLeaderboard(teams) {
   el.innerHTML = list.map((t,i) => `
     <div class="ws-row ${t.key===myTeamKey?'my-team':''}">
       <span class="ws-rank">${medals[i]||'#'+(i+1)}</span>
-      <span class="ws-team-name">${teamLabel(t)}${rankShiftHtml(t)}${t.key===myTeamKey?' 👈':''}</span>
+      <span class="ws-team-name">${teamLabel(t)}${rankShiftHtml(t)}${streakHtml(t)}${t.key===myTeamKey?' 👈':''}</span>
       <span class="ws-pts">${t.score||0}</span>
     </div>`).join('');
 }
@@ -1834,15 +1863,25 @@ function rankShiftHtml(team) {
     ? `<span class="rank-shift up">▲ ${change.delta}</span>`
     : `<span class="rank-shift down">▼ ${Math.abs(change.delta)}</span>`;
 }
+function streakHtml(team) {
+  const streak = team.stats && team.stats.currentStreak;
+  return streak >= 2 ? `<span class="rank-shift up">🔥 ${streak}</span>` : '';
+}
 function getPlayerAwards(teams) {
   const label = team => team.teamName || (team.player1 + ' & ' + team.player2);
   const values = Object.values(teams || {});
+  if (!values.length) return [];
+  const by = metric => [...values].sort((a,b) => metric(b) - metric(a))[0];
+  const champion = by(team => team.score || 0);
   const mostMatch = [...values].sort((a,b) => ((b.stats && b.stats.matches) || 0) - ((a.stats && a.stats.matches) || 0))[0];
   const mostUnique = [...values].sort((a,b) => ((b.stats && b.stats.unique) || 0) - ((a.stats && a.stats.unique) || 0))[0];
-  const awards = [];
-  if (mostMatch && mostMatch.stats && mostMatch.stats.matches) awards.push(`💞 Ăn ý nhất: ${label(mostMatch)} · ${mostMatch.stats.matches} lần`);
-  if (mostUnique && mostUnique.stats && mostUnique.stats.unique) awards.push(`🌟 Độc nhất: ${label(mostUnique)} · ${mostUnique.stats.unique} lần`);
-  return awards;
+  const comeback = by(team => (team.stats && team.stats.bestComeback) || 0);
+  return [
+    `🏆 Quán quân: ${label(champion)}`,
+    `💞 Ăn ý nhất: ${label(mostMatch)} · ${(mostMatch.stats && mostMatch.stats.matches) || 0} lần`,
+    `🌟 Bậc thầy Level 3: ${label(mostUnique)} · ${(mostUnique.stats && mostUnique.stats.unique) || 0} lần độc nhất`,
+    `🚀 Vua lật kèo: ${label(comeback)} · tăng ${(comeback.stats && comeback.stats.bestComeback) || 0} hạng`
+  ];
 }
 // ─────────────────────────────────────────
 // END GAME

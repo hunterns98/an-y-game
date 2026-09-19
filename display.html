@@ -170,6 +170,13 @@
   .progress-wrap { text-align: center; }
   .progress-label { font-size: 0.85rem; letter-spacing: 0.1em; color: var(--muted); text-transform: uppercase; margin-bottom: 6px; }
   .progress-count { font-size: 2rem; font-weight: 900; color: var(--cyan); }
+  .team-ready-grid { width:min(100%,760px); display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; margin:12px auto 0; }
+  .team-ready-card { display:flex; align-items:center; justify-content:space-between; gap:9px; padding:9px 12px; border:1px solid var(--border); border-radius:12px; background:rgba(255,255,255,.045); text-align:left; font-size:.8rem; font-weight:800; transition:.25s ease; }
+  .team-ready-card.ready { border-color:rgba(34,197,94,.65); background:rgba(34,197,94,.13); color:#bbf7d0; box-shadow:0 0 18px rgba(34,197,94,.12); }
+  .team-ready-name { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }.team-ready-state { flex:0 0 auto; color:var(--muted); }.team-ready-card.ready .team-ready-state { color:var(--green); }
+  #d-start-countdown { position:fixed; inset:0; z-index:50; display:none; flex-direction:column; align-items:center; justify-content:center; gap:8px; background:rgba(10,0,21,.78); backdrop-filter:blur(8px); text-align:center; }
+  #d-start-countdown.show { display:flex; }.start-count-num { min-width:120px; color:var(--gold); font-size:clamp(5rem,17vw,11rem); line-height:.85; font-weight:950; text-shadow:0 0 34px rgba(255,214,10,.45); animation:startCountPop .68s cubic-bezier(.2,1.55,.4,1); }.start-count-label { color:var(--text); font-size:clamp(1rem,2.4vw,1.55rem); font-weight:900; letter-spacing:.12em; text-transform:uppercase; } @keyframes startCountPop { from{opacity:0;transform:scale(.5)}to{opacity:1;transform:scale(1)} }
+  @media (max-width:700px) { .team-ready-grid { grid-template-columns:1fr; } }
   /* ── REVEAL BOARD ── */
   .reveal-board { width: 100%; display: none; flex-direction: column; gap: 10px; max-height: 50vh; overflow-y: auto; }
   .reveal-row {
@@ -264,6 +271,7 @@
 <body>
 <div class="connection-banner" id="d-connection-banner" role="status" aria-live="polite"></div>
 <div class="stars" id="stars"></div>
+<div id="d-start-countdown" aria-live="assertive"><div class="start-count-label" id="d-start-count-label">Cả đội sẵn sàng?</div><div class="start-count-num" id="d-start-count-num">3</div><div class="start-count-label">Chuẩn bị ăn ý!</div></div>
 <div id="top-bar">
   <div class="brand">❤️ Ăn Ý — Màn hình lớn</div>
   <button class="d-sound-toggle" id="d-sound-toggle" type="button">🔊 Âm thanh</button>
@@ -307,7 +315,7 @@
   <!-- ── SCREEN: QUESTION / REVEAL ── -->
   <div class="screen" id="screen-question">
     <div class="top-meta-row">
-      <div id="d-round-badge" class="round-badge">Level 1 · Câu 1 / 20</div>
+      <div id="d-round-badge" class="round-badge">Level 1 · Câu 1 / 19</div>
       <div id="d-timer-wrap"><div class="timer-circle" id="d-timer-circle">—</div></div>
     </div>
     <div id="d-special-badge" class="special-badge" style="display:none;"></div>
@@ -321,6 +329,7 @@
     <div class="progress-wrap" id="d-progress-wrap">
       <div class="progress-label">Số đội đã trả lời</div>
       <div class="progress-count" id="d-progress-count">0 / 0</div>
+      <div class="team-ready-grid" id="d-team-ready-grid"></div>
     </div>
     <div class="reveal-intro" id="d-reveal-intro">🔒 ĐÁP ÁN ĐÃ KHÓA · CÙNG XEM NÀO!</div>
     <div class="reveal-board" id="d-reveal-board"></div>
@@ -453,6 +462,8 @@ let revealLeaderboardTimer = null;
 let revealIntroTimer = null;
 let revealSfxTimers = [];
 let revealSequenceComplete = false;
+let startCountdownKey = '';
+let startCountdownInterval = null;
 const REVEAL_INTRO_MS = 500;
 const REVEAL_STEP_MS = 650;
 // ─────────────────────────────────────────
@@ -587,7 +598,10 @@ function listenAnswers() {
 }
 function isTeamDone(team) {
   const required = [team.player1, team.player2].filter(Boolean);
-  return required.length > 0 && required.every(p => answersCache[p] && answersCache[p].answer !== undefined && answersCache[p].answer !== '');
+  return required.length === 2 && required.every(p => {
+    const answer = answersCache[p];
+    return answer && answer.round === (gameCache && gameCache.round) && answer.answer !== undefined && answer.answer !== '';
+  });
 }
 function renderProgress() {
   const el = document.getElementById('d-progress-count');
@@ -596,6 +610,17 @@ function renderProgress() {
   const total = teamsArr.length;
   const done = teamsArr.filter(isTeamDone).length;
   el.textContent = done + ' / ' + total;
+  const grid = document.getElementById('d-team-ready-grid');
+  if (!grid) return;
+  grid.innerHTML = teamsArr.map((team, index) => {
+    const done = isTeamDone(team);
+    const missing = [team.player1, team.player2].filter(Boolean).filter(name => {
+      const answer = answersCache[name];
+      return !answer || answer.round !== (gameCache && gameCache.round) || answer.answer === undefined || answer.answer === '';
+    });
+    const label = team.teamName || `Đội ${index + 1}`;
+    return `<div class="team-ready-card ${done ? 'ready' : ''}"><span class="team-ready-name">${label}</span><span class="team-ready-state">${done ? '✅ Sẵn sàng' : '⏳ ' + (missing.join(', ') || 'Đang chờ')}</span></div>`;
+  }).join('');
 }
 // ─────────────────────────────────────────
 // LẮNG NGHE GAME (chuyển màn hình theo trạng thái)
@@ -607,6 +632,8 @@ function listenGameDisplay() {
     if (!g || g.status !== 'ended') clearEndedConfetti();
     if (!g) { showScreen('waiting'); return; }
     if (g.status === 'ended') { showEnded(); return; }
+    if (g.status === 'starting') { showScreen('waiting'); showStartCountdown(g); return; }
+    hideStartCountdown();
     if (g.status !== 'playing') { showScreen('waiting'); return; }
     const phase = g.phase || (g.revealed ? 'results' : 'answering');
     const newRound = g.round || 0;
@@ -626,12 +653,37 @@ function listenGameDisplay() {
     }
   });
 }
+function showStartCountdown(game) {
+  const endsAt = Number(game.countdownEndsAt || 0);
+  const key = String(endsAt);
+  if (!endsAt || key === startCountdownKey) return;
+  startCountdownKey = key;
+  if (startCountdownInterval) clearInterval(startCountdownInterval);
+  const overlay = document.getElementById('d-start-countdown');
+  const number = document.getElementById('d-start-count-num');
+  const label = document.getElementById('d-start-count-label');
+  overlay.classList.add('show');
+  const tick = () => {
+    const remaining = Math.max(0, Math.ceil((endsAt - serverNow()) / 1000));
+    number.textContent = remaining > 0 ? remaining : 'GO!';
+    number.style.animation = 'none'; requestAnimationFrame(() => { number.style.animation = ''; });
+    label.textContent = remaining > 0 ? 'Cả đội sẵn sàng?' : 'BẮT ĐẦU!';
+    if (remaining === 0) { clearInterval(startCountdownInterval); startCountdownInterval = null; setTimeout(hideStartCountdown, 650); }
+  };
+  tick(); startCountdownInterval = setInterval(tick, 180);
+}
+function hideStartCountdown() {
+  if (startCountdownInterval) { clearInterval(startCountdownInterval); startCountdownInterval = null; }
+  startCountdownKey = '';
+  const overlay = document.getElementById('d-start-countdown');
+  if (overlay) overlay.classList.remove('show');
+}
 // ─────────────────────────────────────────
 // RENDER CÂU HỎI
 // ─────────────────────────────────────────
 function renderQuestionDisplay(g) {
   const qType = g.type || 'choice';
-  document.getElementById('d-round-badge').textContent = `Level ${g.level||1} · Câu ${(g.round||0)+1} / 20`;
+  document.getElementById('d-round-badge').textContent = `Level ${g.level||1} · Câu ${(g.round||0)+1} / ${g.totalRounds || 19}`;
   const qText = document.getElementById('d-question-text');
   qText.textContent = g.question || '...';
   qText.classList.remove('animate-in');
@@ -735,13 +787,13 @@ function renderPodiumLeaderboard(targetId, sorted, mode='round') {
       <span class="podium-rank">HẠNG ${rank}</span>
       <div class="podium-medal">${medal}</div>
       <div class="podium-avatars">${avatarImg(team.player1, index === 0 ? 46 : 36)}${avatarImg(team.player2, index === 0 ? 46 : 36)}</div>
-      <div class="podium-team">${teamLabel(team)}${rankShiftHtml(team)}</div>
+      <div class="podium-team">${teamLabel(team)}${rankShiftHtml(team)}${streakHtml(team)}</div>
       <div class="podium-points">${team.score || 0} điểm</div>
     </article>`;
   }).join('');
   const rest = sorted.slice(3).map((team, index) => {
     const absoluteIndex = index + 3;
-    return `<div class="lb-rest-row"><span class="lb-rest-rank">${rankAt(absoluteIndex)}.</span><span class="lb-rest-team">${teamLabel(team)}${rankShiftHtml(team)}</span><span class="lb-rest-score">${team.score || 0}</span></div>`;
+    return `<div class="lb-rest-row"><span class="lb-rest-rank">${rankAt(absoluteIndex)}.</span><span class="lb-rest-team">${teamLabel(team)}${rankShiftHtml(team)}${streakHtml(team)}</span><span class="lb-rest-score">${team.score || 0}</span></div>`;
   }).join('');
   const heading = mode === 'final' ? 'Bảng xếp hạng chung cuộc' : 'Bảng xếp hạng hiện tại';
   const champion = mode === 'final' && !tiedFirst ? `<section class="champion-hero" aria-label="Đội vô địch">
@@ -764,7 +816,15 @@ function renderRoundLeaderboard() {
   renderPodiumLeaderboard('d-round-leaderboard', sorted, 'round');
   const spotlight = document.getElementById('d-leader-spotlight');
   const leader = sorted[0];
-  if (leader) {
+  const comeback = [...withIdx].sort((a,b) => (((b.lastRankChange && b.lastRankChange.delta) || 0) - ((a.lastRankChange && a.lastRankChange.delta) || 0)))[0];
+  const streak = [...withIdx].sort((a,b) => (((b.stats && b.stats.currentStreak) || 0) - ((a.stats && a.stats.currentStreak) || 0)))[0];
+  if (comeback && comeback.lastRankChange && comeback.lastRankChange.delta >= 2) {
+    spotlight.textContent = `🚀 LẬT KÈO: ${teamLabel(comeback)} tăng ${comeback.lastRankChange.delta} hạng!`;
+    spotlight.classList.add('show');
+  } else if (streak && streak.stats && streak.stats.currentStreak >= 2) {
+    spotlight.textContent = `🔥 CHUỖI ĂN Ý: ${teamLabel(streak)} vừa có ${streak.stats.currentStreak} câu trùng ý liên tiếp!`;
+    spotlight.classList.add('show');
+  } else if (leader) {
     const teamLabel = t => t.teamName || ('Đội ' + (t._idx + 1));
     spotlight.textContent = `✨ SPOTLIGHT: ${teamLabel(leader)} đang dẫn đầu với ${leader.score || 0} điểm!`;
     spotlight.classList.add('show');
@@ -777,15 +837,25 @@ function rankShiftHtml(team) {
     ? `<span class="rank-shift up">▲ ${change.delta}</span>`
     : `<span class="rank-shift down">▼ ${Math.abs(change.delta)}</span>`;
 }
+function streakHtml(team) {
+  const streak = team.stats && team.stats.currentStreak;
+  return streak >= 2 ? `<span class="rank-shift up">🔥 ${streak}</span>` : '';
+}
 function getAwards(teams) {
   const list = Object.values(teams || {});
   const label = team => team.teamName || ('Đội ' + (team._idx + 1));
-  const awards = [];
+  if (!list.length) return [];
+  const by = metric => [...list].sort((a,b) => metric(b) - metric(a))[0];
+  const champion = by(team => team.score || 0);
   const mostMatch = [...list].sort((a,b) => ((b.stats && b.stats.matches) || 0) - ((a.stats && a.stats.matches) || 0))[0];
   const mostUnique = [...list].sort((a,b) => ((b.stats && b.stats.unique) || 0) - ((a.stats && a.stats.unique) || 0))[0];
-  if (mostMatch && mostMatch.stats && mostMatch.stats.matches) awards.push(`💞 Ăn ý nhất: ${label(mostMatch)} · ${mostMatch.stats.matches} lần`);
-  if (mostUnique && mostUnique.stats && mostUnique.stats.unique) awards.push(`🌟 Độc nhất: ${label(mostUnique)} · ${mostUnique.stats.unique} lần`);
-  return awards;
+  const comeback = by(team => (team.stats && team.stats.bestComeback) || 0);
+  return [
+    `🏆 Quán quân: ${label(champion)}`,
+    `💞 Ăn ý nhất: ${label(mostMatch)} · ${(mostMatch.stats && mostMatch.stats.matches) || 0} lần`,
+    `🌟 Bậc thầy Level 3: ${label(mostUnique)} · ${(mostUnique.stats && mostUnique.stats.unique) || 0} lần độc nhất`,
+    `🚀 Vua lật kèo: ${label(comeback)} · tăng ${(comeback.stats && comeback.stats.bestComeback) || 0} hạng`
+  ];
 }
 // ─────────────────────────────────────────
 // TIMER (đồng bộ y hệt cách index.html dùng cho người chơi)
