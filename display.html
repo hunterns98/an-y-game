@@ -89,13 +89,15 @@
   /* ── WAITING SCREEN / TV LOBBY ── */
   #screen-waiting { justify-content:flex-start; gap:20px; padding-top:18px; }
   .waiting-card { width:100%; text-align:center; }
-  .lobby-join-banner { width:min(100%,900px); margin:0 auto; display:grid; grid-template-columns:minmax(250px,1.2fr) minmax(290px,1fr) 160px; align-items:stretch; overflow:hidden; border-radius:18px; background:rgba(255,255,255,.94); color:#24074b; box-shadow:0 16px 42px rgba(0,0,0,.3); }
-  .lobby-join-copy { padding:18px 24px; display:flex; align-items:center; justify-content:center; font-size:1rem; font-weight:800; line-height:1.35; text-align:left; }
-  .lobby-pin-box { padding:14px 24px; display:flex; flex-direction:column; justify-content:center; border-left:2px solid #6f35cc; border-right:2px solid #6f35cc; }
+  .lobby-join-banner { width:min(100%,1080px); margin:0 auto; display:grid; grid-template-columns:minmax(0,1fr) minmax(250px,.78fr) 148px; align-items:stretch; overflow:hidden; border-radius:18px; background:rgba(255,255,255,.96); color:#24074b; box-shadow:0 16px 42px rgba(0,0,0,.3); }
+  .lobby-join-copy { min-width:0; padding:18px 28px; display:flex; align-items:center; justify-content:center; font-family:Arial,'Segoe UI',sans-serif; font-size:clamp(.9rem,1.5vw,1.12rem); font-weight:800; line-height:1.35; text-align:center; }
+  .lobby-join-copy b { white-space:nowrap; }
+  .lobby-pin-box { min-width:0; padding:14px 20px; display:flex; flex-direction:column; align-items:center; justify-content:center; border-left:2px solid #6f35cc; border-right:2px solid #6f35cc; text-align:center; }
   .lobby-pin-label { font-size:.7rem; letter-spacing:.16em; font-weight:900; text-transform:uppercase; color:#75519c; }
   .big-room-code { font-size:clamp(2.1rem,5vw,4rem); line-height:1; font-weight:950; letter-spacing:.12em; color:#210058; white-space:nowrap; }
-  .qr-box { padding:10px; display:grid; place-items:center; background:white; }
-  #d-qr-code { background:white; padding:4px; border-radius:8px; line-height:0; }
+  .qr-box { width:148px; min-width:148px; padding:8px; display:grid; place-items:center; overflow:hidden; background:white; }
+  #d-qr-code { width:132px; height:132px; display:grid; place-items:center; overflow:hidden; background:white; padding:2px; border-radius:8px; line-height:0; }
+  #d-qr-code img, #d-qr-code canvas { display:block; width:128px!important; height:128px!important; max-width:100%; max-height:100%; }
   .qr-label { display:none; }
   .lobby-brand { margin:10px 0 2px; font-size:clamp(2.4rem,5vw,4.2rem); font-weight:950; letter-spacing:-.05em; background:linear-gradient(135deg,#fff 10%,var(--pink) 45%,var(--gold)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; text-shadow:none; }
   .lobby-status { color:var(--text); font-size:1.05rem; font-weight:800; }
@@ -108,7 +110,7 @@
   .d-chip-empty { grid-column:1/-1; color:var(--muted); font-size:1rem; padding:18px; }
   #d-player-count { font-size:.85rem; color:var(--cyan); font-weight:800; margin-top:10px; }
   .lobby-team-status { display:inline-flex; gap:8px; align-items:center; padding:8px 14px; border-radius:99px; color:var(--cyan); background:rgba(0,245,212,.1); border:1px solid rgba(0,245,212,.28); font-weight:800; font-size:.85rem; }
-  @media (max-width:700px) { .lobby-join-banner{grid-template-columns:1fr auto;}.lobby-join-copy{display:none}.lobby-pin-box{border-left:0}.player-lobby-grid{grid-template-columns:repeat(2,minmax(0,1fr));} }
+  @media (max-width:700px) { .lobby-join-banner{grid-template-columns:minmax(0,1fr) 132px;}.lobby-join-copy{display:none}.lobby-pin-box{border-left:0;padding:12px}.big-room-code{font-size:2rem}.qr-box{width:132px;min-width:132px}.player-lobby-grid{grid-template-columns:repeat(2,minmax(0,1fr));} }
   .d-pair {
     display: flex; align-items: center; gap: 12px; text-align: left;
     background: rgba(255,255,255,0.05); border: 1px solid var(--border);
@@ -275,7 +277,7 @@
   <div class="screen" id="screen-waiting">
     <div class="waiting-card">
       <div class="lobby-join-banner">
-        <div class="lobby-join-copy">Mở <b>&nbsp;Ăn Ý&nbsp;</b> trên điện thoại hoặc quét mã QR để tham gia</div>
+        <div class="lobby-join-copy">Mở&nbsp;<b>Ăn Ý</b>&nbsp;trên điện thoại hoặc quét mã QR để tham gia</div>
         <div class="lobby-pin-box"><span class="lobby-pin-label">Mã phòng</span><strong class="big-room-code" id="d-room-code-big">—</strong></div>
         <div class="qr-box">
           <div id="d-qr-code"></div>
@@ -488,11 +490,16 @@ function connectRoom(code) {
 // QR luôn tự sinh lại theo đúng mã phòng hiện tại -> KHÔNG cần host tự thay ảnh QR mỗi trận
 function renderJoinQR() {
   const el = document.getElementById('d-qr-code');
-  if (!el || typeof QRCode === 'undefined') return;
+  if (!el) return;
   el.innerHTML = ''; // xoá QR cũ trước khi vẽ QR mới (đổi/kết nối lại phòng)
+  if (typeof QRCode === 'undefined') {
+    // Vẫn cho host biết chính xác cách tham gia nếu CDN QR tạm thời chưa tải được.
+    el.innerHTML = '<span title="Mở Ăn Ý và nhập mã phòng" style="font-size:2rem;line-height:1">📱</span>';
+    return;
+  }
   new QRCode(el, {
     text: JOIN_BASE_URL + '?room=' + myRoom,
-    width: 168, height: 168,
+    width: 128, height: 128,
     colorDark: '#0a0015', colorLight: '#ffffff',
     correctLevel: QRCode.CorrectLevel.M
   });
