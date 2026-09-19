@@ -55,7 +55,10 @@
   }
   .room-pill span { font-size: 0.65rem; letter-spacing: 0.18em; color: var(--muted); text-transform: uppercase; }
   .room-pill strong { font-size: 1.15rem; font-weight: 900; color: var(--gold); letter-spacing: 0.2em; }
-  .d-sound-toggle { padding:8px 11px; border-radius:99px; border:1px solid var(--border); background:rgba(255,255,255,.07); color:var(--text); font-size:.72rem; font-weight:800; cursor:pointer; }
+  .display-actions { display:flex; align-items:center; gap:8px; }
+  .d-sound-toggle, .d-fullscreen-toggle { padding:8px 11px; border-radius:99px; border:1px solid var(--border); background:rgba(255,255,255,.07); color:var(--text); font-size:.72rem; font-weight:800; cursor:pointer; }
+  .d-fullscreen-toggle { border-color:rgba(255,214,10,.42); color:var(--gold); }
+  .d-fullscreen-toggle:hover { background:rgba(255,214,10,.13); }
   /* ── SCREEN MANAGEMENT ── */
   .screen { display: none; flex-direction: column; align-items: center; width: 100%; max-width: 1100px; gap: 22px; flex: 1; justify-content: center; }
   .screen.active { display: flex; animation: screenIn 0.45s cubic-bezier(0.34,1.4,0.64,1); }
@@ -277,7 +280,10 @@
 <div id="d-start-countdown" aria-live="assertive"><div class="start-count-label" id="d-start-count-label">Cả đội sẵn sàng?</div><div class="start-count-num" id="d-start-count-num">3</div><div class="start-count-label">Chuẩn bị ăn ý!</div></div>
 <div id="top-bar">
   <div class="brand">❤️ Ăn Ý — Màn hình lớn</div>
-  <button class="d-sound-toggle" id="d-sound-toggle" type="button">🔊 Âm thanh</button>
+  <div class="display-actions">
+    <button class="d-sound-toggle" id="d-sound-toggle" type="button">🔊 Âm thanh</button>
+    <button class="d-fullscreen-toggle" id="d-fullscreen-toggle" type="button" title="Ẩn thanh địa chỉ và chiếu toàn màn hình">⛶ Toàn màn hình</button>
+  </div>
   <div class="room-pill"><span>Mã phòng</span><strong id="top-room-code">—</strong></div>
 </div>
 <div id="app">
@@ -415,6 +421,23 @@ document.getElementById('d-sound-toggle').addEventListener('click', () => {
   updateDisplaySoundToggle();
 });
 updateDisplaySoundToggle();
+
+function updateFullscreenToggle() {
+  const button = document.getElementById('d-fullscreen-toggle');
+  if (button) button.textContent = document.fullscreenElement ? '⛶ Thoát toàn màn hình' : '⛶ Toàn màn hình';
+}
+document.getElementById('d-fullscreen-toggle').addEventListener('click', async () => {
+  const button = document.getElementById('d-fullscreen-toggle');
+  try {
+    if (document.fullscreenElement) await document.exitFullscreen();
+    else await document.documentElement.requestFullscreen();
+  } catch (error) {
+    button.textContent = '⚠️ Nhấn F11';
+    setTimeout(updateFullscreenToggle, 2200);
+  }
+});
+document.addEventListener('fullscreenchange', updateFullscreenToggle);
+updateFullscreenToggle();
 // ── CONNECTION FEEDBACK ──
 let displayConnected = false, displayWasOffline = false, displayBannerTimer;
 function showDisplayConnection(message, kind='online', persistent=false) {
@@ -577,7 +600,6 @@ function listenTeams() {
     renderWaitingTeams();
     renderProgress();
     if (revealSequenceComplete && gameCache && ((gameCache.phase === 'results') || gameCache.revealed)) {
-      renderRevealBoard(gameCache);
       renderRoundLeaderboard(gameCache);
     }
   });
@@ -752,6 +774,9 @@ function showRevealView(g) {
   const finish = () => {
     revealSequenceComplete = true;
     intro.classList.remove('show');
+    // Reveal là một nhịp riêng. Khi bảng điểm xuất hiện, rút các hàng đáp án
+    // để màn hình lớn không phải thu nhỏ chỉ để thấy đủ thông tin.
+    document.getElementById('d-reveal-board').style.display = 'none';
     const board = document.getElementById('d-round-leaderboard');
     board.style.display = 'block';
     board.classList.remove('leaderboard-enter');
