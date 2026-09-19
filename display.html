@@ -230,6 +230,9 @@
   .lb-rest-row { display:grid; grid-template-columns:46px 1fr auto; align-items:center; gap:12px; padding:10px 14px; border-bottom:1px solid rgba(255,255,255,.18); text-align:left; font-size:1rem; }
   .lb-rest-rank { color:var(--muted); font-weight:900; } .lb-rest-team { font-weight:800; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; } .lb-rest-score { color:var(--gold); font-weight:900; }
   .lb-tie-note { margin:0 auto 14px; padding:7px 12px; width:max-content; max-width:100%; border-radius:99px; color:var(--cyan); background:rgba(0,245,212,.1); border:1px solid rgba(0,245,212,.26); font-size:.75rem; font-weight:800; }
+  .round-compact { width:min(100%,760px); margin:0 auto; padding:16px 18px; border:1px solid var(--border); border-radius:20px; background:linear-gradient(135deg,rgba(155,93,229,.15),rgba(255,255,255,.035)); text-align:left; }
+  .round-compact-head { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:10px; }.round-compact-title { font-size:1.05rem; font-weight:950; }.round-compact-sub { color:var(--muted); font-size:.78rem; font-weight:800; }
+  .round-compact-row { display:grid; grid-template-columns:32px minmax(0,1fr) auto; gap:10px; align-items:center; padding:8px 4px; border-top:1px solid rgba(255,255,255,.1); font-size:.88rem; }.round-compact-rank { color:var(--gold); font-weight:950; }.round-compact-team { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-weight:850; }.round-compact-score { color:var(--cyan); font-weight:950; }.round-compact-empty { padding:10px 0 2px; color:var(--cyan); text-align:center; font-size:.9rem; font-weight:850; }
   .champion-hero { position:relative; overflow:hidden; width:min(100%,620px); margin:0 auto 24px; padding:22px 26px 20px; border:1px solid rgba(255,214,10,.72); border-radius:28px; background:radial-gradient(circle at 50% 0,rgba(255,214,10,.34),transparent 52%),linear-gradient(145deg,rgba(255,45,120,.22),rgba(80,27,157,.35)); box-shadow:0 0 44px rgba(255,214,10,.22),0 14px 34px rgba(0,0,0,.28); animation:championEnter .8s cubic-bezier(.2,1.4,.4,1) both; }
   .champion-hero::before,.champion-hero::after { content:'✦'; position:absolute; color:var(--gold); font-size:1.5rem; opacity:.8; animation:championSparkle 1.3s ease-in-out infinite alternate; }.champion-hero::before{left:11%;top:22%;}.champion-hero::after{right:11%;top:36%;animation-delay:.45s;}
   @keyframes championEnter { from{opacity:0;transform:translateY(30px) scale(.85)} to{opacity:1;transform:none} } @keyframes championSparkle { to{transform:scale(1.5) rotate(25deg);opacity:.25} }
@@ -575,7 +578,7 @@ function listenTeams() {
     renderProgress();
     if (revealSequenceComplete && gameCache && ((gameCache.phase === 'results') || gameCache.revealed)) {
       renderRevealBoard(gameCache);
-      renderRoundLeaderboard();
+      renderRoundLeaderboard(gameCache);
     }
   });
 }
@@ -753,7 +756,7 @@ function showRevealView(g) {
     board.style.display = 'block';
     board.classList.remove('leaderboard-enter');
     requestAnimationFrame(() => board.classList.add('leaderboard-enter'));
-    renderRoundLeaderboard();
+    renderRoundLeaderboard(g);
     if (elapsed < leaderboardAt) displayLeaderboardSfx();
   };
   if (elapsed >= leaderboardAt) finish();
@@ -810,11 +813,32 @@ function renderPodiumLeaderboard(targetId, sorted, mode='round') {
     <div class="podium-grid">${podium}</div>
     ${rest ? `<div class="lb-rest">${rest}</div>` : ''}`;
 }
-function renderRoundLeaderboard() {
+function renderCompactRoundLeaderboard(targetId, sorted) {
+  const target = document.getElementById(targetId);
+  if (!target) return;
+  const allTiedAtZero = sorted.length > 1 && sorted.every(team => (team.score || 0) === 0);
+  const label = team => team.teamName || ('Đội ' + (team._idx + 1));
+  if (allTiedAtZero) {
+    target.innerHTML = `<div class="round-compact"><div class="round-compact-head"><span class="round-compact-title">📊 Bảng điểm vừa cập nhật</span><span class="round-compact-sub">Câu tiếp theo sẽ tạo khác biệt</span></div><div class="round-compact-empty">⚡ Chưa phân định — tất cả đội đang cùng 0 điểm!</div></div>`;
+    return;
+  }
+  const rankAt = index => index > 0 && (sorted[index].score || 0) === (sorted[index - 1].score || 0) ? rankAt(index - 1) : index + 1;
+  const rows = sorted.slice(0, 5).map((team, index) => `<div class="round-compact-row"><span class="round-compact-rank">${rankAt(index)}.</span><span class="round-compact-team">${label(team)}${rankShiftHtml(team)}${streakHtml(team)}</span><span class="round-compact-score">${team.score || 0}</span></div>`).join('');
+  const extra = sorted.length > 5 ? ` · +${sorted.length - 5} đội khác` : '';
+  target.innerHTML = `<div class="round-compact"><div class="round-compact-head"><span class="round-compact-title">📊 Bảng điểm vừa cập nhật</span><span class="round-compact-sub">Top ${Math.min(5, sorted.length)}${extra}</span></div>${rows}</div>`;
+}
+function renderRoundLeaderboard(game) {
   const withIdx = Object.values(teamsCache).map((t, i) => ({ ...t, _idx: i }));
   const sorted = withIdx.sort((a, b) => (b.score || 0) - (a.score || 0));
-  renderPodiumLeaderboard('d-round-leaderboard', sorted, 'round');
+  // Podium lớn chỉ xuất hiện ở mốc chuyển Level; các round khác dùng bảng gọn
+  // để người chơi nhanh chóng quay lại câu tiếp theo.
+  if (game && game.levelBreak) renderPodiumLeaderboard('d-round-leaderboard', sorted, 'round');
+  else renderCompactRoundLeaderboard('d-round-leaderboard', sorted);
   const spotlight = document.getElementById('d-leader-spotlight');
+  if (sorted.length > 1 && sorted.every(team => (team.score || 0) === 0)) {
+    spotlight.classList.remove('show');
+    return;
+  }
   const leader = sorted[0];
   const comeback = [...withIdx].sort((a,b) => (((b.lastRankChange && b.lastRankChange.delta) || 0) - ((a.lastRankChange && a.lastRankChange.delta) || 0)))[0];
   const streak = [...withIdx].sort((a,b) => (((b.stats && b.stats.currentStreak) || 0) - ((a.stats && a.stats.currentStreak) || 0)))[0];
@@ -863,10 +887,10 @@ function getAwards(teams) {
 function startDisplayTimer(g) {
   clearInterval(displayTimerInterval);
   const QUESTION_DURATION = 30;
-  const startedAt = g.startedAt || serverNow();
+  const startedAt = g.answerStartsAt || g.startedAt || serverNow();
   const tc = document.getElementById('d-timer-circle');
   const tick = () => {
-    const elapsed = Math.floor((serverNow() - startedAt) / 1000);
+    const elapsed = Math.max(0, Math.floor((serverNow() - startedAt) / 1000));
     const remaining = Math.max(0, QUESTION_DURATION - elapsed);
     tc.textContent = remaining;
     tc.classList.toggle('urgent', remaining <= 5 && remaining > 0);

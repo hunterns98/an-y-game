@@ -1427,13 +1427,18 @@ function listenGame() {
       prevRound = newRound; prevRevealed = false;
       clearPlayerRevealSequence();
       hasAnswered = false;
-      renderQuestion(game);
+      // Câu sau có màn 3-2-1; chưa khởi động timer ở đây để không bị mất 3 giây
+      // trong lúc overlay còn che câu hỏi.
+      renderQuestion(game, newRound === 0);
       // Nếu vòng này (round hiện tại) mình ĐÃ có đáp án sẵn trên Firebase (VD: vừa reconnect
       // giữa lúc đang trả lời) -> khôi phục đúng trạng thái "đã trả lời", tránh gửi đè lại.
       applyAlreadyAnsweredIfNeeded(newRound);
       // Countdown only if not first
       if (newRound > 0) {
-        runCountdown(() => showScreen('question'));
+        runCountdown(() => {
+          showScreen('question');
+          startQuestionTimer(game);
+        });
       } else {
         showScreen('question');
       }
@@ -1506,7 +1511,7 @@ function lockAnsweredUI(answerVal) {
 // RENDER QUESTION
 // ─────────────────────────────────────────
 let timerInterval;
-function renderQuestion(game) {
+function renderQuestion(game, startTimer = true) {
   currentRound = game.round || 0;
   document.getElementById('round-badge').textContent = `Level ${game.level||1} · Câu ${currentRound+1} / ${game.totalRounds || 19}`;
   document.getElementById('q-text').textContent = game.question || '...';
@@ -1578,15 +1583,18 @@ function renderQuestion(game) {
     partnerPill.classList.remove('answered');
     document.getElementById('partner-status-text').textContent = '⏳ Đồng đội chưa trả lời...';
   }
-  // Timer — đồng bộ theo server time để mọi máy luôn thấy cùng 1 số giây,
-  // dù mạng chậm hay vào trễ giữa vòng (tính từ game.startedAt do host ghi lên).
+  if (startTimer) startQuestionTimer(game);
+}
+// Timer chỉ chạy khi câu hỏi thật sự được mở. Với câu sau, game có 3 giây
+// countdown trước khi gọi hàm này nên người chơi luôn nhận đủ 30 giây.
+function startQuestionTimer(game) {
   clearInterval(timerInterval);
   timeIsUp = false;
   const QUESTION_DURATION = 30;
-  const startedAt = game.startedAt || serverNow();
+  const startedAt = game.answerStartsAt || game.startedAt || serverNow();
   const tc = document.getElementById('timer-circle');
   const tick = () => {
-    const elapsed = Math.floor((serverNow() - startedAt) / 1000);
+    const elapsed = Math.max(0, Math.floor((serverNow() - startedAt) / 1000));
     const remaining = Math.max(0, QUESTION_DURATION - elapsed);
     tc.textContent = remaining;
     tc.classList.toggle('urgent', remaining <= 5 && remaining > 0);

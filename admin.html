@@ -969,6 +969,10 @@ function applyControlButtonsState(game) {
 function sendQuestion(idx) {
   const q = questions[idx];
   const qType = q.type || 'choice';
+  const isLevelBreak = idx < questions.length - 1 && questions[idx + 1].level !== q.level;
+  // Từ câu 2 trở đi player có countdown 3-2-1. Mốc này là lúc BẮT ĐẦU nhận
+  // đáp án, không phải lúc host ghi câu hỏi, để timer không bị hụt còn 27 giây.
+  const answerStartsAt = serverNow() + (idx > 0 ? 3100 : 0);
   const payload = {
     status: 'playing',
     round: idx,
@@ -977,9 +981,11 @@ function sendQuestion(idx) {
     type: qType,
     special: !!q.special,
     totalRounds: questions.length,
+    levelBreak: isLevelBreak,
     revealed: false,
     phase: 'answering',
-    startedAt: firebase.database.ServerValue.TIMESTAMP
+    startedAt: firebase.database.ServerValue.TIMESTAMP,
+    answerStartsAt
   };
   if (qType === 'choice') {
     payload.optionA = q.a;
