@@ -181,7 +181,8 @@
   #d-start-countdown.show { display:flex; }.start-count-num { min-width:120px; color:var(--gold); font-size:clamp(5rem,17vw,11rem); line-height:.85; font-weight:950; text-shadow:0 0 34px rgba(255,214,10,.45); animation:startCountPop .68s cubic-bezier(.2,1.55,.4,1); }.start-count-label { color:var(--text); font-size:clamp(1rem,2.4vw,1.55rem); font-weight:900; letter-spacing:.12em; text-transform:uppercase; } @keyframes startCountPop { from{opacity:0;transform:scale(.5)}to{opacity:1;transform:scale(1)} }
   @media (max-width:700px) { .team-ready-grid { grid-template-columns:1fr; } }
   /* ── REVEAL BOARD ── */
-  .reveal-board { width: 100%; display: none; flex-direction: column; gap: 10px; max-height: 50vh; overflow-y: auto; }
+  /* Tối đa 8 đội: hai cột x bốn hàng để đủ toàn bộ kết quả, không có thanh cuộn. */
+  .reveal-board { width:100%; display:none; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px 14px; max-height:none; overflow:visible; }
   .reveal-row {
     display: flex; align-items: center; justify-content: space-between; gap: 14px;
     padding: 14px 20px; border-radius: 14px;
@@ -191,6 +192,7 @@
   .reveal-row.match   { border-color: var(--green); background: rgba(34,197,94,0.1); }
   .reveal-row.nomatch { border-color: rgba(239,68,68,0.35); background: rgba(239,68,68,0.06); }
   .reveal-row.reveal-pending { opacity:0; transform:translateY(16px) scale(0.97); animation:revealRowIn 0.42s cubic-bezier(0.34,1.4,0.64,1) forwards; }
+  @media(max-width:900px) { .reveal-board { grid-template-columns:1fr; } }
   @keyframes revealRowIn { to { opacity:1; transform:translateY(0) scale(1); } }
   .reveal-intro { display:none; width:100%; text-align:center; padding:14px; border:1px solid rgba(0,245,212,0.35); border-radius:16px; background:rgba(0,245,212,0.08); color:var(--cyan); font-size:0.78rem; font-weight:900; letter-spacing:0.18em; animation:revealIntroPulse 0.7s ease-in-out infinite alternate; }
   .reveal-intro.show { display:block; }
@@ -763,7 +765,7 @@ function showRevealView(g) {
   const intro = document.getElementById('d-reveal-intro');
   intro.classList.toggle('show', elapsed < REVEAL_INTRO_MS);
   if (elapsed < REVEAL_INTRO_MS) revealIntroTimer = setTimeout(() => intro.classList.remove('show'), REVEAL_INTRO_MS - elapsed);
-  document.getElementById('d-reveal-board').style.display = 'flex';
+  document.getElementById('d-reveal-board').style.display = 'grid';
   document.getElementById('d-round-leaderboard').style.display = 'none';
   renderRevealBoard(g, { staged: elapsed < leaderboardAt, elapsed });
   if (elapsed < leaderboardAt) {
