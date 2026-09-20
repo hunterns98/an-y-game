@@ -218,6 +218,7 @@
   .lb-title { font-size:clamp(1.6rem,3.5vw,2.6rem); font-weight:900; margin-bottom:16px; }
   .lb-divider { height:1px; width:min(100%,660px); margin:0 auto 22px; background:linear-gradient(90deg,transparent,rgba(255,255,255,.55),transparent); }
   .podium-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:14px; align-items:end; margin:0 auto 20px; }
+  .podium-grid.final-runnerups { grid-template-columns:repeat(2,minmax(0,280px)); justify-content:center; max-width:590px; }
   .podium-card { position:relative; min-height:180px; padding:20px 12px 16px; border-radius:24px; overflow:hidden; background:rgba(155,93,229,.16); border:1px solid rgba(255,255,255,.13); box-shadow:0 12px 28px rgba(0,0,0,.2); animation:podiumRise .65s cubic-bezier(.34,1.45,.64,1) both; }
   .podium-card::after { content:''; position:absolute; width:160px; height:160px; border-radius:50%; top:-92px; right:-50px; background:rgba(255,255,255,.06); pointer-events:none; }
   .podium-card.rank-1 { min-height:222px; padding-top:24px; background:linear-gradient(160deg,rgba(255,214,10,.3),rgba(155,93,229,.35)); border-color:rgba(255,214,10,.65); box-shadow:0 0 38px rgba(255,214,10,.26),0 16px 32px rgba(0,0,0,.28); animation-delay:.16s; }
@@ -811,9 +812,12 @@ function renderPodiumLeaderboard(targetId, sorted, mode='round') {
   const rankAt = index => index > 0 && (sorted[index].score || 0) === (sorted[index - 1].score || 0)
     ? rankAt(index - 1) : index + 1;
   const medals = { 1:'🥇', 2:'🥈', 3:'🥉' };
-  const topByRank = [1, 0, 2].map(index => ({ team:sorted[index], index })).filter(x => x.team);
   const topScore = sorted[0].score || 0;
   const tiedFirst = sorted.filter(t => (t.score || 0) === topScore).length > 1;
+  // Ở màn kết: quán quân đã có thẻ vinh danh riêng, không lặp thêm hạng 1 ở podium.
+  const championIsSeparate = mode === 'final' && !tiedFirst;
+  const topByRank = (championIsSeparate ? [1, 2] : [1, 0, 2])
+    .map(index => ({ team:sorted[index], index })).filter(x => x.team);
   const podium = topByRank.map(({team, index}) => {
     const rank = rankAt(index);
     const medal = medals[Math.min(rank, 3)] || '🏅';
@@ -841,7 +845,7 @@ function renderPodiumLeaderboard(targetId, sorted, mode='round') {
     <div class="lb-divider"></div>
     ${champion}
     ${tiedFirst ? '<div class="lb-tie-note">🤝 ĐỒNG HẠNG DẪN ĐẦU</div>' : ''}
-    <div class="podium-grid">${podium}</div>
+    ${podium ? `<div class="podium-grid${championIsSeparate ? ' final-runnerups' : ''}">${podium}</div>` : ''}
     ${rest ? `<div class="lb-rest">${rest}</div>` : ''}`;
 }
 function renderCompactRoundLeaderboard(targetId, sorted) {
