@@ -493,8 +493,11 @@ let revealSfxTimers = [];
 let revealSequenceComplete = false;
 let startCountdownKey = '';
 let startCountdownInterval = null;
-const REVEAL_INTRO_MS = 500;
-const REVEAL_STEP_MS = 650;
+// Mỗi đội có đủ thời gian nhận ra mình có “ăn ý” hay không; sau đội cuối
+// còn một nhịp đọc chung trước khi bảng điểm xuất hiện.
+const REVEAL_INTRO_MS = 700;
+const REVEAL_STEP_MS = 850;
+const REVEAL_READ_MS = 3500;
 // ─────────────────────────────────────────
 // KẾT NỐI PHÒNG
 // ─────────────────────────────────────────
@@ -761,7 +764,7 @@ function showRevealView(g) {
   const startedAt = typeof g.revealedAt === 'number' ? g.revealedAt : serverNow() - 999999;
   const elapsed = Math.max(0, serverNow() - startedAt);
   const rows = Object.keys(teamsCache).length;
-  const leaderboardAt = REVEAL_INTRO_MS + rows * REVEAL_STEP_MS + 250;
+  const leaderboardAt = REVEAL_INTRO_MS + rows * REVEAL_STEP_MS + REVEAL_READ_MS;
   const intro = document.getElementById('d-reveal-intro');
   intro.classList.toggle('show', elapsed < REVEAL_INTRO_MS);
   if (elapsed < REVEAL_INTRO_MS) revealIntroTimer = setTimeout(() => intro.classList.remove('show'), REVEAL_INTRO_MS - elapsed);
