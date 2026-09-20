@@ -179,6 +179,10 @@
   .team-ready-name { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }.team-ready-state { flex:0 0 auto; color:var(--muted); }.team-ready-card.ready .team-ready-state { color:var(--green); }
   #d-start-countdown { position:fixed; inset:0; z-index:50; display:none; flex-direction:column; align-items:center; justify-content:center; gap:8px; background:rgba(10,0,21,.78); backdrop-filter:blur(8px); text-align:center; }
   #d-start-countdown.show { display:flex; }.start-count-num { min-width:120px; color:var(--gold); font-size:clamp(5rem,17vw,11rem); line-height:.85; font-weight:950; text-shadow:0 0 34px rgba(255,214,10,.45); animation:startCountPop .68s cubic-bezier(.2,1.55,.4,1); }.start-count-label { color:var(--text); font-size:clamp(1rem,2.4vw,1.55rem); font-weight:900; letter-spacing:.12em; text-transform:uppercase; } @keyframes startCountPop { from{opacity:0;transform:scale(.5)}to{opacity:1;transform:scale(1)} }
+  .level-transition-overlay { position:fixed; inset:0; z-index:70; display:none; place-items:center; padding:28px; background:radial-gradient(circle at 50% 25%,rgba(155,93,229,.44),rgba(10,0,21,.96) 60%); text-align:center; }
+  .level-transition-overlay.show { display:grid; animation:levelTransitionIn .55s cubic-bezier(.2,1.35,.4,1); }
+  .level-transition-card { width:min(100%,760px); padding:clamp(28px,5vw,56px); border:1px solid rgba(255,214,10,.65); border-radius:32px; background:linear-gradient(145deg,rgba(255,45,120,.18),rgba(86,31,166,.38)); box-shadow:0 0 56px rgba(155,93,229,.35); }
+  .level-transition-kicker { color:var(--gold); font-size:clamp(.8rem,1.6vw,1rem); font-weight:950; letter-spacing:.24em; }.level-transition-title { margin:10px 0 16px; font-size:clamp(2rem,5vw,4rem); font-weight:950; }.level-transition-rule { max-width:600px; margin:0 auto; font-size:clamp(1rem,2vw,1.3rem); line-height:1.45; color:var(--text); }.level-transition-score { display:inline-block; margin:20px 0 16px; padding:10px 18px; border-radius:99px; background:rgba(0,245,212,.12); border:1px solid rgba(0,245,212,.4); color:var(--cyan); font-size:clamp(1rem,2vw,1.25rem); font-weight:950; }.level-transition-wait { color:var(--muted); font-size:.9rem; font-weight:800; } @keyframes levelTransitionIn { from{opacity:0;transform:scale(.92)}to{opacity:1;transform:scale(1)} }
   @media (max-width:700px) { .team-ready-grid { grid-template-columns:1fr; } }
   /* ── REVEAL BOARD ── */
   /* Tối đa 8 đội: hai cột x bốn hàng để đủ toàn bộ kết quả, không có thanh cuộn. */
@@ -282,6 +286,7 @@
 <div class="connection-banner" id="d-connection-banner" role="status" aria-live="polite"></div>
 <div class="stars" id="stars"></div>
 <div id="d-start-countdown" aria-live="assertive"><div class="start-count-label" id="d-start-count-label">Cả đội sẵn sàng?</div><div class="start-count-num" id="d-start-count-num">3</div><div class="start-count-label">Chuẩn bị ăn ý!</div></div>
+<div class="level-transition-overlay" id="d-level-transition" aria-live="assertive"><section class="level-transition-card"><div class="level-transition-kicker" id="d-level-kicker">LEVEL UP</div><div class="level-transition-title" id="d-level-title">—</div><p class="level-transition-rule" id="d-level-rule"></p><div class="level-transition-score" id="d-level-score"></div><p class="level-transition-wait">Cùng ghi nhớ luật mới · chờ host mở câu tiếp theo</p></section></div>
 <div id="top-bar">
   <div class="brand">❤️ Ăn Ý — Màn hình lớn</div>
   <div class="display-actions">
@@ -490,6 +495,7 @@ let displayTimerInterval;
 let revealSequenceKey = '';
 let revealLeaderboardTimer = null;
 let revealIntroTimer = null;
+let levelTransitionTimer = null;
 let revealSfxTimers = [];
 let revealSequenceComplete = false;
 let startCountdownKey = '';
@@ -499,6 +505,21 @@ let startCountdownInterval = null;
 const REVEAL_INTRO_MS = 700;
 const REVEAL_STEP_MS = 850;
 const REVEAL_READ_MS = 3500;
+const LEVEL_TRANSITION_DELAY_MS = 4500;
+const levelTransitionInfo = {
+  2: { kicker:'LEVEL 2 · THẤU HIỂU TRUNG', title:'🕵️ AI LÀ AI?', rule:'Với mỗi câu, bí mật chọn bạn hoặc đồng đội — người mà bạn thấy phù hợp hơn.', score:'Cùng chọn một người · +2 điểm' },
+  3: { kicker:'LEVEL 3 · THẤU HIỂU SÂU', title:'🌟 ĂN ĐIỂM CAO', rule:'Tự nhập một đáp án ngắn theo ý bạn. Hãy hiểu nhau thật sâu để trả lời trùng khớp.', score:'Trùng ý · +1 điểm &nbsp;·&nbsp; Trùng ý duy nhất · +3 điểm' }
+};
+function hideDisplayLevelTransition() { document.getElementById('d-level-transition').classList.remove('show'); }
+function showDisplayLevelTransition(nextLevel) {
+  const info = levelTransitionInfo[nextLevel]; if (!info) return;
+  document.getElementById('d-level-kicker').textContent = info.kicker;
+  document.getElementById('d-level-title').textContent = info.title;
+  document.getElementById('d-level-rule').textContent = info.rule;
+  document.getElementById('d-level-score').innerHTML = info.score;
+  document.getElementById('d-level-transition').classList.add('show');
+  displayTone(nextLevel === 3 ? 784 : 659, .35, .26);
+}
 // ─────────────────────────────────────────
 // KẾT NỐI PHÒNG
 // ─────────────────────────────────────────
@@ -746,6 +767,7 @@ function renderQuestionDisplay(g) {
   renderProgress();
 }
 function showProgressView(phase='answering') {
+  hideDisplayLevelTransition();
   document.getElementById('d-progress-wrap').style.display = 'block';
   document.getElementById('d-reveal-board').style.display = 'none';
   document.getElementById('d-round-leaderboard').style.display = 'none';
@@ -790,6 +812,15 @@ function showRevealView(g) {
     requestAnimationFrame(() => board.classList.add('leaderboard-enter'));
     renderRoundLeaderboard(g);
     if (elapsed < leaderboardAt) displayLeaderboardSfx();
+    if (g.levelBreak && levelTransitionInfo[(g.level || 1) + 1]) {
+      // Nếu vừa chạy đủ reveal thì bắt đầu đếm từ lúc này; nếu F5 giữa intermission
+      // thì chỉ giữ phần thời gian còn lại.
+      const delay = elapsed >= leaderboardAt
+        ? Math.max(0, LEVEL_TRANSITION_DELAY_MS - (elapsed - leaderboardAt))
+        : LEVEL_TRANSITION_DELAY_MS;
+      if (levelTransitionTimer) clearTimeout(levelTransitionTimer);
+      levelTransitionTimer = setTimeout(() => showDisplayLevelTransition((g.level || 1) + 1), delay);
+    }
   };
   if (elapsed >= leaderboardAt) finish();
   else revealLeaderboardTimer = setTimeout(finish, leaderboardAt - elapsed);
@@ -798,6 +829,8 @@ function clearRevealSequence() {
   if (revealLeaderboardTimer) { clearTimeout(revealLeaderboardTimer); revealLeaderboardTimer = null; }
   if (revealIntroTimer) { clearTimeout(revealIntroTimer); revealIntroTimer = null; }
   revealSfxTimers.forEach(clearTimeout); revealSfxTimers = [];
+  if (levelTransitionTimer) { clearTimeout(levelTransitionTimer); levelTransitionTimer = null; }
+  hideDisplayLevelTransition();
   revealSequenceComplete = false;
   revealSequenceKey = '';
 }

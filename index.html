@@ -384,6 +384,11 @@
     to   { transform: scale(1);   opacity:1; }
   }
   .countdown-label { font-size: 0.8rem; letter-spacing: 0.3em; color: var(--muted); margin-top: 12px; text-transform: uppercase; }
+  /* ── LEVEL TRANSITION ── */
+  #player-level-transition { display:none; position:fixed; inset:0; z-index:8100; align-items:center; justify-content:center; padding:20px; background:radial-gradient(circle at 50% 22%,rgba(155,93,229,.45),rgba(10,0,21,.97) 62%); text-align:center; }
+  #player-level-transition.show { display:flex; animation:playerLevelIn .45s cubic-bezier(.2,1.35,.4,1); }
+  .player-level-card { width:min(100%,440px); padding:34px 24px; border-radius:28px; border:1px solid rgba(255,214,10,.65); background:linear-gradient(145deg,rgba(255,45,120,.2),rgba(86,31,166,.42)); box-shadow:0 0 42px rgba(155,93,229,.32); }
+  .player-level-kicker { color:var(--gold); font-size:.72rem; font-weight:950; letter-spacing:.2em; }.player-level-title { margin:10px 0 14px; font-size:2rem; font-weight:950; }.player-level-rule { line-height:1.5; color:var(--text); font-size:1rem; }.player-level-score { display:inline-block; margin:18px 0 12px; padding:9px 14px; border-radius:99px; color:var(--cyan); background:rgba(0,245,212,.12); border:1px solid rgba(0,245,212,.4); font-size:.9rem; font-weight:950; }.player-level-wait { color:var(--muted); font-size:.76rem; font-weight:800; } @keyframes playerLevelIn { from{opacity:0;transform:scale(.9)}to{opacity:1;transform:scale(1)} }
   /* ── WINNER SCREEN ── */
   #winner-screen {
     display: none; position: fixed; inset: 0; z-index: 9000;
@@ -653,6 +658,7 @@
   <span class="countdown-num" id="count-num">3</span>
   <span class="countdown-label" id="count-label">Chuẩn bị!</span>
 </div>
+<div id="player-level-transition" aria-live="assertive"><section class="player-level-card"><div class="player-level-kicker" id="player-level-kicker">LEVEL UP</div><div class="player-level-title" id="player-level-title">—</div><p class="player-level-rule" id="player-level-rule"></p><div class="player-level-score" id="player-level-score"></div><p class="player-level-wait">Ghi nhớ luật mới · chờ host mở câu tiếp theo</p></section></div>
 <!-- Winner Screen -->
 <div id="winner-screen">
   <canvas id="confetti-canvas"></canvas>
@@ -1114,7 +1120,21 @@ let activeGame=null, teamsCache={};
 let playerRevealTimers=[];
 let gameStartCountdownKey = '';
 let gameStartCountdownTimer = null;
-const PLAYER_REVEAL_INTRO_MS=500, PLAYER_REVEAL_STEP_MS=650;
+const PLAYER_REVEAL_INTRO_MS=700, PLAYER_REVEAL_STEP_MS=850;
+const PLAYER_REVEAL_READ_MS=3500, PLAYER_LEVEL_TRANSITION_DELAY_MS=4500;
+const playerLevelTransitionInfo = {
+  2: { kicker:'LEVEL 2 · THẤU HIỂU TRUNG', title:'🕵️ AI LÀ AI?', rule:'Bí mật chọn bạn hoặc đồng đội — người mà bạn thấy phù hợp hơn.', score:'Cùng chọn một người · +2 điểm' },
+  3: { kicker:'LEVEL 3 · THẤU HIỂU SÂU', title:'🌟 ĂN ĐIỂM CAO', rule:'Tự nhập một đáp án ngắn theo ý bạn. Hãy hiểu nhau thật sâu để trả lời trùng khớp.', score:'Trùng ý · +1 điểm · Trùng ý duy nhất · +3 điểm' }
+};
+function hidePlayerLevelTransition() { document.getElementById('player-level-transition').classList.remove('show'); }
+function showPlayerLevelTransition(nextLevel) {
+  const info = playerLevelTransitionInfo[nextLevel]; if (!info) return;
+  document.getElementById('player-level-kicker').textContent = info.kicker;
+  document.getElementById('player-level-title').textContent = info.title;
+  document.getElementById('player-level-rule').textContent = info.rule;
+  document.getElementById('player-level-score').textContent = info.score;
+  document.getElementById('player-level-transition').classList.add('show');
+}
 let partnerListenerAttached=false;
 // Guard: đảm bảo listener trên teams/{myTeamKey} chỉ đăng ký ĐÚNG 1 LẦN cho
 // cả session — tránh chồng listener mỗi khi node `teams` (toàn phòng) đổi.
@@ -1454,6 +1474,7 @@ function listenGame() {
 function clearPlayerRevealSequence() {
   playerRevealTimers.forEach(clearTimeout);
   playerRevealTimers = [];
+  hidePlayerLevelTransition();
 }
 function startPlayerRevealSequence(game) {
   clearPlayerRevealSequence();
@@ -1469,10 +1490,15 @@ function startPlayerRevealSequence(game) {
   const entries = Object.keys(teamsCache);
   const teamIndex = Math.max(0, entries.indexOf(myTeamKey));
   const revealAt = PLAYER_REVEAL_INTRO_MS + teamIndex * PLAYER_REVEAL_STEP_MS;
-  const leaderboardAt = PLAYER_REVEAL_INTRO_MS + entries.length * PLAYER_REVEAL_STEP_MS + 250;
+  const leaderboardAt = PLAYER_REVEAL_INTRO_MS + entries.length * PLAYER_REVEAL_STEP_MS + PLAYER_REVEAL_READ_MS;
   const reveal = () => showResultForPlayer(game, Math.max(0, leaderboardAt - Math.max(elapsed, revealAt)));
   if (elapsed >= revealAt) reveal();
   else playerRevealTimers.push(setTimeout(reveal, revealAt - elapsed));
+  if (game.levelBreak && playerLevelTransitionInfo[(game.level || 1) + 1]) {
+    const transitionAt = leaderboardAt + PLAYER_LEVEL_TRANSITION_DELAY_MS;
+    const delay = Math.max(0, transitionAt - elapsed);
+    playerRevealTimers.push(setTimeout(() => showPlayerLevelTransition((game.level || 1) + 1), delay));
+  }
 }
 
 // ─────────────────────────────────────────
