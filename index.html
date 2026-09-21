@@ -1004,7 +1004,7 @@ function showScreen(id) {
   document.getElementById('screen-' + id).classList.add('active');
 }
 // ─────────────────────────────────────────
-// CONFETTI (tối ưu: tối đa 60 hạt, tự dừng & dọn sạch sau ~3s để tránh tích tụ khi mở nhiều tab)
+// CÁNH HỒNG RƠI (tối ưu: tối đa 60 cánh, tự dừng & dọn sạch sau ~3s để tránh tích tụ khi mở nhiều tab)
 // ─────────────────────────────────────────
 let confettiRAF, confettiStopTimer;
 function startConfetti() {
@@ -1018,22 +1018,20 @@ function startConfetti() {
   const DURATION_MS = 2800;
   const particles = Array.from({length:PARTICLE_COUNT}, () => ({
     x: Math.random()*canvas.width, y: -20,
-    r: Math.random()*7+3,
-    color: `hsl(${Math.random()*360},90%,60%)`,
-    vx: (Math.random()-0.5)*4, vy: Math.random()*4+2,
-    tilt: Math.random()*10, tiltV: (Math.random()-0.5)*0.3
+    w: Math.random()*7+7, h: Math.random()*4+5,
+    color: ['#ff6b9a','#ff9fba','#ffd0dc','#e8447c','#f7a7bd'][Math.floor(Math.random()*5)],
+    vx: (Math.random()-0.5)*2.2, vy: Math.random()*2.2+1.5,
+    angle: Math.random()*Math.PI, spin: (Math.random()-.5)*.12
   }));
   const startTime = performance.now();
   function draw() {
     ctx.clearRect(0,0,canvas.width,canvas.height);
     particles.forEach(p => {
-      p.x += p.vx; p.y += p.vy; p.tilt += p.tiltV;
+      p.x += p.vx; p.y += p.vy; p.angle += p.spin;
       if (p.y > canvas.height) { p.y = -20; p.x = Math.random()*canvas.width; }
-      ctx.beginPath();
-      ctx.lineWidth = p.r; ctx.strokeStyle = p.color;
-      ctx.moveTo(p.x+p.tilt, p.y);
-      ctx.lineTo(p.x+p.tilt, p.y+p.r*2);
-      ctx.stroke();
+      ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.angle);
+      ctx.fillStyle = p.color; ctx.beginPath(); ctx.ellipse(0, 0, p.w, p.h, .35, 0, Math.PI * 2); ctx.fill();
+      ctx.restore();
     });
     if (performance.now() - startTime < DURATION_MS) {
       confettiRAF = requestAnimationFrame(draw);

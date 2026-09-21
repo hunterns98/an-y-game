@@ -43,6 +43,8 @@
     align-items: center; justify-content: space-between;
     padding: 22px 4px 18px;
   }
+  /* Display là màn chiếu: bỏ toàn bộ thanh điều hướng để ưu tiên không gian nội dung. */
+  #top-bar { display:none!important; }
   .brand {
     font-size: 1.5rem; font-weight: 900;
     background: linear-gradient(135deg, var(--pink), var(--gold), var(--cyan));
@@ -239,8 +241,8 @@
   @keyframes podiumRise { from{opacity:0;transform:translateY(44px) scale(.84)} to{opacity:1;transform:translateY(0) scale(1)} }
   .podium-medal { position:relative; z-index:1; width:62px; height:62px; margin:0 auto 10px; display:grid; place-items:center; border-radius:50%; font-size:2.3rem; background:rgba(8,0,21,.38); border:2px solid rgba(255,255,255,.22); filter:drop-shadow(0 7px 7px rgba(0,0,0,.3)); }
   .rank-1 .podium-medal { width:80px; height:80px; font-size:3.1rem; border-color:rgba(255,214,10,.8); box-shadow:0 0 22px rgba(255,214,10,.48); }
-  .podium-avatars { position:relative; z-index:1; display:flex; justify-content:center; margin:0 0 8px; }
-  .podium-avatars .avatar-frame { margin:0 -6px; }.podium-avatars img { border-width:2px; box-shadow:0 4px 10px rgba(0,0,0,.4); }
+  .podium-avatars { position:relative; z-index:1; display:flex; justify-content:center; margin:0 0 12px; }
+  .podium-avatars .avatar-frame { margin:0 -10px; }.podium-avatars img { border-width:3px; box-shadow:0 4px 10px rgba(0,0,0,.4); }
   .podium-team { position:relative; z-index:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:clamp(.9rem,1.8vw,1.2rem); font-weight:900; }
   .podium-points { position:relative; z-index:1; margin-top:5px; color:var(--gold); font-size:1.05rem; font-weight:900; }
   .rank-1 .podium-points { color:var(--cyan); font-size:1.25rem; }
@@ -261,7 +263,7 @@
   .champion-avatars .avatar-frame { margin:0 -13px; }.champion-avatars .avatar-thumb { width:112px!important; height:112px!important; border:4px solid var(--gold); box-shadow:0 8px 24px rgba(0,0,0,.4); }
   .champion-team { position:relative; z-index:1; font-size:clamp(1.55rem,4vw,2.35rem); font-weight:950; text-shadow:0 3px 9px rgba(0,0,0,.35); }
   .champion-score { position:relative; z-index:1; margin-top:4px; font-size:1.04rem; font-weight:900; color:var(--cyan); }
-  @media (max-width:700px) { .podium-grid { gap:7px; } .podium-card { min-height:150px; padding:15px 7px 12px; border-radius:18px; } .podium-card.rank-1 { min-height:184px; } .podium-medal { width:48px; height:48px; font-size:1.8rem; } .rank-1 .podium-medal { width:60px; height:60px; font-size:2.3rem; } .podium-avatars .avatar-frame { width:28px!important;height:28px!important; } .podium-avatars img { width:28px!important; height:28px!important; } .podium-team { font-size:.8rem; } .podium-points { font-size:.85rem; } .champion-avatars .avatar-frame { width:78px!important;height:78px!important; } .champion-avatars .avatar-thumb { width:78px!important; height:78px!important; } }
+  @media (max-width:700px) { .podium-grid { gap:7px; } .podium-card { min-height:150px; padding:15px 7px 12px; border-radius:18px; } .podium-card.rank-1 { min-height:184px; } .podium-medal { width:48px; height:48px; font-size:1.8rem; } .rank-1 .podium-medal { width:60px; height:60px; font-size:2.3rem; } .podium-avatars .avatar-frame,.podium-avatars img { width:48px!important;height:48px!important; } .rank-1 .podium-avatars .avatar-frame,.rank-1 .podium-avatars img { width:60px!important;height:60px!important; } .podium-team { font-size:.8rem; } .podium-points { font-size:.85rem; } .champion-avatars .avatar-frame { width:78px!important;height:78px!important; } .champion-avatars .avatar-thumb { width:78px!important; height:78px!important; } }
   /* ── ENDED SCREEN ── */
   #screen-ended { position: relative; }
   /* Chung kết 20/10: nền chỉ tải/hiện ở màn cuối, không làm nặng lúc chơi. */
@@ -898,8 +900,8 @@ function renderPodiumLeaderboard(targetId, sorted, mode='round') {
     const medal = medals[Math.min(rank, 3)] || '🏅';
     return `<article class="podium-card rank-${Math.min(rank,3)} podium-slot-${index + 1}">
       <span class="podium-rank">HẠNG ${rank}</span>
+      <div class="podium-avatars">${avatarImg(team.player1, rank === 1 ? 80 : 62)}${avatarImg(team.player2, rank === 1 ? 80 : 62)}</div>
       <div class="podium-medal">${medal}</div>
-      <div class="podium-avatars">${avatarImg(team.player1, index === 0 ? 46 : 36)}${avatarImg(team.player2, index === 0 ? 46 : 36)}</div>
       <div class="podium-team">${teamLabel(team)}${rankShiftHtml(team)}${streakHtml(team)}</div>
       <div class="podium-points">${team.score || 0} điểm</div>
     </article>`;
@@ -1133,7 +1135,7 @@ document.getElementById('btn-save-final').addEventListener('click', async () => 
   }
 });
 // ─────────────────────────────────────────
-// CONFETTI (tối ưu: tối đa 90 hạt, tự dừng & dọn sạch để không tích tụ khi để TV chạy lâu)
+// CÁNH HỒNG RƠI (tối ưu: tối đa 90 cánh, tự dừng & dọn sạch để không tích tụ khi để TV chạy lâu)
 // ─────────────────────────────────────────
 let dConfettiRAF;
 function startDisplayConfetti() {
@@ -1146,22 +1148,20 @@ function startDisplayConfetti() {
   const DURATION_MS = 3200;
   const particles = Array.from({length:PARTICLE_COUNT}, () => ({
     x: Math.random()*canvas.width, y: -20,
-    r: Math.random()*7+3,
-    color: `hsl(${Math.random()*360},90%,60%)`,
-    vx: (Math.random()-0.5)*4, vy: Math.random()*4+2,
-    tilt: Math.random()*10, tiltV: (Math.random()-0.5)*0.3
+    w: Math.random()*7+7, h: Math.random()*4+5,
+    color: ['#ff6b9a','#ff9fba','#ffd0dc','#e8447c','#f7a7bd'][Math.floor(Math.random()*5)],
+    vx: (Math.random()-0.5)*2.2, vy: Math.random()*2.2+1.5,
+    angle: Math.random()*Math.PI, spin: (Math.random()-.5)*.12
   }));
   const startTime = performance.now();
   function draw() {
     ctx.clearRect(0,0,canvas.width,canvas.height);
     particles.forEach(p => {
-      p.x += p.vx; p.y += p.vy; p.tilt += p.tiltV;
+      p.x += p.vx; p.y += p.vy; p.angle += p.spin;
       if (p.y > canvas.height) { p.y = -20; p.x = Math.random()*canvas.width; }
-      ctx.beginPath();
-      ctx.lineWidth = p.r; ctx.strokeStyle = p.color;
-      ctx.moveTo(p.x+p.tilt, p.y);
-      ctx.lineTo(p.x+p.tilt, p.y+p.r*2);
-      ctx.stroke();
+      ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.angle);
+      ctx.fillStyle = p.color; ctx.beginPath(); ctx.ellipse(0, 0, p.w, p.h, .35, 0, Math.PI * 2); ctx.fill();
+      ctx.restore();
     });
     if (performance.now() - startTime < DURATION_MS) {
       dConfettiRAF = requestAnimationFrame(draw);
