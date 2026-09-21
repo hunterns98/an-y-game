@@ -388,7 +388,6 @@
   <div class="screen" id="screen-ended">
     <canvas id="d-confetti-canvas"></canvas>
     <div class="ended-content">
-      <p class="ended-label">🎮 Ăn Ý · Game Over</p>
       <div class="kahoot-leaderboard" id="d-final-leaderboard"></div>
       <div class="award-list" id="d-award-list"></div>
       <div class="journey-list" id="d-team-journey"></div>
@@ -917,7 +916,7 @@ function renderPodiumLeaderboard(targetId, sorted, mode='round') {
   }).join('');
   const heading = mode === 'final' ? 'Bảng xếp hạng chung cuộc' : 'Bảng xếp hạng hiện tại';
   const champion = '';
-  target.innerHTML = `<div class="lb-eyebrow">${mode === 'final' ? '🏆 GAME OVER' : '🏁 ROUND COMPLETE'}</div>
+  target.innerHTML = `${mode === 'final' ? '' : '<div class="lb-eyebrow">🏁 ROUND COMPLETE</div>'}
     <h2 class="lb-title">${heading}</h2>
     <div class="lb-divider"></div>
     ${champion}
@@ -1150,12 +1149,14 @@ function startDisplayConfetti() {
   canvas.width = window.innerWidth; canvas.height = window.innerHeight;
   if (dConfettiRAF) cancelAnimationFrame(dConfettiRAF);
   const PARTICLE_COUNT = 90;
-  const DURATION_MS = 3200;
+  const DURATION_MS = 5800;
   const particles = Array.from({length:PARTICLE_COUNT}, () => ({
-    x: Math.random()*canvas.width, y: -20,
+    // Rải cánh hoa từ đầu theo toàn khung hình để khán giả luôn thấy hoa rơi,
+    // thay vì chỉ có một dải ngắn trên mép màn hình.
+    x: Math.random()*canvas.width, y: Math.random()*canvas.height*.85 - 150,
     w: Math.random()*7+7, h: Math.random()*4+5,
     color: ['#ff6b9a','#ff9fba','#ffd0dc','#e8447c','#f7a7bd'][Math.floor(Math.random()*5)],
-    vx: (Math.random()-0.5)*2.2, vy: Math.random()*2.2+1.5,
+    vx: (Math.random()-0.5)*2.2, vy: Math.random()*2.2+1.7,
     angle: Math.random()*Math.PI, spin: (Math.random()-.5)*.12
   }));
   const startTime = performance.now();
