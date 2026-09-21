@@ -571,20 +571,20 @@ function createRoom() {
   });
 }
 // ── DEMO ROOM ──
-// Một phòng test thật trên Firebase nhưng được đánh dấu isDemo. Tên/điểm giả giúp
-// host tự chạy toàn bộ flow mà không cần 16 điện thoại thật.
+// Một phòng test thật trên Firebase nhưng được đánh dấu isDemo. Dùng đúng danh
+// sách khách mời để host rehearsal gần với buổi chơi thật mà không cần 16 máy.
 document.getElementById('btn-create-demo').addEventListener('click', createDemoRoom);
 function createDemoRoom(attempt = 0) {
   if (attempt >= 5) { toast('❌ Không tạo được mã demo. Hãy thử lại.'); return; }
   const code = ('D' + Math.random().toString(36).slice(2, 6)).toUpperCase();
-  const demoNames = Array.from({length:16}, (_, i) => `Demo ${String(i + 1).padStart(2, '0')}`);
+  const demoNames = ['Nhung', 'Thủy', 'An', 'Thoan', 'Phượng', 'Ánh', 'Giang', 'Hạnh', 'Lệ', 'Mai Anh', 'Linh', 'Hằng', 'Hoa', 'Trang', 'Trúc', 'Liên'];
   const players = {}, nameReservations = {}, teams = {};
   demoNames.forEach((name, index) => {
     players[name] = { name, avatar:index + 1, score:0, answer:'', sessionId:`demo-${index + 1}` };
     nameReservations[normalizeAnswer(name)] = name;
   });
   for (let i = 0; i < 8; i++) {
-    teams[`team${i + 1}`] = { teamName:`Đội Demo ${i + 1}`, player1:demoNames[i * 2], player2:demoNames[i * 2 + 1], score:0 };
+    teams[`team${i + 1}`] = { teamName:`Đội ${i + 1}`, player1:demoNames[i * 2], player2:demoNames[i * 2 + 1], score:0 };
   }
   const payload = { host:'Host Demo', status:'waiting', currentRound:-1, isDemo:true, createdAt:firebase.database.ServerValue.TIMESTAMP, avatarPool:shuffledAvatarPool(), players, nameReservations, teams };
   db.ref('rooms/' + code).transaction(current => current === null ? payload : undefined, (error, committed) => {
