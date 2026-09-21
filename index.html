@@ -4,6 +4,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 <title>Ăn Ý ❤️ — Game Show</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Lora:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
   :root {
     --bg:       #0a0015;
@@ -421,6 +424,35 @@
   .ws-rank { width: 24px; font-size: 1.1rem; }
   .ws-team-name { flex: 1; text-align: left; padding: 0 10px; font-size: 0.85rem; font-weight: 700; }
   .ws-pts { font-weight: 900; color: var(--gold); }
+  /* ── QUÀ 20/10: phần kết thúc riêng của người chơi ── */
+  #winner-screen { overflow-y:auto; justify-content:flex-start; padding:clamp(26px,7vh,56px) 20px 42px; background:radial-gradient(ellipse at 50% 12%,rgba(255,45,120,.28),transparent 36%),radial-gradient(ellipse at center,#26024a 0%,#0a0015 76%); }
+  .gift-content { width:min(100%,440px); min-height:calc(100vh - 68px); display:flex; flex-direction:column; align-items:center; justify-content:center; position:relative; z-index:1; text-align:center; }
+  .gift-kicker { margin-bottom:10px; color:#ffe39c; font-size:.74rem; font-weight:950; letter-spacing:.13em; text-transform:uppercase; }
+  .gift-title { max-width:330px; margin:0; color:var(--text); font-size:clamp(1.5rem,7vw,2.1rem); line-height:1.22; font-weight:950; }
+  .gift-subtitle { max-width:320px; margin:12px auto 24px; color:var(--muted); font-size:.9rem; line-height:1.45; }
+  .gift-box-button { position:relative; width:150px; height:142px; margin:4px 0 18px; border:0; background:transparent; cursor:pointer; -webkit-tap-highlight-color:transparent; filter:drop-shadow(0 12px 18px rgba(255,45,120,.34)); animation:giftFloat 2.2s ease-in-out infinite; }
+  .gift-box-button:focus-visible { outline:3px solid var(--cyan); outline-offset:8px; border-radius:20px; }
+  .gift-box-button:active { transform:scale(.94); }
+  .gift-box-lid { position:absolute; z-index:2; left:4px; top:18px; width:142px; height:34px; border-radius:10px; background:linear-gradient(180deg,#ff6fa4,#d91765); border:2px solid rgba(255,226,239,.7); box-shadow:0 5px 0 rgba(120,0,48,.34); }
+  .gift-box-base { position:absolute; left:10px; top:47px; width:130px; height:82px; overflow:hidden; border-radius:8px 8px 16px 16px; background:linear-gradient(135deg,#ed2c78,#a90050); border:2px solid rgba(255,226,239,.68); }
+  .gift-box-ribbon-v { position:absolute; z-index:3; left:65px; top:16px; width:21px; height:114px; background:linear-gradient(90deg,#ffe66d,#ffb703,#ffe66d); box-shadow:0 0 12px rgba(255,214,10,.55); }
+  .gift-box-ribbon-h { position:absolute; z-index:4; left:5px; top:25px; width:140px; height:17px; background:linear-gradient(180deg,#ffe66d,#ffb703); }
+  .gift-bow { position:absolute; z-index:5; left:50%; top:0; width:64px; height:43px; transform:translateX(-50%); }
+  .gift-bow::before,.gift-bow::after { content:''; position:absolute; top:7px; width:31px; height:27px; border:8px solid #ffd60a; background:rgba(255,214,10,.2); }
+  .gift-bow::before { left:0; border-radius:70% 36% 65% 38%; transform:rotate(18deg); }.gift-bow::after { right:0; border-radius:36% 70% 38% 65%; transform:rotate(-18deg); }
+  .gift-bow span { position:absolute; z-index:2; left:25px; top:13px; width:17px; height:17px; border-radius:50%; background:#ffd60a; }
+  .gift-open-hint { color:var(--cyan); font-size:.86rem; font-weight:900; animation:giftHintPulse 1.45s ease-in-out infinite; }
+  @keyframes giftFloat { 0%,100%{transform:translateY(0) rotate(-1.5deg)} 50%{transform:translateY(-8px) rotate(1.5deg)} }
+  @keyframes giftHintPulse { 50%{opacity:.45;transform:scale(.97)} }
+  .poem-card { display:none; width:100%; padding:clamp(22px,6vw,32px) clamp(18px,6vw,30px); border:1px solid rgba(255,214,10,.58); border-radius:26px; background:linear-gradient(150deg,rgba(82,19,112,.94),rgba(31,5,65,.94)); box-shadow:0 18px 42px rgba(0,0,0,.32),0 0 32px rgba(255,45,120,.15); animation:poemReveal .6s cubic-bezier(.2,1.35,.4,1) both; }
+  .gift-content.open .gift-intro { display:none; }.gift-content.open .poem-card { display:block; }
+  @keyframes poemReveal { from{opacity:0;transform:translateY(20px) scale(.94)} to{opacity:1;transform:none} }
+  .poem-title { color:#ffe39c; font-size:1.14rem; font-weight:950; letter-spacing:.08em; }
+  .poem-divider { width:76px; height:1px; margin:14px auto 16px; background:linear-gradient(90deg,transparent,var(--pink),transparent); }
+  .poem-body { font-family:'Lora',Georgia,serif; color:#fff3fa; font-size:clamp(.92rem,4.2vw,1.06rem); font-weight:500; line-height:1.8; text-align:left; }
+  .poem-body strong { color:#ffd96c; font-weight:700; }
+  .poem-stanza + .poem-stanza { margin-top:15px; }
+  .poem-signature { margin-top:20px; padding-top:14px; border-top:1px solid rgba(255,255,255,.14); color:var(--pink); font-size:.78rem; font-weight:900; letter-spacing:.04em; }
   /* ── CONFETTI ── */
   /* (drawn via canvas) */
   /* ── TOAST ── */
@@ -638,6 +670,22 @@
     font-size: 0.7rem; font-weight: 800; letter-spacing: 0.18em;
     text-transform: uppercase; color: var(--muted); margin-bottom: 12px; text-align: center;
   }
+  /* ── MOBILE: màn chơi ưu tiên timer, câu hỏi và đáp án ──
+     Header/âm thanh là thông tin phụ trên điện thoại; màn lớn vẫn giữ đầy đủ. */
+  @media (max-width: 700px) {
+    .game-header { display:none; }
+    #app { padding:10px 14px 34px; }
+    #screen-question { gap:12px; }
+    #screen-question > div:first-child { padding:0 2px!important; }
+    .q-round-badge { margin-bottom:0; padding:5px 13px; font-size:.68rem; }
+    .question-card { padding:22px 18px; }
+    .q-text { font-size:clamp(1.2rem,5.8vw,1.6rem); line-height:1.38; }
+    .answer-grid { gap:10px; }
+    .btn-answer { min-height:116px; padding:16px 10px; font-size:clamp(.92rem,4.4vw,1.08rem); }
+    .btn-answer .option-label { margin-bottom:5px; }
+    #btn-submit-choice { padding:16px; }
+    .partner-status-pill { padding:8px 12px; }
+  }
   /* RESPONSIVE */
   @media (max-width: 360px) {
     .logo-text { font-size: 2.2rem; }
@@ -666,16 +714,28 @@
 <!-- Winner Screen -->
 <div id="winner-screen">
   <canvas id="confetti-canvas"></canvas>
-  <div class="ws-content">
-    <p class="ws-label">🎮 Ăn Ý · Game Over</p>
-    <span class="ws-crown">🏆</span>
-    <div class="ws-name" id="ws-name">—</div>
-    <div class="ws-score" id="ws-score">0 điểm</div>
-    <div class="ws-sub">Đội chiến thắng 💞</div>
-    <div class="award-list" id="ws-award-list"></div>
-    <div class="ws-journey" id="ws-journey"></div>
-    <div class="ws-list" id="ws-list"></div>
-    <button class="btn btn-ghost" style="max-width:280px;" id="btn-ws-back">📊 Xem lại</button>
+  <div class="gift-content" id="gift-content">
+    <div class="gift-intro">
+      <div class="gift-kicker">20 · 10 · 2026</div>
+      <h1 class="gift-title">🎁 Một món quà<br>20/10 dành cho bạn</h1>
+      <p class="gift-subtitle">Màn hình lớn đang vinh danh các đội. Còn đây là một lời chúc thật riêng dành cho bạn.</p>
+      <button class="gift-box-button" id="btn-open-gift" type="button" aria-label="Mở món quà 20 tháng 10">
+        <span class="gift-bow"><span></span></span><span class="gift-box-lid"></span><span class="gift-box-base"></span><span class="gift-box-ribbon-v"></span><span class="gift-box-ribbon-h"></span>
+      </button>
+      <p class="gift-open-hint">Chạm để mở quà ✨</p>
+    </div>
+    <article class="poem-card" aria-live="polite">
+      <h2 class="poem-title">🌸 Lời chúc 20/10</h2>
+      <div class="poem-divider"></div>
+      <div class="poem-body">
+        <p class="poem-stanza">Chúc em <strong>Nhung</strong> gấm lụa là,<br>Tiền vào như <strong>Thủy</strong> sông Đà cuộn xoay.<br>Một đời bình <strong>An</strong> đắm say,<br><strong>Thoan</strong> thả hạnh phúc, đong đầy yêu thương.</p>
+        <p class="poem-stanza">Chúc em như hè có <strong>Phượng</strong>,<br><strong>Ánh</strong> dương khoe sắc, ngát hương nắng vàng.<br>Vượt qua muôn dặm trường <strong>Giang</strong>,<br>Bến bờ <strong>Hạnh</strong> phúc, giàu sang đợi chờ.</p>
+        <p class="poem-stanza">Chúc em diễm <strong>Lệ</strong> chẳng mờ,<br><strong>Mai</strong> vàng đón lộc, <strong>Anh</strong> thơ đón nàng.<br>Thông minh <strong>Linh</strong> mẫn trăm ngàn,<br>Thỏa bao ước nguyện, vẹn toàn <strong>Hằng</strong> mong.</p>
+        <p class="poem-stanza">Chúc em như <strong>Hoa</strong> thắm hồng,<br>Dung nhan <strong>Trang</strong> nhã, mặn nồng thanh tao.<br>Như <strong>Trúc</strong> xanh vươn đến trời cao,<br><strong>Liên</strong> miên tài lộc, dạt dào chẳng vơi.</p>
+        <p class="poem-stanza">Hai mươi tháng Mười đẹp tươi,<br>Chúc cho phái đẹp nụ cười nở hoa.<br>Trẻ trung, hạnh phúc, kiêu sa,<br>Tiền tài, may mắn, nhà nhà ấm êm!</p>
+      </div>
+      <p class="poem-signature">Chúc mừng 20/10 · Nam Thần Sales ❤️</p>
+    </article>
   </div>
 </div>
 <!-- MAIN APP -->
@@ -1008,6 +1068,7 @@ function showScreen(id) {
 // CÁNH HỒNG RƠI (tối ưu: tối đa 60 cánh, tự dừng & dọn sạch sau ~3s để tránh tích tụ khi mở nhiều tab)
 // ─────────────────────────────────────────
 let confettiRAF, confettiStopTimer;
+let giftOpened = false;
 function startConfetti() {
   const canvas = document.getElementById('confetti-canvas');
   const ctx = canvas.getContext('2d');
@@ -1439,6 +1500,8 @@ function listenGame() {
     activeGame = game;
     if (game.status === 'waiting') {
       document.getElementById('winner-screen').classList.remove('show');
+      giftOpened = false;
+      document.getElementById('gift-content').classList.remove('open');
       stopConfetti(); hidePlayerLevelTransition(); showScreen('lobby');
       return;
     }
@@ -1936,37 +1999,17 @@ function getPlayerAwards(teams) {
 // END GAME
 // ─────────────────────────────────────────
 function showEndForPlayer() {
-  db.ref('rooms/' + myRoom + '/teams').once('value').then(snap => {
-    const teams = snap.val() || {};
-    const sorted = Object.values(teams).sort((a,b)=>(b.score||0)-(a.score||0));
-    const winner = sorted[0];
-    const teamLabel = t => t.teamName || (t.player1+' & '+t.player2);
-    const isMyTeam = t => t.player1===myName||t.player2===myName;
-    document.getElementById('ws-name').textContent = teamLabel(winner);
-    document.getElementById('ws-score').textContent = (winner.score||0)+' điểm';
-    const listEl = document.getElementById('ws-list');
-    const medals = ['🥇','🥈','🥉'];
-    listEl.innerHTML = sorted.map((t,i) => `
-      <div class="ws-row ${isMyTeam(t)?'my-team':''}">
-        <span class="ws-rank">${medals[i]||'#'+(i+1)}</span>
-        <span class="ws-team-name">${teamLabel(t)}${isMyTeam(t)?' 👈':''}</span>
-      <span class="ws-pts">${t.score||0}</span>
-    </div>`).join('');
-    document.getElementById('ws-award-list').innerHTML = getPlayerAwards(teams).map(a => `<span class="award-chip">${a}</span>`).join('');
-    const myFinalTeam = sorted.find(isMyTeam);
-    const myStats = (myFinalTeam && myFinalTeam.stats) || {};
-    document.getElementById('ws-journey').innerHTML = myFinalTeam
-      ? `Hành trình <b>${teamLabel(myFinalTeam)}</b>: 💞 ${myStats.matches || 0} lần ăn ý · 🔥 chuỗi dài nhất ${myStats.bestStreak || 0} · 🚀 lật kèo ${myStats.bestComeback || 0} hạng`
-      : '';
-    const ws = document.getElementById('winner-screen');
-    ws.classList.add('show');
-    sfxWin();
-    startConfetti();
-  });
+  const ws = document.getElementById('winner-screen');
+  const gift = document.getElementById('gift-content');
+  gift.classList.toggle('open', giftOpened);
+  ws.classList.add('show');
 }
-document.getElementById('btn-ws-back').addEventListener('click', () => {
-  document.getElementById('winner-screen').classList.remove('show');
-  stopConfetti();
+document.getElementById('btn-open-gift').addEventListener('click', () => {
+  if (giftOpened) return;
+  giftOpened = true;
+  document.getElementById('gift-content').classList.add('open');
+  sfxWin();
+  startConfetti();
 });
 // ─────────────────────────────────────────
 // TEAM NAME EDITOR
