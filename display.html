@@ -215,6 +215,10 @@
   .award-chip { padding:8px 12px; border-radius:99px; background:rgba(0,245,212,.1); border:1px solid rgba(0,245,212,.3); color:var(--text); font-size:.8rem; font-weight:800; }
   .journey-list { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; width:min(100%,760px); margin:18px auto 0; text-align:left; }.journey-card { padding:10px 12px; border-radius:12px; background:rgba(31,7,56,.72); border:1px solid rgba(255,255,255,.2); font-size:.78rem; font-weight:800; }.journey-card b{color:var(--cyan)}.journey-card span{color:var(--muted)}
   .save-final-btn { margin-top:14px; padding:10px 18px; border-radius:99px; border:1px solid rgba(255,214,10,.65); color:var(--gold); background:rgba(62,17,89,.86); font-weight:900; cursor:pointer; }
+  /* Bố cục chỉ dùng trong file ảnh: gọn, không lệ thuộc vị trí scroll của TV/trình duyệt. */
+  #screen-ended.capture-mode { width:min(1100px,100%); min-height:620px; padding:28px 28px 24px; border-radius:28px; background-image:linear-gradient(180deg,rgba(30,0,52,.14),rgba(20,0,42,.52)),url('assets/backgrounds/finale-20-10-floral.png'); background-size:cover; background-position:center; }
+  #screen-ended.capture-mode .lb-rest, #screen-ended.capture-mode .journey-list, #screen-ended.capture-mode .save-final-btn, #screen-ended.capture-mode #d-confetti-canvas { display:none!important; }
+  #screen-ended.capture-mode .ended-content { width:100%; }.capture-mode .award-list { margin-top:12px; }
   .rr-team   { font-weight: 800; flex: 1; }
   .rr-ans    { font-size: 0.88rem; color: var(--muted); flex: 1.4; }
   .rr-result { font-weight: 900; font-size: 0.95rem; white-space: nowrap; }
@@ -1109,16 +1113,22 @@ document.getElementById('btn-save-final').addEventListener('click', async () => 
   const button = document.getElementById('btn-save-final');
   if (!window.html2canvas) { button.textContent = '⚠️ Chưa tải công cụ ảnh'; return; }
   button.disabled = true; button.textContent = '⏳ Đang tạo ảnh...';
+  const target = document.getElementById('screen-ended');
   try {
-    button.style.visibility = 'hidden';
-    const canvas = await window.html2canvas(document.body, { useCORS:true, backgroundColor:null, scale:Math.min(2, window.devicePixelRatio || 1) });
+    // Không chụp document.body: body có thể cao hơn viewport hoặc đang ở vị trí scroll cũ.
+    // Khung riêng này luôn ưu tiên podium và danh hiệu — đúng nghĩa “ảnh kỷ niệm”.
+    target.classList.add('capture-mode');
+    const canvas = await window.html2canvas(target, {
+      useCORS:true, backgroundColor:'#21003d', scale:Math.min(2, window.devicePixelRatio || 1),
+      scrollX:0, scrollY:0, windowWidth:target.scrollWidth, windowHeight:target.scrollHeight
+    });
     const link = document.createElement('a');
     link.download = `an-y-chung-ket-${myRoom || 'game'}.png`;
     link.href = canvas.toDataURL('image/png'); link.click();
   } catch (error) {
     button.textContent = '⚠️ Không thể tạo ảnh';
   } finally {
-    button.style.visibility = ''; button.disabled = false;
+    target.classList.remove('capture-mode'); button.disabled = false;
     if (!button.textContent.startsWith('⚠️')) button.textContent = '📸 Lưu ảnh kỷ niệm';
   }
 });
