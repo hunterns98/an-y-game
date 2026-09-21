@@ -318,6 +318,7 @@
     </div>
     <div style="display:flex;gap:8px;flex-wrap:wrap;">
       <button class="btn btn-purple" id="btn-open-display">📺 Màn hình lớn</button>
+      <button class="btn btn-ghost" id="btn-rematch">🔁 Chơi lại</button>
       <button class="btn btn-ghost" id="btn-end-game">🏁 Kết thúc</button>
       <button class="btn btn-red" id="btn-reset">🗑 Reset</button>
     </div>
@@ -405,6 +406,7 @@
           <button class="btn btn-cyan" id="btn-reveal">🔓 Reveal đáp án</button>
           <button class="btn btn-gold" id="btn-next">➡️ Câu tiếp</button>
         </div>
+        <p style="margin-top:10px;color:var(--muted);font-size:.75rem;font-weight:700;">Phím tắt host: <b>Space</b> reveal · <b>N</b> câu tiếp · <b>F</b> toàn màn hình</p>
         <div id="demo-tools" style="display:none;margin-top:12px;padding-top:12px;border-top:1px solid var(--border);">
           <div style="font-size:.72rem;color:var(--purple);font-weight:900;letter-spacing:.12em;margin-bottom:8px;">🧪 CÔNG CỤ PHÒNG DEMO</div>
           <div class="action-bar"><button class="btn btn-purple" id="btn-fill-demo">⚡ Điền đáp án mẫu</button><button class="btn btn-ghost" id="btn-demo-final">🏆 Mở chung kết giả lập</button></div>
@@ -783,6 +785,14 @@ function listenGame() {
     }
     if (hostStartCountdownTimer) { clearTimeout(hostStartCountdownTimer); hostStartCountdownTimer = null; }
 
+    if (g.status === 'waiting') {
+      document.getElementById('phase-setup').style.display = 'block';
+      document.getElementById('phase-game').style.display = 'none';
+      document.getElementById('teams-section').style.display = Object.keys(teamsCache || {}).length ? 'block' : 'none';
+      if (!answersListenerAttached) { answersListenerAttached = true; listenAnswers(); }
+      return;
+    }
+
     if (g.status === 'playing' || g.status === 'ended') {
       // Đảm bảo đúng phase-game hiển thị, dù do thao tác Start trước đó hay F5 lại giữa chừng
       document.getElementById('phase-setup').style.display = 'none';
@@ -836,6 +846,10 @@ function renderRoundReadiness() {
     ? `✅ ${data.ready}/${data.total} đội đã sẵn sàng`
     : `⏳ ${data.ready}/${data.total} đội sẵn sàng · còn ${data.missing.length} người`;
   summary.className = 'readiness-summary ' + (allReady ? 'ready' : 'waiting');
+  const revealBtn = document.getElementById('btn-reveal');
+  if (revealBtn && !revealBtn.disabled && gameCache.phase !== 'results') {
+    revealBtn.textContent = allReady ? `✨ Reveal ngay (${data.ready}/${data.total} đội)` : '🔓 Reveal đáp án';
+  }
   list.innerHTML = data.teams.map(row => `
     <div class="readiness-row ${row.ready ? 'ready' : 'missing'}">
       <span class="readiness-team">${row.label}</span>
@@ -1041,6 +1055,7 @@ function applyControlButtonsState(game) {
   // Vẫn nhận cả trạng thái locked cũ để các phòng đang chạy có thể thoát vòng an toàn.
   revealBtn.disabled = phase === 'results';
   nextBtn.disabled = phase !== 'results';
+  revealBtn.textContent = '🔓 Reveal đáp án';
 }
 // ── SEND QUESTION ──
 function sendQuestion(idx) {
@@ -1269,6 +1284,26 @@ document.getElementById('btn-end-game').addEventListener('click', () => {
   if (!confirm('Kết thúc game? Người chơi sẽ thấy màn hình kết quả.')) return;
   endGame();
 });
+// ── REMATCH: giữ nguyên người chơi và đội, chỉ xoá điểm/lịch sử ván trước ──
+document.getElementById('btn-rematch').addEventListener('click', () => {
+  if (!roomCode || !Object.keys(teamsCache || {}).length) { toast('⚠️ Cần có ít nhất một đội để chơi lại.'); return; }
+  if (!confirm('Chơi lại với cùng người chơi và đội? Điểm và lịch sử ván này sẽ được đặt lại.')) return;
+  const teams = {};
+  Object.entries(teamsCache).forEach(([key, team]) => {
+    teams[key] = { ...team, score:0, stats:{ matches:0, unique:0, currentStreak:0, bestStreak:0, bestComeback:0 }, lastRankChange:null };
+  });
+  db.ref('rooms/' + roomCode).update({
+    teams,
+    answers:null,
+    game:{ status:'waiting', round:-1, phase:'waiting', totalRounds:questions.length, rematchAt:firebase.database.ServerValue.TIMESTAMP }
+  }).then(() => {
+    currentRound = 0; gamePhase = 'setup'; lastKnownRevealed = false;
+    document.getElementById('phase-setup').style.display = 'block';
+    document.getElementById('phase-game').style.display = 'none';
+    document.getElementById('teams-section').style.display = 'block';
+    updateStatusBadge('waiting'); toast('🔁 Đã sẵn sàng ván mới — giữ nguyên đội!');
+  }).catch(error => toast('❌ Không thể tạo rematch: ' + error.message));
+});
 // ── RESET ──
 document.getElementById('btn-reset').addEventListener('click', () => {
   if (!roomCode) { toast('⚠️ Chưa có phòng'); return; }
@@ -1285,6 +1320,22 @@ document.getElementById('btn-reset').addEventListener('click', () => {
     updateStatusBadge('waiting');
     toast('🗑 Đã reset phòng!');
   });
+});
+// ── HOST HOTKEYS ──
+document.addEventListener('keydown', event => {
+  const tag = (event.target && event.target.tagName || '').toLowerCase();
+  if (tag === 'input' || tag === 'textarea' || event.ctrlKey || event.metaKey || event.altKey) return;
+  if (event.code === 'Space') {
+    const button = document.getElementById('btn-reveal');
+    if (button && !button.disabled && gameCache && gameCache.status === 'playing') { event.preventDefault(); button.click(); }
+  } else if (event.key.toLowerCase() === 'n') {
+    const button = document.getElementById('btn-next');
+    if (button && !button.disabled && gameCache && gameCache.status === 'playing') { event.preventDefault(); button.click(); }
+  } else if (event.key.toLowerCase() === 'f') {
+    event.preventDefault();
+    if (document.fullscreenElement) document.exitFullscreen();
+    else document.documentElement.requestFullscreen().catch(() => toast('⚠️ Trình duyệt không hỗ trợ toàn màn hình.'));
+  }
 });
 // ── SCORE BOARD ──
 function renderScoreBoard(teams) {

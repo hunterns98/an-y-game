@@ -408,6 +408,7 @@
   .ws-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 28px; width: 100%; max-width: 360px; }
   .award-list { display:flex; flex-wrap:wrap; justify-content:center; gap:8px; max-width:420px; margin:0 auto 20px; }
   .award-chip { padding:7px 11px; border-radius:99px; border:1px solid rgba(0,245,212,.32); background:rgba(0,245,212,.1); color:var(--text); font-size:.74rem; font-weight:800; }
+  .ws-journey { width:100%; max-width:360px; margin:0 auto 16px; padding:10px 12px; border-radius:13px; background:rgba(255,255,255,.07); border:1px solid var(--border); color:var(--muted); font-size:.76rem; font-weight:800; line-height:1.55; }.ws-journey b { color:var(--cyan); }
   .rank-shift { display:inline-block; margin-left:6px; font-size:.72rem; font-weight:900; animation:rankPop .55s cubic-bezier(.34,1.5,.64,1) both; } @keyframes rankPop { from{opacity:0;transform:scale(.3) translateY(8px)} to{opacity:1;transform:scale(1) translateY(0)} } .rank-shift.up{color:var(--cyan)} .rank-shift.down{color:#fca5a5}
   .ws-row {
     display: flex; align-items: center; justify-content: space-between;
@@ -610,6 +611,7 @@
     transition: color 0.3s, border-color 0.3s;
   }
   .timer-circle.urgent { border-color: var(--gold); color: var(--gold); animation: urgentPulse 0.5s ease-in-out infinite; }
+  .timer-circle.warning { border-color:#ff9f1c; color:#ffcf55; animation:warningPulse 1s ease-in-out infinite; }.timer-circle.critical { border-color:#ff3d71; color:#fff; background:rgba(255,45,120,.28); transform:scale(1.08); } @keyframes warningPulse { 50% { box-shadow:0 0 18px rgba(255,159,28,.45); } }
   @keyframes urgentPulse { 50% { box-shadow: 0 0 20px rgba(255,214,10,0.6); } }
   /* ── PARTNER ANSWER STATUS ── */
   .partner-status-pill {
@@ -669,6 +671,7 @@
     <div class="ws-score" id="ws-score">0 điểm</div>
     <div class="ws-sub">Đội chiến thắng 💞</div>
     <div class="award-list" id="ws-award-list"></div>
+    <div class="ws-journey" id="ws-journey"></div>
     <div class="ws-list" id="ws-list"></div>
     <button class="btn btn-ghost" style="max-width:280px;" id="btn-ws-back">📊 Xem lại</button>
   </div>
@@ -1143,6 +1146,7 @@ let partnerListenerAttached=false;
 let myTeamListenerAttached=false;
 let selectedChoice=null, selectedWho=null, timeIsUp=false;
 let answerUiTimer=null;
+let lastPlayerCountdownTick = null;
 // ── ĐỒNG BỘ THỜI GIAN SERVER (để đếm giờ giống nhau trên mọi máy) ──
 let serverTimeOffset = 0;
 db.ref('.info/serverTimeOffset').on('value', snap => { serverTimeOffset = snap.val() || 0; });
@@ -1434,6 +1438,11 @@ function listenGame() {
     const game = snap.val();
     if (!game) return;
     activeGame = game;
+    if (game.status === 'waiting') {
+      document.getElementById('winner-screen').classList.remove('show');
+      stopConfetti(); hidePlayerLevelTransition(); showScreen('lobby');
+      return;
+    }
     if (game.status === 'ended') { hideHowtoGuide(); showEndForPlayer(); return; }
     if (game.status === 'starting') { showScreen('lobby'); runSyncedGameStartCountdown(game); return; }
     if (game.status !== 'playing') return;
@@ -1623,7 +1632,14 @@ function startQuestionTimer(game) {
     const elapsed = Math.max(0, Math.floor((serverNow() - startedAt) / 1000));
     const remaining = Math.max(0, QUESTION_DURATION - elapsed);
     tc.textContent = remaining;
+    tc.classList.toggle('warning', remaining <= 10 && remaining > 5);
     tc.classList.toggle('urgent', remaining <= 5 && remaining > 0);
+    tc.classList.toggle('critical', remaining <= 5 && remaining > 0);
+    if (remaining <= 10 && remaining > 0 && remaining !== lastPlayerCountdownTick) {
+      lastPlayerCountdownTick = remaining;
+      sfxCountdown();
+    }
+    if (remaining > 10) lastPlayerCountdownTick = null;
     if (remaining <= 0) {
       clearInterval(timerInterval);
       if (!timeIsUp) { timeIsUp = true; handleTimeUp(); }
@@ -1938,6 +1954,11 @@ function showEndForPlayer() {
       <span class="ws-pts">${t.score||0}</span>
     </div>`).join('');
     document.getElementById('ws-award-list').innerHTML = getPlayerAwards(teams).map(a => `<span class="award-chip">${a}</span>`).join('');
+    const myFinalTeam = sorted.find(isMyTeam);
+    const myStats = (myFinalTeam && myFinalTeam.stats) || {};
+    document.getElementById('ws-journey').innerHTML = myFinalTeam
+      ? `Hành trình <b>${teamLabel(myFinalTeam)}</b>: 💞 ${myStats.matches || 0} lần ăn ý · 🔥 chuỗi dài nhất ${myStats.bestStreak || 0} · 🚀 lật kèo ${myStats.bestComeback || 0} hạng`
+      : '';
     const ws = document.getElementById('winner-screen');
     ws.classList.add('show');
     sfxWin();

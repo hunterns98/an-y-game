@@ -145,6 +145,8 @@
     transition: color 0.3s, border-color 0.3s;
   }
   .timer-circle.urgent { border-color: var(--gold); color: var(--gold); animation: urgentPulse 0.5s ease-in-out infinite; }
+  .timer-circle.warning { border-color:#ff9f1c; color:#ffcf55; animation:warningPulse 1s ease-in-out infinite; }.timer-circle.critical { border-color:#ff3d71; color:#fff; background:rgba(255,45,120,.28); transform:scale(1.08); }
+  @keyframes warningPulse { 50% { box-shadow:0 0 20px rgba(255,159,28,.42); } }
   @keyframes urgentPulse { 50% { box-shadow: 0 0 28px rgba(255,214,10,0.65); } }
   .special-badge {
     display: inline-flex; align-items: center; gap: 8px;
@@ -177,6 +179,7 @@
   .team-ready-card { display:flex; align-items:center; justify-content:space-between; gap:9px; padding:9px 12px; border:1px solid var(--border); border-radius:12px; background:rgba(255,255,255,.045); text-align:left; font-size:.8rem; font-weight:800; transition:.25s ease; }
   .team-ready-card.ready { border-color:rgba(34,197,94,.65); background:rgba(34,197,94,.13); color:#bbf7d0; box-shadow:0 0 18px rgba(34,197,94,.12); }
   .team-ready-name { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }.team-ready-state { flex:0 0 auto; color:var(--muted); }.team-ready-card.ready .team-ready-state { color:var(--green); }
+  .team-answer-flash { display:none; width:min(100%,660px); padding:10px 16px; border-radius:14px; text-align:center; color:#d1fae5; background:rgba(34,197,94,.16); border:1px solid rgba(34,197,94,.55); font-weight:900; animation:teamAnswerPop .5s cubic-bezier(.2,1.4,.4,1); }.team-answer-flash.show { display:block; } @keyframes teamAnswerPop { from{opacity:0;transform:scale(.82) translateY(12px)}to{opacity:1;transform:none} }
   #d-start-countdown { position:fixed; inset:0; z-index:50; display:none; flex-direction:column; align-items:center; justify-content:center; gap:8px; background:rgba(10,0,21,.78); backdrop-filter:blur(8px); text-align:center; }
   #d-start-countdown.show { display:flex; }.start-count-num { min-width:120px; color:var(--gold); font-size:clamp(5rem,17vw,11rem); line-height:.85; font-weight:950; text-shadow:0 0 34px rgba(255,214,10,.45); animation:startCountPop .68s cubic-bezier(.2,1.55,.4,1); }.start-count-label { color:var(--text); font-size:clamp(1rem,2.4vw,1.55rem); font-weight:900; letter-spacing:.12em; text-transform:uppercase; } @keyframes startCountPop { from{opacity:0;transform:scale(.5)}to{opacity:1;transform:scale(1)} }
   .level-transition-overlay { position:fixed; inset:0; z-index:70; display:none; place-items:center; padding:28px; background:radial-gradient(circle at 50% 25%,rgba(155,93,229,.44),rgba(10,0,21,.96) 60%); text-align:center; }
@@ -210,6 +213,8 @@
   .leader-spotlight.show { display:block; } @keyframes spotlightPulse { to { box-shadow:0 0 30px rgba(255,214,10,.35); transform:scale(1.01); } }
   .award-list { display:flex; flex-wrap:wrap; justify-content:center; gap:8px; margin-top:16px; }
   .award-chip { padding:8px 12px; border-radius:99px; background:rgba(0,245,212,.1); border:1px solid rgba(0,245,212,.3); color:var(--text); font-size:.8rem; font-weight:800; }
+  .journey-list { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; width:min(100%,760px); margin:18px auto 0; text-align:left; }.journey-card { padding:10px 12px; border-radius:12px; background:rgba(31,7,56,.72); border:1px solid rgba(255,255,255,.2); font-size:.78rem; font-weight:800; }.journey-card b{color:var(--cyan)}.journey-card span{color:var(--muted)}
+  .save-final-btn { margin-top:14px; padding:10px 18px; border-radius:99px; border:1px solid rgba(255,214,10,.65); color:var(--gold); background:rgba(62,17,89,.86); font-weight:900; cursor:pointer; }
   .rr-team   { font-weight: 800; flex: 1; }
   .rr-ans    { font-size: 0.88rem; color: var(--muted); flex: 1.4; }
   .rr-result { font-weight: 900; font-size: 0.95rem; white-space: nowrap; }
@@ -261,12 +266,11 @@
   body.floral-finale .ended-label { color:#fff2c7; text-shadow:0 2px 10px rgba(42,0,55,.8); }
   body.floral-finale .lb-eyebrow { color:#fff1a8; text-shadow:0 2px 8px rgba(42,0,55,.8); }
   body.floral-finale .lb-title { text-shadow:0 3px 14px rgba(42,0,55,.9); }
-  body.floral-finale .champion-hero { width:min(100%,340px); min-height:300px; margin-bottom:0; padding:22px 22px 18px; border-radius:24px 24px 4px 4px; background:linear-gradient(180deg,#6f2e9c 0%,#4d197c 100%); border-color:#ffcf53; box-shadow:0 12px 0 rgba(46,12,78,.75),0 18px 34px rgba(41,0,59,.5); }
-  body.floral-finale .champion-hero::before, body.floral-finale .champion-hero::after { color:#ffd65e; }
-  body.floral-finale .champion-avatars { margin:10px 0 -8px; }.floral-finale .champion-avatars .avatar-thumb { width:96px!important; height:96px!important; }
-  body.floral-finale .podium-grid.final-runnerups { margin-top:-2px; gap:28px; max-width:650px; align-items:end; }
-  body.floral-finale .podium-card { min-height:210px; border-radius:22px 22px 4px 4px; background:linear-gradient(180deg,#66309a,#3f1674); border-color:rgba(255,214,10,.42); box-shadow:0 11px 0 rgba(43,10,74,.72),0 14px 26px rgba(38,0,54,.42); }
-  body.floral-finale .podium-card.rank-2 { min-height:255px; background:linear-gradient(180deg,#7a399f,#4a1b7d); }
+  /* Podium theo thứ tự Kahoot: hạng 2 – hạng 1 – hạng 3, cạnh nhau và cùng chạm đáy. */
+  body.floral-finale .podium-grid { width:min(100%,900px); gap:22px; }
+  body.floral-finale .podium-card { min-height:220px; border-radius:22px 22px 4px 4px; background:linear-gradient(180deg,#66309a,#3f1674); border-color:rgba(255,214,10,.42); box-shadow:0 11px 0 rgba(43,10,74,.72),0 14px 26px rgba(38,0,54,.42); }
+  body.floral-finale .podium-card.rank-1 { min-height:300px; background:linear-gradient(180deg,#8a43ad,#541b89); border-color:#ffcf53; }
+  body.floral-finale .podium-card.rank-2 { min-height:250px; background:linear-gradient(180deg,#783aa1,#481a7b); }
   body.floral-finale .podium-card.rank-3 { min-height:220px; }
   body.floral-finale .award-chip { background:rgba(69,21,112,.8); border-color:rgba(255,225,130,.6); }
   #d-confetti-canvas { position: fixed; inset: 0; pointer-events: none; z-index: 0; }
@@ -363,6 +367,7 @@
       <div class="progress-count" id="d-progress-count">0 / 0</div>
       <div class="team-ready-grid" id="d-team-ready-grid"></div>
     </div>
+    <div class="team-answer-flash" id="d-team-answer-flash" aria-live="polite"></div>
     <div class="reveal-intro" id="d-reveal-intro">🔒 ĐÁP ÁN ĐÃ KHÓA · CÙNG XEM NÀO!</div>
     <div class="reveal-board" id="d-reveal-board"></div>
     <div class="leader-spotlight" id="d-leader-spotlight"></div>
@@ -375,10 +380,13 @@
       <p class="ended-label">🎮 Ăn Ý · Game Over</p>
       <div class="kahoot-leaderboard" id="d-final-leaderboard"></div>
       <div class="award-list" id="d-award-list"></div>
+      <div class="journey-list" id="d-team-journey"></div>
+      <button class="save-final-btn" id="btn-save-final" type="button">📸 Lưu ảnh kỷ niệm</button>
     </div>
   </div>
 </div>
 <!-- Firebase -->
+<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 <script src="https://www.gstatic.com/firebasejs/12.14.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/12.14.0/firebase-database-compat.js"></script>
 <script src="firebase.js"></script>
@@ -506,6 +514,7 @@ let teamsCache = {};
 let answersCache = {};
 let gameCache = null;
 let prevDisplayRound = -1;
+let readyTeamKeys = new Set(), teamAnswerFlashTimer = null, lastDisplayCountdownTick = null;
 let displayTimerInterval;
 let revealSequenceKey = '';
 let revealLeaderboardTimer = null;
@@ -674,12 +683,26 @@ function isTeamDone(team) {
 function renderProgress() {
   const el = document.getElementById('d-progress-count');
   if (!el) return;
-  const teamsArr = Object.values(teamsCache);
+  const teamEntries = Object.entries(teamsCache);
+  const teamsArr = teamEntries.map(([, team]) => team);
   const total = teamsArr.length;
   const done = teamsArr.filter(isTeamDone).length;
   el.textContent = done + ' / ' + total;
   const grid = document.getElementById('d-team-ready-grid');
   if (!grid) return;
+  const doneNow = new Set(teamEntries.filter(([, team]) => isTeamDone(team)).map(([key]) => key));
+  const newlyDone = teamEntries.filter(([key]) => doneNow.has(key) && !readyTeamKeys.has(key));
+  if (newlyDone.length && gameCache && gameCache.phase === 'answering') {
+    const flash = document.getElementById('d-team-answer-flash');
+    const labels = newlyDone.map(([key, team]) => {
+      const index = teamEntries.findIndex(([teamKey]) => teamKey === key);
+      return team.teamName || `Đội ${index + 1}`;
+    });
+    flash.textContent = `💞 ${labels.join(' · ')} đã chốt đáp án!`;
+    flash.classList.remove('show'); requestAnimationFrame(() => flash.classList.add('show'));
+    clearTimeout(teamAnswerFlashTimer); teamAnswerFlashTimer = setTimeout(() => flash.classList.remove('show'), 2200);
+  }
+  readyTeamKeys = doneNow;
   grid.innerHTML = teamsArr.map((team, index) => {
     const done = isTeamDone(team);
     const missing = [team.player1, team.player2].filter(Boolean).filter(name => {
@@ -707,6 +730,7 @@ function listenGameDisplay() {
     const newRound = g.round || 0;
     if (newRound !== prevDisplayRound) {
       prevDisplayRound = newRound;
+      readyTeamKeys = new Set();
       clearRevealSequence();
       renderQuestionDisplay(g);
       showScreen('question');
@@ -862,10 +886,9 @@ function renderPodiumLeaderboard(targetId, sorted, mode='round') {
   const medals = { 1:'🥇', 2:'🥈', 3:'🥉' };
   const topScore = sorted[0].score || 0;
   const tiedFirst = sorted.filter(t => (t.score || 0) === topScore).length > 1;
-  // Ở màn kết: quán quân đã có thẻ vinh danh riêng, không lặp thêm hạng 1 ở podium.
-  const championIsSeparate = mode === 'final' && !tiedFirst;
-  const topByRank = (championIsSeparate ? [1, 2] : [1, 0, 2])
-    .map(index => ({ team:sorted[index], index })).filter(x => x.team);
+  // Kahoot-style: hạng 2 – hạng 1 – hạng 3 đứng cạnh nhau, quán quân chỉ xuất hiện ở bục giữa.
+  const championIsSeparate = false;
+  const topByRank = [1, 0, 2].map(index => ({ team:sorted[index], index })).filter(x => x.team);
   const podium = topByRank.map(({team, index}) => {
     const rank = rankAt(index);
     const medal = medals[Math.min(rank, 3)] || '🏅';
@@ -882,12 +905,7 @@ function renderPodiumLeaderboard(targetId, sorted, mode='round') {
     return `<div class="lb-rest-row"><span class="lb-rest-rank">${rankAt(absoluteIndex)}.</span><span class="lb-rest-team">${teamLabel(team)}${rankShiftHtml(team)}${streakHtml(team)}</span><span class="lb-rest-score">${team.score || 0}</span></div>`;
   }).join('');
   const heading = mode === 'final' ? 'Bảng xếp hạng chung cuộc' : 'Bảng xếp hạng hiện tại';
-  const champion = mode === 'final' && !tiedFirst ? `<section class="champion-hero" aria-label="Đội vô địch">
-      <div class="champion-kicker">🏆 ĐỘI VÔ ĐỊCH 🏆</div>
-      <div class="champion-avatars">${avatarImg(sorted[0].player1,112)}${avatarImg(sorted[0].player2,112)}</div>
-      <div class="champion-team">${teamLabel(sorted[0])}</div>
-      <div class="champion-score">${topScore} điểm · Ăn Ý hết mình!</div>
-    </section>` : '';
+  const champion = '';
   target.innerHTML = `<div class="lb-eyebrow">${mode === 'final' ? '🏆 GAME OVER' : '🏁 ROUND COMPLETE'}</div>
     <h2 class="lb-title">${heading}</h2>
     <div class="lb-divider"></div>
@@ -964,6 +982,13 @@ function getAwards(teams) {
     `🚀 Vua lật kèo: ${label(comeback)} · tăng ${(comeback.stats && comeback.stats.bestComeback) || 0} hạng`
   ];
 }
+function getTeamJourney(teams) {
+  return [...teams].sort((a,b) => (b.score || 0) - (a.score || 0)).map((team, index) => {
+    const stats = team.stats || {};
+    const label = team.teamName || `Đội ${team._idx + 1}`;
+    return `<div class="journey-card"><b>${index + 1}. ${label}</b><br><span>💞 ${stats.matches || 0} lần · 🔥 chuỗi ${stats.bestStreak || 0} · 🚀 +${stats.bestComeback || 0}</span></div>`;
+  }).join('');
+}
 // ─────────────────────────────────────────
 // TIMER (đồng bộ y hệt cách index.html dùng cho người chơi)
 // ─────────────────────────────────────────
@@ -976,7 +1001,14 @@ function startDisplayTimer(g) {
     const elapsed = Math.max(0, Math.floor((serverNow() - startedAt) / 1000));
     const remaining = Math.max(0, QUESTION_DURATION - elapsed);
     tc.textContent = remaining;
+    tc.classList.toggle('warning', remaining <= 10 && remaining > 5);
     tc.classList.toggle('urgent', remaining <= 5 && remaining > 0);
+    tc.classList.toggle('critical', remaining <= 5 && remaining > 0);
+    if (remaining <= 10 && remaining > 0 && remaining !== lastDisplayCountdownTick) {
+      lastDisplayCountdownTick = remaining;
+      displayTone(remaining <= 5 ? 920 : 620, .07, remaining <= 5 ? .22 : .13);
+    }
+    if (remaining > 10) lastDisplayCountdownTick = null;
     if (remaining <= 0) clearInterval(displayTimerInterval);
   };
   tick();
@@ -1065,6 +1097,7 @@ function showEnded() {
     const sorted = withIdx.sort((a,b) => (b.score||0) - (a.score||0));
     renderPodiumLeaderboard('d-final-leaderboard', sorted, 'final');
     document.getElementById('d-award-list').innerHTML = getAwards(withIdx).map(a => `<span class="award-chip">${a}</span>`).join('');
+    document.getElementById('d-team-journey').innerHTML = getTeamJourney(withIdx);
   });
   if (!endedConfettiInterval) {
     displayWinSfx();
@@ -1072,6 +1105,23 @@ function showEnded() {
     endedConfettiInterval = setInterval(startDisplayConfetti, 6000);
   }
 }
+document.getElementById('btn-save-final').addEventListener('click', async () => {
+  const button = document.getElementById('btn-save-final');
+  if (!window.html2canvas) { button.textContent = '⚠️ Chưa tải công cụ ảnh'; return; }
+  button.disabled = true; button.textContent = '⏳ Đang tạo ảnh...';
+  try {
+    button.style.visibility = 'hidden';
+    const canvas = await window.html2canvas(document.body, { useCORS:true, backgroundColor:null, scale:Math.min(2, window.devicePixelRatio || 1) });
+    const link = document.createElement('a');
+    link.download = `an-y-chung-ket-${myRoom || 'game'}.png`;
+    link.href = canvas.toDataURL('image/png'); link.click();
+  } catch (error) {
+    button.textContent = '⚠️ Không thể tạo ảnh';
+  } finally {
+    button.style.visibility = ''; button.disabled = false;
+    if (!button.textContent.startsWith('⚠️')) button.textContent = '📸 Lưu ảnh kỷ niệm';
+  }
+});
 // ─────────────────────────────────────────
 // CONFETTI (tối ưu: tối đa 90 hạt, tự dừng & dọn sạch để không tích tụ khi để TV chạy lâu)
 // ─────────────────────────────────────────
