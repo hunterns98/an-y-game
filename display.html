@@ -40,7 +40,7 @@
   @keyframes footerHeartBeat { 0%,100%{transform:scale(1)}50%{transform:scale(1.25)} }
   /* ── AUTO COMMENTATOR: chỉ làm nền vui ở lobby / lúc đang trả lời ── */
   .commentator-bubble { position:fixed; right:clamp(14px,2.4vw,34px); bottom:clamp(18px,3vw,38px); z-index:8; display:none; max-width:min(390px,calc(100vw - 32px)); padding:12px 17px; border:1px solid rgba(255,214,10,.48); border-radius:18px 18px 4px 18px; background:linear-gradient(135deg,rgba(54,14,97,.94),rgba(27,6,57,.94)); color:#fff4c7; box-shadow:0 12px 30px rgba(0,0,0,.3),0 0 18px rgba(255,45,120,.14); font-size:clamp(.78rem,1.35vw,.96rem); font-weight:800; line-height:1.4; text-align:left; pointer-events:none; animation:commentatorIn .38s cubic-bezier(.2,1.35,.4,1) both; }
-  .commentator-bubble::before { content:'🎙️ Bình luận viên'; display:block; margin-bottom:4px; color:var(--gold); font-size:.64em; font-weight:950; letter-spacing:.12em; text-transform:uppercase; }
+  .commentator-bubble::before { content:'Quote vô tri'; display:block; margin-bottom:4px; color:var(--gold); font-size:.64em; font-weight:950; letter-spacing:.12em; text-transform:uppercase; }
   .commentator-bubble.hide { animation:commentatorOut .32s ease-in both; }
   @keyframes commentatorIn { from{opacity:0;transform:translateY(14px) scale(.94)} to{opacity:1;transform:none} }
   @keyframes commentatorOut { to{opacity:0;transform:translateY(10px) scale(.96)} }
@@ -430,25 +430,24 @@
 // Chỉ được bật ở phòng chờ và lúc các đội đang trả lời.
 // ─────────────────────────────────────────
 const COMMENTS = [
-  '🤬 Đầu 3 tổng 9. VAR rồi VAR rồi.',
-  '🍚 Em ăn cơm chưa? Mà sao yếu thế 😏.',
+  '🤬 Đủ nắng hoa sẽ nở, đủ rồi dừng lại thôi.',
+  '🍚 Nếu một ngày giàu có, tôi sẽ ăn sữa chua mà không cần liếm nắp.',
   '👀 Hợp đồng kỳ nghỉ không em?',
   '🚨 Cố lên cố lên, sắp tới rồi sắp tới rồi.',
   '😤 Ê nha. Tôi nhắc em.',
   '🏆 Thì phải làm sao? Phải chịu.',
   '⚡ Kìn chá nà. Kìn chá nề yố.',
   '🔥 Lửa hận thù đốt cháy ký ức hai ta.',
-  '🃏 Có vẻ bộ bài đang thiên vị ai đó.',
+  '🃏 Nếu một ngày giàu có, tôi sẽ bóc hết giấy ướt lúc đi ăn hàng.',
   '🤤 Doki Doki, Fuwa Fuwa, Oishikunare, Moe Moe Kun.',
   '😎 Đen tình đỏ bạc. Bạn đen cả hai.',
-  '😮‍💨 Một ngày thật tuyệt, tuyệt vọng!',
-  '😶‍🌫️ Họ cười tôi vì tôi khác họ. Tôi cười họ thì họ đấm tôi.',
-  '❤️‍🩹 Là do em hiểu lầm! Cứ tưởng mình là love, ai ngờ đâu là lốp.',
+  '😮‍ Một ngày thật tuyệt, tuyệt vọng!',
+  '😶‍ Họ cười tôi vì tôi khác họ. Tôi cười họ thì họ đấm tôi.',
+  '❤️‍ Cứ tưởng mình là love, ai ngờ đâu là lốp.',
   '🕊️ Bây giờ em đã có chồng, như chim vào lồng như cá cắn câu.',
   '🐟 Cá cắn câu biết đâu mà gỡ? Chim vào lồng biết ngày nào ra?',
   '🔮 Những lúc buồn đời, điều bạn cần làm là đi xem bói.',
   '🤔 Ủa em?',
-  '😂 Hư quá. Anh phạt đấy.',
   '🚓 Của rẻ là của congan.',
   '👑 Đừng cúi đầu, vương miện sẽ rơi.',
   '🙀 Sống Nay Stress Mai.',
