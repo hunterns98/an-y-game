@@ -35,6 +35,15 @@
     background-image:linear-gradient(180deg,rgba(10,0,21,.7),rgba(10,0,21,.82)),url('assets/backgrounds/gameplay-20-10-blur.png');
     background-size:cover; background-position:center; background-attachment:fixed;
   }
+  .made-by-footer { position:fixed; left:14px; bottom:10px; z-index:5; display:flex; align-items:center; gap:4px; color:var(--muted); font-size:.7rem; font-weight:600; letter-spacing:.02em; pointer-events:none; text-shadow:0 1px 4px rgba(0,0,0,.55); }
+  .made-by-footer span { color:var(--pink); display:inline-block; animation:footerHeartBeat 1.3s ease-in-out infinite; }
+  @keyframes footerHeartBeat { 0%,100%{transform:scale(1)}50%{transform:scale(1.25)} }
+  /* ── AUTO COMMENTATOR: chỉ làm nền vui ở lobby / lúc đang trả lời ── */
+  .commentator-bubble { position:fixed; right:clamp(14px,2.4vw,34px); bottom:clamp(18px,3vw,38px); z-index:8; display:none; max-width:min(390px,calc(100vw - 32px)); padding:12px 17px; border:1px solid rgba(255,214,10,.48); border-radius:18px 18px 4px 18px; background:linear-gradient(135deg,rgba(54,14,97,.94),rgba(27,6,57,.94)); color:#fff4c7; box-shadow:0 12px 30px rgba(0,0,0,.3),0 0 18px rgba(255,45,120,.14); font-size:clamp(.78rem,1.35vw,.96rem); font-weight:800; line-height:1.4; text-align:left; pointer-events:none; animation:commentatorIn .38s cubic-bezier(.2,1.35,.4,1) both; }
+  .commentator-bubble::before { content:'🎙️ Bình luận viên'; display:block; margin-bottom:4px; color:var(--gold); font-size:.64em; font-weight:950; letter-spacing:.12em; text-transform:uppercase; }
+  .commentator-bubble.hide { animation:commentatorOut .32s ease-in both; }
+  @keyframes commentatorIn { from{opacity:0;transform:translateY(14px) scale(.94)} to{opacity:1;transform:none} }
+  @keyframes commentatorOut { to{opacity:0;transform:translateY(10px) scale(.96)} }
   /* ── STARS (nhẹ, chỉ trang trí) ── */
   .stars { position: fixed; inset: 0; pointer-events: none; z-index: 0; overflow: hidden; }
   .star { position: absolute; border-radius: 50%; background: white; opacity: 0; animation: twinkle var(--d,4s) var(--delay,0s) infinite; }
@@ -308,6 +317,8 @@
 <body>
 <div class="connection-banner" id="d-connection-banner" role="status" aria-live="polite"></div>
 <div class="stars" id="stars"></div>
+<div class="made-by-footer">Made By Nam Thần Sales With <span>♥</span></div>
+<aside class="commentator-bubble" id="commentator-bubble" aria-live="polite"><span id="commentator-text"></span></aside>
 <div id="d-start-countdown" aria-live="assertive"><div class="start-count-label" id="d-start-count-label">Cả đội sẵn sàng?</div><div class="start-count-num" id="d-start-count-num">3</div><div class="start-count-label">Chuẩn bị ăn ý!</div></div>
 <div class="level-transition-overlay" id="d-level-transition" aria-live="assertive"><section class="level-transition-card"><div class="level-transition-kicker" id="d-level-kicker">LEVEL UP</div><div class="level-transition-title" id="d-level-title">—</div><p class="level-transition-rule" id="d-level-rule"></p><div class="level-transition-score" id="d-level-score"></div><p class="level-transition-wait">Cùng ghi nhớ luật mới · chờ host mở câu tiếp theo</p></section></div>
 <div id="top-bar">
@@ -415,6 +426,101 @@
   }
 })();
 // ─────────────────────────────────────────
+// AUTO COMMENTATOR — bag shuffle để không lặp quote sớm
+// Chỉ được bật ở phòng chờ và lúc các đội đang trả lời.
+// ─────────────────────────────────────────
+const COMMENTS = [
+  '🤬 Đầu 3 tổng 9. VAR rồi VAR rồi.',
+  '🍚 Em ăn cơm chưa? Mà sao yếu thế 😏.',
+  '👀 Hợp đồng kỳ nghỉ không em?',
+  '🚨 Cố lên cố lên, sắp tới rồi sắp tới rồi.',
+  '😤 Ê nha. Tôi nhắc em.',
+  '🏆 Thì phải làm sao? Phải chịu.',
+  '⚡ Kìn chá nà. Kìn chá nề yố.',
+  '🔥 Lửa hận thù đốt cháy ký ức hai ta.',
+  '🃏 Có vẻ bộ bài đang thiên vị ai đó.',
+  '🤤 Doki Doki, Fuwa Fuwa, Oishikunare, Moe Moe Kun.',
+  '😎 Đen tình đỏ bạc. Bạn đen cả hai.',
+  '😮‍💨 Một ngày thật tuyệt, tuyệt vọng!',
+  '😶‍🌫️ Họ cười tôi vì tôi khác họ. Tôi cười họ thì họ đấm tôi.',
+  '❤️‍🩹 Là do em hiểu lầm! Cứ tưởng mình là love, ai ngờ đâu là lốp.',
+  '🕊️ Bây giờ em đã có chồng, như chim vào lồng như cá cắn câu.',
+  '🐟 Cá cắn câu biết đâu mà gỡ? Chim vào lồng biết ngày nào ra?',
+  '🔮 Những lúc buồn đời, điều bạn cần làm là đi xem bói.',
+  '🤔 Ủa em?',
+  '😂 Hư quá. Anh phạt đấy.',
+  '🚓 Của rẻ là của congan.',
+  '👑 Đừng cúi đầu, vương miện sẽ rơi.',
+  '🙀 Sống Nay Stress Mai.',
+  '🦑 2, 3 con mực. Yêu em căng cực.',
+  '🐟 Sẽ có những con cá phải giả chó.',
+  '🖤🩷 Hồng Đen trong khu vực bạn đóoooo.',
+  '🤡 1 điều nhịn là 9 đứa ngồi lên đầu.',
+  "🐶 Trust me I'm a Dogtor."
+];
+let commentBag = [];
+let lastShownCommentIdx = -1;
+let commentatorVisible = false;
+let commentatorHideTimer = null;
+
+function refillCommentBag() {
+  commentBag = COMMENTS.map((_, index) => index);
+  for (let index = commentBag.length - 1; index > 0; index--) {
+    const swapIndex = Math.floor(Math.random() * (index + 1));
+    [commentBag[index], commentBag[swapIndex]] = [commentBag[swapIndex], commentBag[index]];
+  }
+  // Khi mở túi mới, đổi vị trí để câu đầu không trùng câu vừa hiện.
+  if (commentBag[commentBag.length - 1] === lastShownCommentIdx && commentBag.length > 1) {
+    [commentBag[commentBag.length - 1], commentBag[0]] = [commentBag[0], commentBag[commentBag.length - 1]];
+  }
+}
+function nextCommentIdx() {
+  if (!commentBag.length) refillCommentBag();
+  const index = commentBag.pop();
+  lastShownCommentIdx = index;
+  return index;
+}
+function hideCommentator(immediate = false) {
+  const bubble = document.getElementById('commentator-bubble');
+  if (!bubble) return;
+  clearTimeout(commentatorHideTimer);
+  if (immediate) {
+    bubble.style.display = 'none';
+    bubble.classList.remove('hide');
+    return;
+  }
+  bubble.classList.add('hide');
+  bubble.addEventListener('animationend', () => {
+    bubble.style.display = 'none';
+    bubble.classList.remove('hide');
+  }, { once: true });
+}
+function showComment() {
+  if (!commentatorVisible) return;
+  const bubble = document.getElementById('commentator-bubble');
+  const text = document.getElementById('commentator-text');
+  if (!bubble || !text) return;
+  text.textContent = COMMENTS[nextCommentIdx()];
+  bubble.style.display = 'block';
+  bubble.classList.remove('hide');
+  clearTimeout(commentatorHideTimer);
+  commentatorHideTimer = setTimeout(() => hideCommentator(), 7000);
+}
+function setCommentatorVisible(visible) {
+  const wasVisible = commentatorVisible;
+  commentatorVisible = Boolean(visible);
+  if (!commentatorVisible) {
+    hideCommentator(true);
+  } else if (!wasVisible) {
+    // Đổi trạng thái vào lobby / câu hỏi: có quote sớm thay vì phải chờ hết chu kỳ 10 giây.
+    setTimeout(() => { if (commentatorVisible) showComment(); }, 900);
+  }
+}
+setTimeout(() => {
+  showComment();
+  setInterval(showComment, 10000);
+}, 5000);
+// ─────────────────────────────────────────
 // SCREEN MANAGEMENT
 // ─────────────────────────────────────────
 function showScreen(id) {
@@ -422,6 +528,9 @@ function showScreen(id) {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   const el = document.getElementById('screen-' + id);
   if (el) el.classList.add('active');
+  // Lobby là lúc mọi người chờ và có thể đọc quote; các trạng thái còn lại
+  // sẽ được bật/tắt cụ thể trong luồng vòng chơi bên dưới.
+  setCommentatorVisible(id === 'waiting');
 }
 // ── DISPLAY SFX (chỉ bắt đầu sau một thao tác người dùng; có thể tắt riêng) ──
 const DAC = window.AudioContext || window.webkitAudioContext;
@@ -808,6 +917,7 @@ function renderQuestionDisplay(g) {
 }
 function showProgressView(phase='answering') {
   hideDisplayLevelTransition();
+  setCommentatorVisible(phase === 'answering');
   document.getElementById('d-progress-wrap').style.display = 'block';
   document.getElementById('d-reveal-board').style.display = 'none';
   document.getElementById('d-round-leaderboard').style.display = 'none';
@@ -817,6 +927,8 @@ function showProgressView(phase='answering') {
   document.querySelector('#d-progress-wrap .progress-label').textContent = 'Số đội đã trả lời';
 }
 function showRevealView(g) {
+  // Vào reveal/leaderboard thì nhường toàn bộ sự chú ý cho đáp án và điểm số.
+  setCommentatorVisible(false);
   clearInterval(displayTimerInterval);
   document.getElementById('d-progress-wrap').style.display = 'none';
   document.getElementById('d-timer-wrap').style.display = 'none';
@@ -1091,6 +1203,7 @@ function clearEndedConfetti() {
   }
 }
 function showEnded() {
+  setCommentatorVisible(false);
   document.body.classList.add('floral-finale');
   showScreen('ended');
   db.ref('rooms/' + myRoom + '/teams').once('value').then(snap => {
