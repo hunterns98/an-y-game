@@ -447,6 +447,7 @@
   #winner-screen.poem-open { background:#fff9f2; }
   .poem-card { display:none; width:100%; padding:clamp(22px,6vw,34px) clamp(16px,6vw,30px); border:0; border-radius:0; background:radial-gradient(ellipse at 50% 0%,rgba(255,220,230,.34),transparent 34%),linear-gradient(135deg,#fffaf4 0%,#f9f0e5 100%); box-shadow:none; animation:poemReveal .6s cubic-bezier(.2,1.35,.4,1) both; }
   .gift-content.open .gift-intro { display:none; }.gift-content.open .poem-card { display:block; }
+  .gift-content.open { min-height:auto; justify-content:flex-start; padding-top:clamp(34px,8vh,64px); }
   @keyframes poemReveal { from{opacity:0;transform:translateY(20px) scale(.94)} to{opacity:1;transform:none} }
   .poem-title { color:#21191b; font-family:'Dancing Script','Segoe Script',cursive; font-size:clamp(1.7rem,8vw,2.4rem); font-weight:700; line-height:1.15; }
   .poem-divider { width:92px; height:1px; margin:13px auto 17px; background:#111; opacity:.42; }
@@ -736,7 +737,7 @@
         <p class="poem-stanza"><span class="poem-line indent">Chúc em như <strong>Hoa</strong> thắm hồng,</span><span class="poem-line">Dung nhan <strong>Trang</strong> nhã, mặn nồng thanh tao.</span><span class="poem-line indent">Như <strong>Trúc</strong> xanh vươn đến trời cao,</span><span class="poem-line"><strong>Liên</strong> miên tài lộc, dạt dào chẳng vơi.</span></p>
         <p class="poem-stanza"><span class="poem-line indent">Hai mươi tháng Mười đẹp tươi,</span><span class="poem-line">Chúc cho phái đẹp nụ cười nở hoa.</span><span class="poem-line indent">Trẻ trung, hạnh phúc, kiêu sa,</span><span class="poem-line">Tiền tài, may mắn, nhà nhà ấm êm!</span></p>
       </div>
-      <p class="poem-signature">Chúc mừng 20/10 · Nam Thần Sales ❤️</p>
+      <p class="poem-signature">chúc mừng 20/10 from Nam Thần Sales</p>
     </article>
   </div>
 </div>
@@ -2011,7 +2012,9 @@ document.getElementById('btn-open-gift').addEventListener('click', () => {
   if (giftOpened) return;
   giftOpened = true;
   document.getElementById('gift-content').classList.add('open');
-  document.getElementById('winner-screen').classList.add('poem-open');
+  const winnerScreen = document.getElementById('winner-screen');
+  winnerScreen.classList.add('poem-open');
+  winnerScreen.scrollTop = 0;
   sfxWin();
   startConfetti();
 });
