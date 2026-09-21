@@ -901,9 +901,10 @@ function renderPodiumLeaderboard(targetId, sorted, mode='round') {
       <div class="podium-points">${team.score || 0} điểm</div>
     </article>`;
   }).join('');
-  const rest = mode === 'final' ? '' : sorted.slice(3).map((team, index) => {
+  // Phần dưới podium giữ leaderboard gọn: chỉ hạng, tên đội và điểm — không lặp journey/streak.
+  const rest = sorted.slice(3).map((team, index) => {
     const absoluteIndex = index + 3;
-    return `<div class="lb-rest-row"><span class="lb-rest-rank">${rankAt(absoluteIndex)}.</span><span class="lb-rest-team">${teamLabel(team)}${rankShiftHtml(team)}${streakHtml(team)}</span><span class="lb-rest-score">${team.score || 0}</span></div>`;
+    return `<div class="lb-rest-row"><span class="lb-rest-rank">${rankAt(absoluteIndex)}.</span><span class="lb-rest-team">${teamLabel(team)}</span><span class="lb-rest-score">${team.score || 0}</span></div>`;
   }).join('');
   const heading = mode === 'final' ? 'Bảng xếp hạng chung cuộc' : 'Bảng xếp hạng hiện tại';
   const champion = '';
