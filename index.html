@@ -6,7 +6,7 @@
 <title>Ăn Ý ❤️ — Game Show</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Lora:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
   :root {
     --bg:       #0a0015;
@@ -444,15 +444,17 @@
   .gift-open-hint { color:var(--cyan); font-size:.86rem; font-weight:900; animation:giftHintPulse 1.45s ease-in-out infinite; }
   @keyframes giftFloat { 0%,100%{transform:translateY(0) rotate(-1.5deg)} 50%{transform:translateY(-8px) rotate(1.5deg)} }
   @keyframes giftHintPulse { 50%{opacity:.45;transform:scale(.97)} }
-  .poem-card { display:none; width:100%; padding:clamp(22px,6vw,32px) clamp(18px,6vw,30px); border:1px solid rgba(255,214,10,.58); border-radius:26px; background:linear-gradient(150deg,rgba(82,19,112,.94),rgba(31,5,65,.94)); box-shadow:0 18px 42px rgba(0,0,0,.32),0 0 32px rgba(255,45,120,.15); animation:poemReveal .6s cubic-bezier(.2,1.35,.4,1) both; }
+  #winner-screen.poem-open { background:#fff; }
+  .poem-card { display:none; width:100%; padding:clamp(22px,6vw,34px) clamp(16px,6vw,30px); border:0; border-radius:0; background:#fff; box-shadow:none; animation:poemReveal .6s cubic-bezier(.2,1.35,.4,1) both; }
   .gift-content.open .gift-intro { display:none; }.gift-content.open .poem-card { display:block; }
   @keyframes poemReveal { from{opacity:0;transform:translateY(20px) scale(.94)} to{opacity:1;transform:none} }
-  .poem-title { color:#ffe39c; font-size:1.14rem; font-weight:950; letter-spacing:.08em; }
-  .poem-divider { width:76px; height:1px; margin:14px auto 16px; background:linear-gradient(90deg,transparent,var(--pink),transparent); }
-  .poem-body { font-family:'Lora',Georgia,serif; color:#fff3fa; font-size:clamp(.92rem,4.2vw,1.06rem); font-weight:500; line-height:1.8; text-align:left; }
-  .poem-body strong { color:#ffd96c; font-weight:700; }
-  .poem-stanza + .poem-stanza { margin-top:15px; }
-  .poem-signature { margin-top:20px; padding-top:14px; border-top:1px solid rgba(255,255,255,.14); color:var(--pink); font-size:.78rem; font-weight:900; letter-spacing:.04em; }
+  .poem-title { color:#111; font-family:'Dancing Script','Segoe Script',cursive; font-size:clamp(1.7rem,8vw,2.4rem); font-weight:700; line-height:1.15; }
+  .poem-divider { width:92px; height:1px; margin:13px auto 17px; background:#111; opacity:.42; }
+  .poem-body { font-family:'Dancing Script','Segoe Script',cursive; color:#111; font-size:clamp(1.48rem,7vw,2.08rem); font-weight:600; line-height:1.38; text-align:center; }
+  .poem-body strong { color:#111; font-weight:700; }
+  .poem-stanza + .poem-stanza { margin-top:18px; }
+  .poem-line { display:block; }.poem-line.indent { padding-left:clamp(18px,7vw,42px); }
+  .poem-signature { margin-top:23px; padding-top:16px; border-top:1px solid rgba(0,0,0,.28); color:#111; font-family:'Dancing Script','Segoe Script',cursive; font-size:clamp(1.15rem,5.5vw,1.5rem); font-weight:700; }
   /* ── CONFETTI ── */
   /* (drawn via canvas) */
   /* ── TOAST ── */
@@ -718,7 +720,7 @@
     <div class="gift-intro">
       <div class="gift-kicker">20 · 10 · 2026</div>
       <h1 class="gift-title">🎁 Một món quà<br>20/10 dành cho bạn</h1>
-      <p class="gift-subtitle">Màn hình lớn đang vinh danh các đội. Còn đây là một lời chúc thật riêng dành cho bạn.</p>
+      <p class="gift-subtitle">Màn hình lớn đang vinh danh các đội. Còn đây là một lời chúc dành cho phái đẹp của phòng. Cam on vi da den.</p>
       <button class="gift-box-button" id="btn-open-gift" type="button" aria-label="Mở món quà 20 tháng 10">
         <span class="gift-bow"><span></span></span><span class="gift-box-lid"></span><span class="gift-box-base"></span><span class="gift-box-ribbon-v"></span><span class="gift-box-ribbon-h"></span>
       </button>
@@ -728,11 +730,11 @@
       <h2 class="poem-title">🌸 Lời chúc 20/10</h2>
       <div class="poem-divider"></div>
       <div class="poem-body">
-        <p class="poem-stanza">Chúc em <strong>Nhung</strong> gấm lụa là,<br>Tiền vào như <strong>Thủy</strong> sông Đà cuộn xoay.<br>Một đời bình <strong>An</strong> đắm say,<br><strong>Thoan</strong> thả hạnh phúc, đong đầy yêu thương.</p>
-        <p class="poem-stanza">Chúc em như hè có <strong>Phượng</strong>,<br><strong>Ánh</strong> dương khoe sắc, ngát hương nắng vàng.<br>Vượt qua muôn dặm trường <strong>Giang</strong>,<br>Bến bờ <strong>Hạnh</strong> phúc, giàu sang đợi chờ.</p>
-        <p class="poem-stanza">Chúc em diễm <strong>Lệ</strong> chẳng mờ,<br><strong>Mai</strong> vàng đón lộc, <strong>Anh</strong> thơ đón nàng.<br>Thông minh <strong>Linh</strong> mẫn trăm ngàn,<br>Thỏa bao ước nguyện, vẹn toàn <strong>Hằng</strong> mong.</p>
-        <p class="poem-stanza">Chúc em như <strong>Hoa</strong> thắm hồng,<br>Dung nhan <strong>Trang</strong> nhã, mặn nồng thanh tao.<br>Như <strong>Trúc</strong> xanh vươn đến trời cao,<br><strong>Liên</strong> miên tài lộc, dạt dào chẳng vơi.</p>
-        <p class="poem-stanza">Hai mươi tháng Mười đẹp tươi,<br>Chúc cho phái đẹp nụ cười nở hoa.<br>Trẻ trung, hạnh phúc, kiêu sa,<br>Tiền tài, may mắn, nhà nhà ấm êm!</p>
+        <p class="poem-stanza"><span class="poem-line indent">Chúc em <strong>Nhung</strong> gấm lụa là,</span><span class="poem-line">Tiền vào như <strong>Thủy</strong> sông Đà cuộn xoay.</span><span class="poem-line indent">Một đời bình <strong>An</strong> đắm say,</span><span class="poem-line"><strong>Thoan</strong> thả hạnh phúc, đong đầy yêu thương.</span></p>
+        <p class="poem-stanza"><span class="poem-line indent">Chúc em như hè có <strong>Phượng</strong>,</span><span class="poem-line"><strong>Ánh</strong> dương khoe sắc, ngát hương nắng vàng.</span><span class="poem-line indent">Vượt qua muôn dặm trường <strong>Giang</strong>,</span><span class="poem-line">Bến bờ <strong>Hạnh</strong> phúc, giàu sang đợi chờ.</span></p>
+        <p class="poem-stanza"><span class="poem-line indent">Chúc em diễm <strong>Lệ</strong> chẳng mờ,</span><span class="poem-line"><strong>Mai</strong> vàng đón lộc, <strong>Anh</strong> thơ đón nàng.</span><span class="poem-line indent">Thông minh <strong>Linh</strong> mẫn trăm ngàn,</span><span class="poem-line">Thỏa bao ước nguyện, vẹn toàn <strong>Hằng</strong> mong.</span></p>
+        <p class="poem-stanza"><span class="poem-line indent">Chúc em như <strong>Hoa</strong> thắm hồng,</span><span class="poem-line">Dung nhan <strong>Trang</strong> nhã, mặn nồng thanh tao.</span><span class="poem-line indent">Như <strong>Trúc</strong> xanh vươn đến trời cao,</span><span class="poem-line"><strong>Liên</strong> miên tài lộc, dạt dào chẳng vơi.</span></p>
+        <p class="poem-stanza"><span class="poem-line indent">Hai mươi tháng Mười đẹp tươi,</span><span class="poem-line">Chúc cho phái đẹp nụ cười nở hoa.</span><span class="poem-line indent">Trẻ trung, hạnh phúc, kiêu sa,</span><span class="poem-line">Tiền tài, may mắn, nhà nhà ấm êm!</span></p>
       </div>
       <p class="poem-signature">Chúc mừng 20/10 · Nam Thần Sales ❤️</p>
     </article>
@@ -1500,6 +1502,7 @@ function listenGame() {
     activeGame = game;
     if (game.status === 'waiting') {
       document.getElementById('winner-screen').classList.remove('show');
+      document.getElementById('winner-screen').classList.remove('poem-open');
       giftOpened = false;
       document.getElementById('gift-content').classList.remove('open');
       stopConfetti(); hidePlayerLevelTransition(); showScreen('lobby');
@@ -2008,6 +2011,7 @@ document.getElementById('btn-open-gift').addEventListener('click', () => {
   if (giftOpened) return;
   giftOpened = true;
   document.getElementById('gift-content').classList.add('open');
+  document.getElementById('winner-screen').classList.add('poem-open');
   sfxWin();
   startConfetti();
 });
