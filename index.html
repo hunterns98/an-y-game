@@ -267,7 +267,9 @@
     width: 64px; height: 64px; border-radius: 50%;
     border: 3px solid var(--purple);
     animation: pulseRing 1.5s ease-in-out infinite;
+    overflow:hidden; display:grid; place-items:center;
   }
+  .pulse-ring .avatar-thumb { width:100%; height:100%; border:0; object-fit:cover; }
   @keyframes pulseRing {
     0%,100% { transform:scale(1); opacity:1; box-shadow:0 0 0 0 rgba(155,93,229,0.4); }
     50%      { transform:scale(1.08); opacity:0.8; box-shadow:0 0 0 16px rgba(155,93,229,0); }
@@ -708,14 +710,13 @@
   <div class="screen" id="screen-lobby">
     <div class="card text-center">
       <div class="waiting-pulse">
-        <div class="pulse-ring"></div>
+        <div class="pulse-ring"><img id="lobby-avatar-img" class="avatar-thumb" src="" alt="Ảnh đại diện của bạn"></div>
         <div>
           <div style="font-weight:800;font-size:1.1rem;margin-bottom:4px;">Đã vào phòng! 🎉</div>
           <div class="waiting-text">Chờ host bắt đầu game...</div>
         </div>
       </div>
       <div class="my-avatar-row" id="my-avatar-row" style="display:none;">
-        <img id="my-avatar-img" class="avatar-thumb" style="width:40px;height:40px;" src="" alt="avatar">
         <span>Bạn là: <b id="my-avatar-name">—</b></span>
       </div>
     </div>
@@ -1214,7 +1215,7 @@ function enterGameAsPlayer(name, room, avatarNum) {
   const av = document.getElementById('my-avatar-row');
   if (av) {
     av.style.display = 'flex';
-    setAvatarImage(document.getElementById('my-avatar-img'), name, avatarNum);
+    setAvatarImage(document.getElementById('lobby-avatar-img'), name, avatarNum);
     document.getElementById('my-avatar-name').textContent = name;
   }
   setAppLoading(false);
