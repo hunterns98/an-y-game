@@ -932,10 +932,6 @@
         <p class="result-wait">Chờ host chuyển câu tiếp...</p>
       </div>
     </div>
-    <div class="team-score-banner" id="score-banner-r">
-      <div><div class="tsb-label">Tổng điểm đội</div><div class="tsb-team" id="tsb-r-team">—</div></div>
-      <div class="tsb-score" id="tsb-r-score">0</div>
-    </div>
     <div class="card leaderboard-card" id="leaderboard-card">
       <div class="leaderboard-title">🏆 Bảng xếp hạng hiện tại</div>
       <div class="ws-list" id="leaderboard-list" style="margin-bottom:0;max-width:none;"></div>
@@ -1201,7 +1197,7 @@ function showPlayerLevelTransition(nextLevel) {
   document.getElementById('player-level-score').textContent = info.score;
   document.getElementById('player-level-transition').classList.add('show');
 }
-let partnerListenerAttached=false;
+let partnerStatusRef=null, partnerStatusName='', partnerAnswerCache=null;
 // Guard: đảm bảo listener trên teams/{myTeamKey} chỉ đăng ký ĐÚNG 1 LẦN cho
 // cả session — tránh chồng listener mỗi khi node `teams` (toàn phòng) đổi.
 // Kết hợp điều kiện myTeamKey (giống pattern partnerListenerAttached ở trên)
@@ -1427,11 +1423,9 @@ function findMyTeam() {
         renderTeamNameUI(team, key);
         // Score banner
         updateScoreBanners(team.score||0, partner, team.teamName);
-        // Lắng nghe trạng thái trả lời của đồng đội (chỉ gắn 1 lần cho cả game)
-        if (partner && !partnerListenerAttached) {
-          partnerListenerAttached = true;
-          listenPartnerStatus(partner);
-        }
+        // Gắn đúng listener theo đồng đội hiện tại. Có thể ghép lại đội khi test,
+        // nên không dùng cờ boolean cố định làm listener cũ bị kẹt.
+        if (partner) listenPartnerStatus(partner);
       }
     });
     if (activeGame && (activeGame.phase === 'results' || activeGame.revealed) && document.getElementById('screen-result').classList.contains('active')) {
@@ -1453,7 +1447,7 @@ function findMyTeam() {
 }
 function updateScoreBanners(score, partnerName, teamName) {
   const teamLabel = teamName || (myName + ' & ' + (partnerName||'?'));
-  ['score-banner','score-banner-q','score-banner-r'].forEach(id => {
+  ['score-banner','score-banner-q'].forEach(id => {
     const el = document.getElementById(id);
     if (el) el.style.display = 'flex';
   });
@@ -1468,14 +1462,29 @@ function updateScoreBanners(score, partnerName, teamName) {
 // PARTNER STATUS (báo "đồng đội đã trả lời" ngay trên màn câu hỏi)
 // ─────────────────────────────────────────
 function listenPartnerStatus(partnerName) {
-  db.ref('rooms/' + myRoom + '/answers/' + partnerName).on('value', snap => {
-    const pill = document.getElementById('partner-status-pill');
-    if (!pill) return;
-    const answered = snap.exists();
-    pill.classList.toggle('answered', answered);
-    document.getElementById('partner-status-text').textContent = answered
-      ? '✅ Đồng đội đã trả lời!' : '⏳ Đồng đội chưa trả lời...';
+  if (partnerStatusName === partnerName && partnerStatusRef) {
+    renderPartnerAnswerStatus();
+    return;
+  }
+  if (partnerStatusRef) partnerStatusRef.off('value');
+  partnerStatusName = partnerName;
+  partnerAnswerCache = null;
+  partnerStatusRef = db.ref('rooms/' + myRoom + '/answers/' + partnerName);
+  partnerStatusRef.on('value', snap => {
+    partnerAnswerCache = snap.val();
+    renderPartnerAnswerStatus();
   });
+}
+function renderPartnerAnswerStatus() {
+  const pill = document.getElementById('partner-status-pill');
+  if (!pill) return;
+  // Không lấy snap.exists() đơn thuần: đáp án của câu trước vẫn tồn tại trong
+  // Firebase. Chỉ đáp án đủ dữ liệu của đúng round đang chơi mới được tính.
+  const answer = partnerAnswerCache;
+  const answered = Boolean(answer && answer.round === currentRound && answer.answer !== undefined && answer.answer !== '');
+  pill.classList.toggle('answered', answered);
+  document.getElementById('partner-status-text').textContent = answered
+    ? '✅ Đồng đội đã trả lời!' : '⏳ Đồng đội chưa trả lời...';
 }
 function renderPartnerAvatar(partnerName) {
   db.ref('rooms/' + myRoom + '/players/' + partnerName + '/avatar').once('value').then(snap => {
@@ -1678,12 +1687,9 @@ function renderQuestion(game, startTimer = true) {
   document.getElementById('chosen-emoji').textContent = '✅';
   document.getElementById('chosen-label').textContent = 'Bạn đã chọn';
   document.getElementById('chosen-sub').textContent = 'Đang chờ đồng đội trả lời...';
-  // Reset "đồng đội đã trả lời" cho vòng mới
-  const partnerPill = document.getElementById('partner-status-pill');
-  if (partnerPill) {
-    partnerPill.classList.remove('answered');
-    document.getElementById('partner-status-text').textContent = '⏳ Đồng đội chưa trả lời...';
-  }
+  // Vẽ lại từ đáp án đã cache. Listener có thể đã nhận đáp án trước khi phần
+  // câu hỏi render xong, vì vậy không reset mù về "chưa trả lời".
+  renderPartnerAnswerStatus();
   if (startTimer) startQuestionTimer(game);
 }
 // Timer chỉ chạy khi câu hỏi thật sự được mở. Với câu sau, game có 3 giây
@@ -1758,7 +1764,7 @@ function submitChoiceAnswer() {
   document.getElementById('btn-a').disabled = true;
   document.getElementById('btn-b').disabled = true;
   document.getElementById('btn-submit-choice').disabled = true;
-  document.getElementById('btn-submit-choice').textContent = '✅ Đã gửi';
+  document.getElementById('btn-submit-choice').textContent = '⏳ Đang gửi...';
   clearTimeout(answerUiTimer);
   answerUiTimer = setTimeout(() => {
     document.getElementById('status-chosen').style.display = 'block';
@@ -1789,7 +1795,7 @@ document.getElementById('btn-submit-who').addEventListener('click', () => {
   document.getElementById('btn-who-self').disabled = true;
   document.getElementById('btn-who-partner').disabled = true;
   document.getElementById('btn-submit-who').disabled = true;
-  document.getElementById('btn-submit-who').textContent = '✅ Đã gửi';
+  document.getElementById('btn-submit-who').textContent = '⏳ Đang gửi...';
   clearTimeout(answerUiTimer);
   answerUiTimer = setTimeout(() => {
     document.getElementById('status-chosen').style.display = 'block';
@@ -1811,7 +1817,7 @@ function submitFreeAnswer() {
   clearInterval(timerInterval);
   document.getElementById('inp-free-answer').disabled = true;
   document.getElementById('btn-submit-free').disabled = true;
-  document.getElementById('btn-submit-free').textContent = '✅ Đã gửi';
+  document.getElementById('btn-submit-free').textContent = '⏳ Đang gửi...';
   clearTimeout(answerUiTimer);
   answerUiTimer = setTimeout(() => {
     document.getElementById('status-chosen').style.display = 'block';
@@ -1863,6 +1869,7 @@ function submitAnswer(answer) {
       if (activeGame && (activeGame.phase || 'answering') !== 'results') renderQuestion(activeGame);
       return;
     }
+    markAnswerAcknowledged();
     document.getElementById('chosen-sub').textContent = '✅ Đáp án đã lưu — đang chờ đồng đội trả lời...';
   }).catch(error => {
     hasAnswered = false;
@@ -1870,6 +1877,12 @@ function submitAnswer(answer) {
     toast('❌ ' + (error && error.message ? error.message : 'Không gửi được đáp án. Kiểm tra kết nối rồi thử lại.'));
     if (activeGame && (activeGame.phase || 'answering') !== 'results') renderQuestion(activeGame);
   });
+}
+function markAnswerAcknowledged() {
+  const type = (activeGame && activeGame.type) || 'choice';
+  const buttonId = type === 'who_is' ? 'btn-submit-who' : type === 'text' ? 'btn-submit-free' : 'btn-submit-choice';
+  const button = document.getElementById(buttonId);
+  if (button) button.textContent = '✅ Đã gửi';
 }
 // ─────────────────────────────────────────
 // RESULT
