@@ -2116,31 +2116,38 @@ function drawCoverImage(ctx, img, x, y, w, h) {
   const sx = (img.naturalWidth - sw) / 2, sy = (img.naturalHeight - sh) / 2;
   ctx.drawImage(img, sx, sy, sw, sh, x, y, w, h); return true;
 }
+function wrapCardText(ctx, text, maxWidth) {
+  const words = String(text).replace(/\s+/g, ' ').trim().split(' '); const lines = []; let line = '';
+  words.forEach(word => {
+    const test = line ? line + ' ' + word : word;
+    if (line && ctx.measureText(test).width > maxWidth) { lines.push(line); line = word; }
+    else line = test;
+  });
+  if (line) lines.push(line); return lines;
+}
 async function buildPersonalCard() {
   const canvas = document.createElement('canvas'); canvas.width = 1080; canvas.height = 1920;
   const ctx = canvas.getContext('2d'); const name = myName || 'Bạn';
   const key = personalCardKey(name);
   const message = PERSONAL_CARD_MESSAGES[key] || `Chúc ${name} luôn rạng rỡ,\nhạnh phúc, may mắn\nvà nhận thật nhiều yêu thương.`;
-  const bg = ctx.createLinearGradient(0, 0, 1080, 1920); bg.addColorStop(0, '#fff7ed'); bg.addColorStop(1, '#f8e7df'); ctx.fillStyle = bg; ctx.fillRect(0, 0, 1080, 1920);
-  ctx.fillStyle = '#f4c9cf'; ctx.beginPath(); ctx.arc(82, 120, 280, 0, Math.PI * 2); ctx.fill(); ctx.beginPath(); ctx.arc(1020, 1785, 300, 0, Math.PI * 2); ctx.fill();
-  ctx.fillStyle = 'rgba(255,255,255,.72)'; ctx.fillRect(45, 50, 990, 1820);
-  ctx.save(); ctx.translate(545, 96); ctx.rotate(-.035); ctx.fillStyle = '#381a36'; ctx.font = '700 76px "Dancing Script", cursive'; ctx.textAlign = 'center'; ctx.fillText('Dear ' + name, 0, 0); ctx.restore();
-  ctx.strokeStyle = '#df7b94'; ctx.lineWidth = 10; ctx.beginPath(); ctx.moveTo(340, 132); ctx.lineTo(750, 132); ctx.stroke();
-  // Khung ảnh Polaroid.
-  ctx.save(); ctx.translate(120, 260); ctx.rotate(-.035); ctx.fillStyle = '#fff'; ctx.shadowColor = 'rgba(80,35,55,.24)'; ctx.shadowBlur = 25; ctx.shadowOffsetY = 13; ctx.fillRect(0, 0, 470, 670); ctx.shadowColor = 'transparent';
+  // Nền scrapbook vẽ sẵn: để thiệp nào cũng có cùng độ chỉn chu của bản demo.
+  const template = await loadCardImage('assets/cards/personal-card-template.png');
+  if (template) ctx.drawImage(template, 0, 0, 1080, 1920);
+  else { ctx.fillStyle = '#fff7ed'; ctx.fillRect(0, 0, 1080, 1920); }
+  ctx.save(); ctx.translate(540, 285); ctx.rotate(-.035); ctx.fillStyle = '#2d1728'; ctx.font = '700 76px "Dancing Script", cursive'; ctx.textAlign = 'center'; ctx.fillText('Dear ' + name, 0, 0); ctx.restore();
+  ctx.strokeStyle = '#d86e8e'; ctx.lineWidth = 9; ctx.beginPath(); ctx.moveTo(365, 323); ctx.lineTo(720, 323); ctx.stroke();
+  // Đặt ảnh vào ô Polaroid có sẵn ở bên trái, không che khung ảnh hoặc phần lời chúc.
   const image = await loadCardImage(avatarSrc(name, myAvatar));
-  const imageDrawn = drawCoverImage(ctx, image, 22, 22, 426, 510);
-  if (!imageDrawn) { ctx.fillStyle = '#8e3b67'; ctx.fillRect(22, 22, 426, 510); ctx.fillStyle = '#fff'; ctx.font = '900 165px Arial'; ctx.textAlign = 'center'; ctx.fillText(name.charAt(0).toUpperCase(), 235, 330); }
-  ctx.fillStyle = '#5e344f'; ctx.font = '600 41px "Dancing Script", cursive'; ctx.textAlign = 'center'; ctx.fillText('Keep shining, ' + name + ' ♥', 235, 602); ctx.restore();
-  // Tờ giấy lời chúc.
-  ctx.save(); ctx.translate(565, 465); ctx.rotate(.04); ctx.fillStyle = '#fffdf8'; ctx.shadowColor = 'rgba(80,35,55,.18)'; ctx.shadowBlur = 21; ctx.shadowOffsetY = 12; roundedRect(ctx, 0, 0, 420, 675, 12); ctx.fill(); ctx.shadowColor = 'transparent';
-  ctx.strokeStyle = '#efd6cc'; ctx.lineWidth = 2; for (let y = 110; y < 620; y += 58) { ctx.beginPath(); ctx.moveTo(26, y); ctx.lineTo(394, y); ctx.stroke(); }
-  drawCardText(ctx, message.split('\n'), 210, 185, 98, '600 52px "Dancing Script", cursive', '#281b24'); ctx.restore();
-  // Hoa hồng minh hoạ và vài nét giấy thủ công.
-  ctx.save(); ctx.translate(378, 1010); for (let i = 0; i < 10; i++) { ctx.rotate(Math.PI / 5); ctx.fillStyle = i % 2 ? '#ed8da8' : '#f5abc0'; ctx.beginPath(); ctx.ellipse(0, -58, 42, 83, 0, 0, Math.PI * 2); ctx.fill(); } ctx.fillStyle = '#f8d4a8'; ctx.beginPath(); ctx.arc(0, 0, 35, 0, Math.PI * 2); ctx.fill(); ctx.restore();
-  ctx.fillStyle = '#648153'; ctx.beginPath(); ctx.ellipse(286, 1100, 42, 105, -.55, 0, Math.PI * 2); ctx.fill(); ctx.beginPath(); ctx.ellipse(465, 1090, 42, 105, .55, 0, Math.PI * 2); ctx.fill();
-  ctx.fillStyle = '#3a2032'; ctx.font = '700 42px Arial,"Segoe UI",sans-serif'; ctx.textAlign = 'center'; ctx.fillText('Chúc mừng 20/10', 540, 1450); ctx.font = '600 32px Arial,"Segoe UI",sans-serif'; ctx.fillText('from Nams Thần Sales ♥', 540, 1505);
-  ctx.fillStyle = '#d97591'; ctx.font = '600 34px "Dancing Script", cursive'; ctx.fillText('Một món quà nhỏ dành riêng cho bạn', 540, 1665);
+  const imageDrawn = drawCoverImage(ctx, image, 76, 501, 440, 604);
+  if (!imageDrawn) { ctx.fillStyle = '#8e3b67'; ctx.fillRect(76, 501, 440, 604); ctx.fillStyle = '#fff'; ctx.font = '900 165px Arial'; ctx.textAlign = 'center'; ctx.fillText(name.charAt(0).toUpperCase(), 296, 830); }
+  ctx.save(); ctx.translate(300, 1157); ctx.rotate(-.035); ctx.fillStyle = '#5e344f'; ctx.font = '600 36px "Dancing Script", cursive'; ctx.textAlign = 'center'; ctx.fillText('Keep shining, ' + name + ' ♥', 0, 0); ctx.restore();
+  // Lời chúc được wrap theo đúng bề rộng tờ giấy ở bên phải, nên không thể đè chữ.
+  ctx.font = '600 43px "Dancing Script", cursive';
+  const textLines = wrapCardText(ctx, message.replace(/\n/g, ' '), 390);
+  const lineHeight = 79; const textStart = 797 - Math.max(0, (textLines.length - 3) * 19);
+  drawCardText(ctx, textLines, 800, textStart, lineHeight, '600 43px "Dancing Script", cursive', '#251822');
+  ctx.fillStyle = '#342131'; ctx.font = '800 39px Arial,"Segoe UI",sans-serif'; ctx.textAlign = 'center'; ctx.fillText('Chúc mừng 20/10', 540, 1500); ctx.font = '600 30px Arial,"Segoe UI",sans-serif'; ctx.fillText('from Nams Thần Sales ♥', 540, 1550);
+  ctx.fillStyle = '#bd6f88'; ctx.font = '600 32px "Dancing Script", cursive'; ctx.fillText('Một món quà nhỏ dành riêng cho bạn', 540, 1714);
   personalCardBlob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
   return URL.createObjectURL(personalCardBlob);
 }
