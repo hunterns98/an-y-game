@@ -2080,7 +2080,7 @@ let personalCardBlob = null;
 const PERSONAL_CARD_MESSAGES = {
   nhung: 'Chúc Nhung luôn rạng rỡ,\nnhiều niềm vui, nhiều deal đẹp\nvà thật nhiều yêu thương.',
   thuy: 'Chúc Thủy luôn an vui,\ntiền vào cuộn xoay như sóng,\nvà mỗi ngày đều thật rực rỡ.',
-  an: 'Chúc An luôn bình an,\nrạng rỡ trong mọi khoảnh khắc\nvà gặp thật nhiều điều may mắn.',
+  an: 'Chúc An luôn bình an,\nmỗi ngày thật rạng rỡ,\nvà gặp nhiều điều đẹp,\nmay mắn cùng yêu thương.',
   thoan: 'Chúc Thoan luôn thong thả,\nhạnh phúc đong đầy\nvà có một mùa 20/10 thật xinh.',
   phuong: 'Chúc Phượng luôn rực rỡ\nnhư mùa hè đầy nắng,\nvui tươi và tràn đầy năng lượng.',
   anh: 'Chúc Ánh luôn tỏa sáng,\nnhẹ nhàng, ấm áp\nvà nhận về thật nhiều yêu thương.',
@@ -2116,15 +2116,6 @@ function drawCoverImage(ctx, img, x, y, w, h) {
   const sx = (img.naturalWidth - sw) / 2, sy = (img.naturalHeight - sh) / 2;
   ctx.drawImage(img, sx, sy, sw, sh, x, y, w, h); return true;
 }
-function wrapCardText(ctx, text, maxWidth) {
-  const words = String(text).replace(/\s+/g, ' ').trim().split(' '); const lines = []; let line = '';
-  words.forEach(word => {
-    const test = line ? line + ' ' + word : word;
-    if (line && ctx.measureText(test).width > maxWidth) { lines.push(line); line = word; }
-    else line = test;
-  });
-  if (line) lines.push(line); return lines;
-}
 async function buildPersonalCard() {
   const canvas = document.createElement('canvas'); canvas.width = 1080; canvas.height = 1920;
   const ctx = canvas.getContext('2d'); const name = myName || 'Bạn';
@@ -2141,13 +2132,20 @@ async function buildPersonalCard() {
   const imageDrawn = drawCoverImage(ctx, image, 76, 501, 440, 604);
   if (!imageDrawn) { ctx.fillStyle = '#8e3b67'; ctx.fillRect(76, 501, 440, 604); ctx.fillStyle = '#fff'; ctx.font = '900 165px Arial'; ctx.textAlign = 'center'; ctx.fillText(name.charAt(0).toUpperCase(), 296, 830); }
   ctx.save(); ctx.translate(300, 1157); ctx.rotate(-.035); ctx.fillStyle = '#5e344f'; ctx.font = '600 36px "Dancing Script", cursive'; ctx.textAlign = 'center'; ctx.fillText('Keep shining, ' + name + ' ♥', 0, 0); ctx.restore();
-  // Lời chúc được wrap theo đúng bề rộng tờ giấy ở bên phải, nên không thể đè chữ.
-  ctx.font = '600 43px "Dancing Script", cursive';
-  const textLines = wrapCardText(ctx, message.replace(/\n/g, ' '), 390);
-  const lineHeight = 79; const textStart = 797 - Math.max(0, (textLines.length - 3) * 19);
-  drawCardText(ctx, textLines, 800, textStart, lineHeight, '600 43px "Dancing Script", cursive', '#251822');
-  ctx.fillStyle = '#342131'; ctx.font = '800 39px Arial,"Segoe UI",sans-serif'; ctx.textAlign = 'center'; ctx.fillText('Chúc mừng 20/10', 540, 1500); ctx.font = '600 30px Arial,"Segoe UI",sans-serif'; ctx.fillText('from Nams Thần Sales ♥', 540, 1550);
-  ctx.fillStyle = '#bd6f88'; ctx.font = '600 32px "Dancing Script", cursive'; ctx.fillText('Một món quà nhỏ dành riêng cho bạn', 540, 1714);
+  // Giữ các câu thành dòng chủ ý (không bẻ chữ theo từng từ). Nếu tên/câu dài,
+  // cỡ chữ giảm rất nhẹ nhưng vẫn cân trong đúng tờ giấy bên phải.
+  const textLines = message.split('\n').map(line => line.trim()).filter(Boolean);
+  let messageFontSize = 39;
+  while (messageFontSize > 28) {
+    ctx.font = `600 ${messageFontSize}px "Dancing Script", cursive`;
+    if (textLines.every(line => ctx.measureText(line).width <= 410)) break;
+    messageFontSize -= 1;
+  }
+  const lineHeight = Math.round(messageFontSize * 1.82);
+  const textStart = 807;
+  drawCardText(ctx, textLines, 800, textStart, lineHeight, `600 ${messageFontSize}px "Dancing Script", cursive`, '#251822');
+  // Chữ ký được đặt ở khoảng trống cuối tờ giấy, thay vì đứng lẻ ở nền phía dưới.
+  ctx.fillStyle = '#342131'; ctx.font = '800 34px Arial,"Segoe UI",sans-serif'; ctx.textAlign = 'center'; ctx.fillText('Chúc mừng 20/10', 800, 1328); ctx.font = '600 27px Arial,"Segoe UI",sans-serif'; ctx.fillText('from Nams Thần Sales ♥', 800, 1372);
   personalCardBlob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
   return URL.createObjectURL(personalCardBlob);
 }
