@@ -2125,13 +2125,14 @@ async function buildPersonalCard() {
   const template = await loadCardImage('assets/cards/personal-card-template.png');
   if (template) ctx.drawImage(template, 0, 0, 1080, 1920);
   else { ctx.fillStyle = '#fff7ed'; ctx.fillRect(0, 0, 1080, 1920); }
-  ctx.save(); ctx.translate(540, 285); ctx.rotate(-.035); ctx.fillStyle = '#2d1728'; ctx.font = '700 76px "Dancing Script", cursive'; ctx.textAlign = 'center'; ctx.fillText('Dear ' + name, 0, 0); ctx.restore();
-  ctx.strokeStyle = '#d86e8e'; ctx.lineWidth = 9; ctx.beginPath(); ctx.moveTo(365, 323); ctx.lineTo(720, 323); ctx.stroke();
+  // Form giống thiệp mẫu: lời chào ở phía trên phải, ảnh lớn bên trái.
+  ctx.save(); ctx.translate(760, 258); ctx.rotate(-.035); ctx.fillStyle = '#2d1728'; ctx.font = '700 72px "Dancing Script", cursive'; ctx.textAlign = 'center'; ctx.fillText('Dear ' + name, 0, 0); ctx.restore();
+  ctx.strokeStyle = '#d86e8e'; ctx.lineWidth = 9; ctx.beginPath(); ctx.moveTo(590, 297); ctx.lineTo(920, 297); ctx.stroke();
   // Đặt ảnh vào ô Polaroid có sẵn ở bên trái, không che khung ảnh hoặc phần lời chúc.
   const image = await loadCardImage(avatarSrc(name, myAvatar));
-  const imageDrawn = drawCoverImage(ctx, image, 76, 501, 440, 604);
-  if (!imageDrawn) { ctx.fillStyle = '#8e3b67'; ctx.fillRect(76, 501, 440, 604); ctx.fillStyle = '#fff'; ctx.font = '900 165px Arial'; ctx.textAlign = 'center'; ctx.fillText(name.charAt(0).toUpperCase(), 296, 830); }
-  ctx.save(); ctx.translate(300, 1157); ctx.rotate(-.035); ctx.fillStyle = '#5e344f'; ctx.font = '600 36px "Dancing Script", cursive'; ctx.textAlign = 'center'; ctx.fillText('Keep shining, ' + name + ' ♥', 0, 0); ctx.restore();
+  const imageDrawn = drawCoverImage(ctx, image, 69, 421, 445, 716);
+  if (!imageDrawn) { ctx.fillStyle = '#8e3b67'; ctx.fillRect(69, 421, 445, 716); ctx.fillStyle = '#fff'; ctx.font = '900 165px Arial'; ctx.textAlign = 'center'; ctx.fillText(name.charAt(0).toUpperCase(), 291, 810); }
+  ctx.save(); ctx.translate(292, 1210); ctx.rotate(-.035); ctx.fillStyle = '#5e344f'; ctx.font = '600 36px "Dancing Script", cursive'; ctx.textAlign = 'center'; ctx.fillText('Keep shining, ' + name + ' ♥', 0, 0); ctx.restore();
   // Giữ các câu thành dòng chủ ý (không bẻ chữ theo từng từ). Nếu tên/câu dài,
   // cỡ chữ giảm rất nhẹ nhưng vẫn cân trong đúng tờ giấy bên phải.
   const textLines = message.split('\n').map(line => line.trim()).filter(Boolean);
@@ -2142,10 +2143,10 @@ async function buildPersonalCard() {
     messageFontSize -= 1;
   }
   const lineHeight = Math.round(messageFontSize * 1.82);
-  const textStart = 807;
-  drawCardText(ctx, textLines, 800, textStart, lineHeight, `600 ${messageFontSize}px "Dancing Script", cursive`, '#251822');
+  const textStart = 778;
+  drawCardText(ctx, textLines, 810, textStart, lineHeight, `600 ${messageFontSize}px "Dancing Script", cursive`, '#251822');
   // Chữ ký được đặt ở khoảng trống cuối tờ giấy, thay vì đứng lẻ ở nền phía dưới.
-  ctx.fillStyle = '#342131'; ctx.font = '800 34px Arial,"Segoe UI",sans-serif'; ctx.textAlign = 'center'; ctx.fillText('Chúc mừng 20/10', 800, 1328); ctx.font = '600 27px Arial,"Segoe UI",sans-serif'; ctx.fillText('from Nams Thần Sales ♥', 800, 1372);
+  ctx.fillStyle = '#342131'; ctx.font = '800 34px Arial,"Segoe UI",sans-serif'; ctx.textAlign = 'center'; ctx.fillText('Chúc mừng 20/10', 810, 1390); ctx.font = '600 27px Arial,"Segoe UI",sans-serif'; ctx.fillText('from Nams Thần Sales ♥', 810, 1434);
   personalCardBlob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
   return URL.createObjectURL(personalCardBlob);
 }
