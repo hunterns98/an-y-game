@@ -461,6 +461,16 @@
   .poem-stanza + .poem-stanza { margin-top:13px; }
   .poem-line { display:block; white-space:nowrap; }.poem-line.indent { transform:translateX(clamp(10px,3vw,18px)); }
   .poem-signature { margin-top:23px; padding-top:16px; border-top:1px solid rgba(33,25,27,.28); color:#21191b; font-family:'Dancing Script','Segoe Script',cursive; font-size:clamp(1.15rem,5.5vw,1.5rem); font-weight:700; }
+  .gift-card-action { margin:24px auto 2px; min-height:48px; padding:12px 20px; border:0; border-radius:999px; color:#fff; background:linear-gradient(135deg,#e82b74,#8d195d); box-shadow:0 9px 18px rgba(127,18,70,.28); font:800 .9rem/1.2 Arial,'Segoe UI',sans-serif; cursor:pointer; -webkit-tap-highlight-color:transparent; }
+  .gift-card-action:active { transform:scale(.97); }
+  #personal-card-modal { display:none; position:fixed; inset:0; z-index:10010; overflow:auto; padding:max(20px,env(safe-area-inset-top)) 16px max(24px,env(safe-area-inset-bottom)); background:rgba(13,2,23,.9); }
+  #personal-card-modal.show { display:flex; align-items:flex-start; justify-content:center; }
+  .personal-card-dialog { width:min(100%,390px); margin:auto; padding:16px; border-radius:24px; background:#fff8f0; box-shadow:0 24px 72px rgba(0,0,0,.52); text-align:center; }
+  .personal-card-dialog h2 { margin:3px 36px 12px; color:#2b1429; font-size:1.12rem; line-height:1.3; }
+  .personal-card-close { float:right; width:34px; height:34px; border:0; border-radius:50%; color:#fff; background:#6c2357; font-size:1.25rem; cursor:pointer; }
+  #personal-card-preview { display:block; width:100%; border-radius:14px; box-shadow:0 9px 22px rgba(70,25,52,.22); }
+  .personal-card-save { width:100%; margin-top:14px; padding:13px 18px; border:0; border-radius:14px; color:#fff; background:linear-gradient(135deg,#e82b74,#9b1d66); font-weight:900; font-size:.95rem; cursor:pointer; }
+  .personal-card-hint { margin:10px 5px 2px; color:#76556d; font-size:.75rem; line-height:1.4; }
   /* ── CONFETTI ── */
   /* (drawn via canvas) */
   /* ── TOAST ── */
@@ -708,7 +718,7 @@
 <!-- Stars bg -->
 <div class="stars" id="stars"></div>
 <!-- Footer credit -->
-<div class="made-by-footer">Made By Nam Thần Sales With <span>♥</span></div>
+<div class="made-by-footer">Made By Nams Thần Sales With <span>♥</span></div>
 <!-- Toast -->
 <div id="toast-container"></div>
 <div class="connection-banner" id="connection-banner" role="status" aria-live="polite"></div>
@@ -744,8 +754,18 @@
         <p class="poem-stanza"><span class="poem-line indent">Hai mươi tháng Mười đẹp tươi,</span><span class="poem-line">Chúc cho phái đẹp nụ cười nở hoa.</span><span class="poem-line indent">Trẻ trung, hạnh phúc, kiêu sa,</span><span class="poem-line">Tiền tài, may mắn, nhà nhà ấm êm!</span></p>
       </div>
       <p class="poem-signature">From Nams Thần Sales</p>
+      <button class="gift-card-action" id="btn-create-personal-card" type="button">💌 Xem thiệp của bạn</button>
     </article>
   </div>
+</div>
+<div id="personal-card-modal" role="dialog" aria-modal="true" aria-labelledby="personal-card-heading">
+  <section class="personal-card-dialog">
+    <button class="personal-card-close" id="btn-close-personal-card" type="button" aria-label="Đóng thiệp">×</button>
+    <h2 id="personal-card-heading">Thiệp 20/10 của bạn</h2>
+    <img id="personal-card-preview" alt="Thiệp 20/10 cá nhân">
+    <button class="personal-card-save" id="btn-save-personal-card" type="button">📥 Lưu thiệp về máy</button>
+    <p class="personal-card-hint">Trên iPhone, bạn có thể chọn Chia sẻ → Lưu hình ảnh.</p>
+  </section>
 </div>
 <!-- MAIN APP -->
 <div id="app">
@@ -2052,6 +2072,99 @@ document.getElementById('btn-open-gift').addEventListener('click', () => {
   winnerScreen.scrollTop = 0;
   sfxWin();
   startConfetti();
+});
+// ── THIỆP 20/10 CÁ NHÂN ────────────────────────────────────────────────
+// Thiệp được vẽ tại máy người chơi (không tải ảnh lên server), theo tỷ lệ 9:16
+// để lưu story nét trên điện thoại. Ảnh lấy đúng avatar đã gắn với tên trong game.
+let personalCardBlob = null;
+const PERSONAL_CARD_MESSAGES = {
+  nhung: 'Chúc Nhung luôn rạng rỡ,\nnhiều niềm vui, nhiều deal đẹp\nvà thật nhiều yêu thương.',
+  thuy: 'Chúc Thủy luôn an vui,\ntiền vào cuộn xoay như sóng,\nvà mỗi ngày đều thật rực rỡ.',
+  an: 'Chúc An luôn bình an,\nrạng rỡ trong mọi khoảnh khắc\nvà gặp thật nhiều điều may mắn.',
+  thoan: 'Chúc Thoan luôn thong thả,\nhạnh phúc đong đầy\nvà có một mùa 20/10 thật xinh.',
+  phuong: 'Chúc Phượng luôn rực rỡ\nnhư mùa hè đầy nắng,\nvui tươi và tràn đầy năng lượng.',
+  anh: 'Chúc Ánh luôn tỏa sáng,\nnhẹ nhàng, ấm áp\nvà nhận về thật nhiều yêu thương.',
+  giang: 'Chúc Giang vững vàng\ntrên mọi hành trình,\nđến đâu cũng có niềm vui chờ đón.',
+  hanh: 'Chúc Hạnh luôn rạng rỡ,\nnhiều niềm vui, nhiều deal đẹp\nvà thật nhiều yêu thương.',
+  le: 'Chúc Lệ luôn diễm lệ,\ntự tin, hạnh phúc\nvà có thật nhiều điều đáng yêu.',
+  maianh: 'Chúc Mai Anh luôn tươi như hoa,\nđón nhiều lộc lành\nvà giữ mãi nụ cười thật xinh.',
+  linh: 'Chúc Linh luôn thông minh,\nnhanh nhẹn và nhiều cảm hứng\ntrong mọi điều mình lựa chọn.',
+  hang: 'Chúc Hằng luôn rạng rỡ,\nnhiều niềm vui, nhiều deal đẹp\nvà thật nhiều yêu thương.',
+  hoa: 'Chúc Hoa luôn thắm hồng,\ntươi vui, dịu dàng\nvà nở rộ theo cách của riêng mình.',
+  trang: 'Chúc Trang luôn trang nhã,\nthanh tao, may mắn\nvà đầy ắp những niềm vui nhỏ.',
+  truc: 'Chúc Trúc luôn vươn cao,\nthanh mảnh mà kiên cường,\nvà gặt hái thật nhiều điều tốt đẹp.',
+  lien: 'Chúc Liên luôn gặp nhiều tài lộc,\nniềm vui nối tiếp niềm vui\nvà hạnh phúc chẳng vơi.'
+};
+function personalCardKey(name) { return normalizeAnswer(name); }
+function roundedRect(ctx, x, y, w, h, r) {
+  const radius = Math.min(r, w / 2, h / 2);
+  ctx.beginPath(); ctx.moveTo(x + radius, y); ctx.arcTo(x + w, y, x + w, y + h, radius); ctx.arcTo(x + w, y + h, x, y + h, radius); ctx.arcTo(x, y + h, x, y, radius); ctx.arcTo(x, y, x + w, y, radius); ctx.closePath();
+}
+function drawCardText(ctx, lines, x, y, lineHeight, font, color) {
+  ctx.font = font; ctx.fillStyle = color; ctx.textAlign = 'center';
+  lines.forEach((line, index) => ctx.fillText(line, x, y + index * lineHeight));
+}
+function loadCardImage(src) {
+  return new Promise(resolve => {
+    const img = new Image(); img.onload = () => resolve(img); img.onerror = () => resolve(null); img.src = src;
+  });
+}
+function drawCoverImage(ctx, img, x, y, w, h) {
+  if (!img) return false;
+  const scale = Math.max(w / img.naturalWidth, h / img.naturalHeight);
+  const sw = w / scale, sh = h / scale;
+  const sx = (img.naturalWidth - sw) / 2, sy = (img.naturalHeight - sh) / 2;
+  ctx.drawImage(img, sx, sy, sw, sh, x, y, w, h); return true;
+}
+async function buildPersonalCard() {
+  const canvas = document.createElement('canvas'); canvas.width = 1080; canvas.height = 1920;
+  const ctx = canvas.getContext('2d'); const name = myName || 'Bạn';
+  const key = personalCardKey(name);
+  const message = PERSONAL_CARD_MESSAGES[key] || `Chúc ${name} luôn rạng rỡ,\nhạnh phúc, may mắn\nvà nhận thật nhiều yêu thương.`;
+  const bg = ctx.createLinearGradient(0, 0, 1080, 1920); bg.addColorStop(0, '#fff7ed'); bg.addColorStop(1, '#f8e7df'); ctx.fillStyle = bg; ctx.fillRect(0, 0, 1080, 1920);
+  ctx.fillStyle = '#f4c9cf'; ctx.beginPath(); ctx.arc(82, 120, 280, 0, Math.PI * 2); ctx.fill(); ctx.beginPath(); ctx.arc(1020, 1785, 300, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = 'rgba(255,255,255,.72)'; ctx.fillRect(45, 50, 990, 1820);
+  ctx.save(); ctx.translate(545, 96); ctx.rotate(-.035); ctx.fillStyle = '#381a36'; ctx.font = '700 76px "Dancing Script", cursive'; ctx.textAlign = 'center'; ctx.fillText('Dear ' + name, 0, 0); ctx.restore();
+  ctx.strokeStyle = '#df7b94'; ctx.lineWidth = 10; ctx.beginPath(); ctx.moveTo(340, 132); ctx.lineTo(750, 132); ctx.stroke();
+  // Khung ảnh Polaroid.
+  ctx.save(); ctx.translate(120, 260); ctx.rotate(-.035); ctx.fillStyle = '#fff'; ctx.shadowColor = 'rgba(80,35,55,.24)'; ctx.shadowBlur = 25; ctx.shadowOffsetY = 13; ctx.fillRect(0, 0, 470, 670); ctx.shadowColor = 'transparent';
+  const image = await loadCardImage(avatarSrc(name, myAvatar));
+  const imageDrawn = drawCoverImage(ctx, image, 22, 22, 426, 510);
+  if (!imageDrawn) { ctx.fillStyle = '#8e3b67'; ctx.fillRect(22, 22, 426, 510); ctx.fillStyle = '#fff'; ctx.font = '900 165px Arial'; ctx.textAlign = 'center'; ctx.fillText(name.charAt(0).toUpperCase(), 235, 330); }
+  ctx.fillStyle = '#5e344f'; ctx.font = '600 41px "Dancing Script", cursive'; ctx.textAlign = 'center'; ctx.fillText('Keep shining, ' + name + ' ♥', 235, 602); ctx.restore();
+  // Tờ giấy lời chúc.
+  ctx.save(); ctx.translate(565, 465); ctx.rotate(.04); ctx.fillStyle = '#fffdf8'; ctx.shadowColor = 'rgba(80,35,55,.18)'; ctx.shadowBlur = 21; ctx.shadowOffsetY = 12; roundedRect(ctx, 0, 0, 420, 675, 12); ctx.fill(); ctx.shadowColor = 'transparent';
+  ctx.strokeStyle = '#efd6cc'; ctx.lineWidth = 2; for (let y = 110; y < 620; y += 58) { ctx.beginPath(); ctx.moveTo(26, y); ctx.lineTo(394, y); ctx.stroke(); }
+  drawCardText(ctx, message.split('\n'), 210, 185, 98, '600 52px "Dancing Script", cursive', '#281b24'); ctx.restore();
+  // Hoa hồng minh hoạ và vài nét giấy thủ công.
+  ctx.save(); ctx.translate(378, 1010); for (let i = 0; i < 10; i++) { ctx.rotate(Math.PI / 5); ctx.fillStyle = i % 2 ? '#ed8da8' : '#f5abc0'; ctx.beginPath(); ctx.ellipse(0, -58, 42, 83, 0, 0, Math.PI * 2); ctx.fill(); } ctx.fillStyle = '#f8d4a8'; ctx.beginPath(); ctx.arc(0, 0, 35, 0, Math.PI * 2); ctx.fill(); ctx.restore();
+  ctx.fillStyle = '#648153'; ctx.beginPath(); ctx.ellipse(286, 1100, 42, 105, -.55, 0, Math.PI * 2); ctx.fill(); ctx.beginPath(); ctx.ellipse(465, 1090, 42, 105, .55, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = '#3a2032'; ctx.font = '700 42px Arial,"Segoe UI",sans-serif'; ctx.textAlign = 'center'; ctx.fillText('Chúc mừng 20/10', 540, 1450); ctx.font = '600 32px Arial,"Segoe UI",sans-serif'; ctx.fillText('from Nams Thần Sales ♥', 540, 1505);
+  ctx.fillStyle = '#d97591'; ctx.font = '600 34px "Dancing Script", cursive'; ctx.fillText('Một món quà nhỏ dành riêng cho bạn', 540, 1665);
+  personalCardBlob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
+  return URL.createObjectURL(personalCardBlob);
+}
+document.getElementById('btn-create-personal-card').addEventListener('click', async () => {
+  const btn = document.getElementById('btn-create-personal-card'); btn.disabled = true; btn.textContent = '⏳ Đang tạo thiệp...';
+  try {
+    if (document.fonts && document.fonts.ready) await document.fonts.ready;
+    const src = await buildPersonalCard();
+    document.getElementById('personal-card-preview').src = src;
+    document.getElementById('personal-card-heading').textContent = 'Thiệp 20/10 của ' + (myName || 'bạn');
+    document.getElementById('personal-card-modal').classList.add('show');
+  } catch (error) { toast('❌ Chưa tạo được thiệp, hãy thử lại nhé.'); }
+  finally { btn.disabled = false; btn.textContent = '💌 Xem thiệp của bạn'; }
+});
+document.getElementById('btn-close-personal-card').addEventListener('click', () => document.getElementById('personal-card-modal').classList.remove('show'));
+document.getElementById('personal-card-modal').addEventListener('click', event => { if (event.target.id === 'personal-card-modal') event.currentTarget.classList.remove('show'); });
+document.getElementById('btn-save-personal-card').addEventListener('click', async () => {
+  if (!personalCardBlob) return;
+  const filename = 'thiep-20-10-' + (myName || 'ban').replace(/[^a-z0-9]+/gi, '-').toLowerCase() + '.png';
+  const file = new File([personalCardBlob], filename, { type:'image/png' });
+  try {
+    if (navigator.canShare && navigator.canShare({ files:[file] })) { await navigator.share({ files:[file], title:'Thiệp 20/10' }); return; }
+  } catch (error) { if (error.name === 'AbortError') return; }
+  const url = URL.createObjectURL(personalCardBlob); const link = document.createElement('a'); link.href = url; link.download = filename; document.body.appendChild(link); link.click(); link.remove(); setTimeout(() => URL.revokeObjectURL(url), 1500);
 });
 // ─────────────────────────────────────────
 // TEAM NAME EDITOR
