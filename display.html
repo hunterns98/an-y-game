@@ -195,12 +195,11 @@
   .team-ready-card { display:flex; align-items:center; justify-content:space-between; gap:9px; padding:9px 12px; border:1px solid var(--border); border-radius:12px; background:rgba(255,255,255,.045); text-align:left; font-size:.8rem; font-weight:800; transition:.25s ease; }
   .team-ready-card.ready { border-color:rgba(34,197,94,.65); background:rgba(34,197,94,.13); color:#bbf7d0; box-shadow:0 0 18px rgba(34,197,94,.12); }
   .team-ready-name { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }.team-ready-state { flex:0 0 auto; color:var(--muted); }.team-ready-card.ready .team-ready-state { color:var(--green); }
-  .team-answer-flash { display:none; width:min(100%,660px); padding:10px 16px; border-radius:14px; text-align:center; color:#d1fae5; background:rgba(34,197,94,.16); border:1px solid rgba(34,197,94,.55); font-weight:900; animation:teamAnswerPop .5s cubic-bezier(.2,1.4,.4,1); }.team-answer-flash.show { display:block; } @keyframes teamAnswerPop { from{opacity:0;transform:scale(.82) translateY(12px)}to{opacity:1;transform:none} }
   #d-start-countdown { position:fixed; inset:0; z-index:50; display:none; flex-direction:column; align-items:center; justify-content:center; gap:8px; background:rgba(10,0,21,.97); backdrop-filter:blur(10px); text-align:center; }
   #d-start-countdown.show { display:flex; }.start-count-num { min-width:120px; color:var(--gold); font-size:clamp(5rem,17vw,11rem); line-height:.85; font-weight:950; text-shadow:0 0 34px rgba(255,214,10,.45); animation:startCountPop .68s cubic-bezier(.2,1.55,.4,1); }.start-count-label { color:var(--text); font-size:clamp(1rem,2.4vw,1.55rem); font-weight:900; letter-spacing:.12em; text-transform:uppercase; } @keyframes startCountPop { from{opacity:0;transform:scale(.5)}to{opacity:1;transform:scale(1)} }
-  .level-transition-overlay { position:fixed; inset:0; z-index:70; display:none; place-items:center; padding:28px; background:radial-gradient(circle at 50% 25%,rgba(155,93,229,.44),rgba(10,0,21,.96) 60%); text-align:center; }
+  .level-transition-overlay { position:fixed; inset:0; z-index:70; display:none; place-items:center; padding:28px; background:radial-gradient(circle at 50% 25%,#5b1c78 0%,#210536 42%,#0a0015 76%); text-align:center; }
   .level-transition-overlay.show { display:grid; animation:levelTransitionIn .55s cubic-bezier(.2,1.35,.4,1); }
-  .level-transition-card { width:min(100%,760px); padding:clamp(28px,5vw,56px); border:1px solid rgba(255,214,10,.65); border-radius:32px; background:linear-gradient(145deg,rgba(255,45,120,.18),rgba(86,31,166,.38)); box-shadow:0 0 56px rgba(155,93,229,.35); }
+  .level-transition-card { width:min(100%,760px); padding:clamp(28px,5vw,56px); border:1px solid rgba(255,214,10,.75); border-radius:32px; background:linear-gradient(145deg,#6e164e,#321160); box-shadow:0 0 56px rgba(155,93,229,.5); }
   .level-transition-kicker { color:var(--gold); font-size:clamp(.8rem,1.6vw,1rem); font-weight:950; letter-spacing:.24em; }.level-transition-title { margin:10px 0 16px; font-size:clamp(2rem,5vw,4rem); font-weight:950; }.level-transition-rule { max-width:600px; margin:0 auto; font-size:clamp(1rem,2vw,1.3rem); line-height:1.45; color:var(--text); }.level-transition-score { display:inline-block; margin:20px 0 16px; padding:10px 18px; border-radius:99px; background:rgba(0,245,212,.12); border:1px solid rgba(0,245,212,.4); color:var(--cyan); font-size:clamp(1rem,2vw,1.25rem); font-weight:950; }.level-transition-wait { color:var(--muted); font-size:.9rem; font-weight:800; } @keyframes levelTransitionIn { from{opacity:0;transform:scale(.92)}to{opacity:1;transform:scale(1)} }
   @media (max-width:700px) { .team-ready-grid { grid-template-columns:1fr; } }
   /* ── REVEAL BOARD ── */
@@ -274,6 +273,9 @@
   @media (max-width:700px) { .podium-grid { gap:7px; } .podium-card { min-height:150px; padding:15px 7px 12px; border-radius:18px; } .podium-card.rank-1 { min-height:184px; } .podium-medal { width:48px; height:48px; font-size:1.8rem; } .rank-1 .podium-medal { width:60px; height:60px; font-size:2.3rem; } .podium-avatars .avatar-frame,.podium-avatars img { width:48px!important;height:48px!important; } .rank-1 .podium-avatars .avatar-frame,.rank-1 .podium-avatars img { width:60px!important;height:60px!important; } .podium-team { font-size:.8rem; } .podium-points { font-size:.85rem; } .champion-avatars .avatar-frame { width:78px!important;height:78px!important; } .champion-avatars .avatar-thumb { width:78px!important; height:78px!important; } }
   /* ── ENDED SCREEN ── */
   #screen-ended { position: relative; }
+  #screen-gift-reveal { position:relative; text-align:center; }
+  .display-gift-card { width:min(100%,760px); padding:clamp(34px,7vw,72px) clamp(24px,6vw,58px); border:1px solid rgba(255,214,10,.72); border-radius:34px; background:linear-gradient(145deg,rgba(110,22,78,.94),rgba(50,17,96,.96)); box-shadow:0 0 62px rgba(255,45,120,.26); }
+  .display-gift-icon { display:block; font-size:clamp(4rem,10vw,7rem); animation:giftDisplayFloat 1.8s ease-in-out infinite; }.display-gift-title { margin:16px 0 14px; font-size:clamp(2rem,5vw,4rem); line-height:1.16; font-weight:950; }.display-gift-copy { max-width:590px; margin:0 auto; color:var(--text); font-size:clamp(1rem,2.1vw,1.35rem); font-weight:700; line-height:1.5; }.display-gift-note { margin-top:22px; color:var(--cyan); font-size:clamp(.9rem,1.7vw,1.1rem); font-weight:950; } @keyframes giftDisplayFloat { 50%{transform:translateY(-10px) rotate(3deg)} }
   /* Chung kết 20/10: nền chỉ tải/hiện ở màn cuối, không làm nặng lúc chơi. */
   body.floral-finale { background-image:linear-gradient(180deg,rgba(20,0,35,.22),rgba(18,0,30,.58)),url('assets/backgrounds/finale-20-10-floral.png'); background-position:center; background-size:cover; background-attachment:fixed; }
   body.floral-finale .stars { opacity:.28; }
@@ -383,7 +385,6 @@
       <div class="progress-count" id="d-progress-count">0 / 0</div>
       <div class="team-ready-grid" id="d-team-ready-grid"></div>
     </div>
-    <div class="team-answer-flash" id="d-team-answer-flash" aria-live="polite"></div>
     <div class="reveal-intro" id="d-reveal-intro">🔒 ĐÁP ÁN ĐÃ KHÓA · CÙNG XEM NÀO!</div>
     <div class="reveal-board" id="d-reveal-board"></div>
     <div class="leader-spotlight" id="d-leader-spotlight"></div>
@@ -396,6 +397,9 @@
       <div class="kahoot-leaderboard" id="d-final-leaderboard"></div>
       <div class="award-list" id="d-award-list"></div>
     </div>
+  </div>
+  <div class="screen" id="screen-gift-reveal">
+    <section class="display-gift-card"><span class="display-gift-icon">🎁</span><h1 class="display-gift-title">Cảm ơn mọi người<br>đã chơi hết mình!</h1><p class="display-gift-copy">Giờ hãy mở lại điện thoại để nhận một món quà nhỏ dành riêng cho phái đẹp của phòng nhé.</p><p class="display-gift-note">✨ Món quà đã được mở trên điện thoại</p></section>
   </div>
 </div>
 <!-- Firebase -->
@@ -430,32 +434,32 @@
 // Chỉ được bật ở phòng chờ và lúc các đội đang trả lời.
 // ─────────────────────────────────────────
 const COMMENTS = [
-  '🤬 Đủ nắng hoa sẽ nở, đủ rồi dừng lại thôi.',
-  '🍚 Nếu một ngày giàu có, tôi sẽ ăn sữa chua mà không cần liếm nắp.',
-  '👀 Hợp đồng kỳ nghỉ không em?',
-  '🚨 Cố lên cố lên, sắp tới rồi sắp tới rồi.',
-  '😤 Ê nha. Tôi nhắc em.',
-  '🏆 Thì phải làm sao? Phải chịu.',
-  '⚡ Kìn chá nà. Kìn chá nề yố.',
-  '🔥 Lửa hận thù đốt cháy ký ức hai ta.',
-  '🃏 Nếu một ngày giàu có, tôi sẽ bóc hết giấy ướt lúc đi ăn hàng.',
-  '🤤 Doki Doki, Fuwa Fuwa, Oishikunare, Moe Moe Kun.',
-  '😎 Đen tình đỏ bạc. Bạn đen cả hai.',
-  '😮‍ Một ngày thật tuyệt, tuyệt vọng!',
-  '😶‍ Họ cười tôi vì tôi khác họ. Tôi cười họ thì họ đấm tôi.',
-  '❤️‍ Cứ tưởng mình là love, ai ngờ đâu là lốp.',
-  '🕊️ Bây giờ em đã có chồng, như chim vào lồng như cá cắn câu.',
-  '🐟 Cá cắn câu biết đâu mà gỡ? Chim vào lồng biết ngày nào ra?',
-  '🔮 Những lúc buồn đời, điều bạn cần làm là đi xem bói.',
-  '🤔 Ủa em?',
-  '🚓 Của rẻ là của congan.',
-  '👑 Đừng cúi đầu, vương miện sẽ rơi.',
-  '🙀 Sống Nay Stress Mai.',
-  '🦑 2, 3 con mực. Yêu em căng cực.',
-  '🐟 Sẽ có những con cá phải giả chó.',
+  'Đủ nắng hoa sẽ nở, đủ rồi dừng lại thôi.',
+  'Nếu một ngày giàu có, tôi sẽ ăn sữa chua mà không cần liếm nắp.',
+  'Hợp đồng kỳ nghỉ không em?',
+  'Cố lên cố lên, sắp tới rồi sắp tới rồi.',
+  'Ê nha. Tôi nhắc em.',
+  'Thì phải làm sao? Phải chịu.',
+  'Kìn chá nà. Kìn chá nề yố.',
+  'Lửa hận thù đốt cháy ký ức hai ta.',
+  'Nếu một ngày giàu có, tôi sẽ bóc hết giấy ướt lúc đi ăn hàng.',
+  'Doki Doki, Fuwa Fuwa, Oishikunare, Moe Moe Kun.',
+  'Đen tình đỏ bạc. Bạn đen cả hai.',
+  'Một ngày thật tuyệt, tuyệt vọng!',
+  'Họ cười tôi vì tôi khác họ. Tôi cười họ thì họ đấm tôi.',
+  'Cứ tưởng mình là love, ai ngờ đâu là lốp.',
+  'Bây giờ em đã có chồng, như chim vào lồng như cá cắn câu.',
+  'Cá cắn câu biết đâu mà gỡ? Chim vào lồng biết ngày nào ra?',
+  'Những lúc buồn đời, điều bạn cần làm là đi xem bói.',
+  'Ủa em?',
+  'Của rẻ là của congan.',
+  'Đừng cúi đầu, vương miện sẽ rơi.',
+  'Sống Nay Stress Mai.',
+  '2, 3 con mực. Yêu em căng cực.',
+  'Sẽ có những con cá phải giả chó.',
   '🖤🩷 Hồng Đen trong khu vực bạn đóoooo.',
-  '🤡 1 điều nhịn là 9 đứa ngồi lên đầu.',
-  "🐶 Trust me I'm a Dogtor."
+  '1 điều nhịn là 9 đứa ngồi lên đầu.',
+  "Trust me I'm a Dogtor."
 ];
 let commentBag = [];
 let lastShownCommentIdx = -1;
@@ -800,17 +804,8 @@ function renderProgress() {
   const grid = document.getElementById('d-team-ready-grid');
   if (!grid) return;
   const doneNow = new Set(teamEntries.filter(([, team]) => isTeamDone(team)).map(([key]) => key));
-  const newlyDone = teamEntries.filter(([key]) => doneNow.has(key) && !readyTeamKeys.has(key));
-  if (newlyDone.length && gameCache && gameCache.phase === 'answering') {
-    const flash = document.getElementById('d-team-answer-flash');
-    const labels = newlyDone.map(([key, team]) => {
-      const index = teamEntries.findIndex(([teamKey]) => teamKey === key);
-      return team.teamName || `Đội ${index + 1}`;
-    });
-    flash.textContent = `💞 ${labels.join(' · ')} đã chốt đáp án!`;
-    flash.classList.remove('show'); requestAnimationFrame(() => flash.classList.add('show'));
-    clearTimeout(teamAnswerFlashTimer); teamAnswerFlashTimer = setTimeout(() => flash.classList.remove('show'), 2200);
-  }
+  // Trạng thái đã/chưa trả lời đã hiển thị đầy đủ ngay trong từng thẻ đội.
+  // Không lặp thêm toast danh sách ở đáy để tránh sai lệch cảm nhận khi đồng bộ lại.
   readyTeamKeys = doneNow;
   grid.innerHTML = teamsArr.map((team, index) => {
     const done = isTeamDone(team);
@@ -831,7 +826,7 @@ function listenGameDisplay() {
     gameCache = g;
     if (!g || g.status !== 'ended') clearEndedConfetti();
     if (!g) { showScreen('waiting'); return; }
-    if (g.status === 'ended') { showEnded(); return; }
+    if (g.status === 'ended') { g.giftRevealed ? showGiftRevealDisplay() : showEnded(); return; }
     if (g.status === 'starting') { showScreen('waiting'); showStartCountdown(g); return; }
     hideStartCountdown();
     if (g.status !== 'playing') { showScreen('waiting'); return; }
@@ -1237,6 +1232,12 @@ function showEnded() {
     startDisplayConfetti();
     endedConfettiInterval = setInterval(startDisplayConfetti, 6000);
   }
+}
+function showGiftRevealDisplay() {
+  setCommentatorVisible(false);
+  clearEndedConfetti();
+  document.body.classList.add('floral-finale');
+  showScreen('gift-reveal');
 }
 // ─────────────────────────────────────────
 // CÁNH HỒNG RƠI (tối ưu: tối đa 90 cánh, tự dừng & dọn sạch để không tích tụ khi để TV chạy lâu)

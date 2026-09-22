@@ -320,6 +320,7 @@
       <button class="btn btn-purple" id="btn-open-display">📺 Màn hình lớn</button>
       <button class="btn btn-ghost" id="btn-rematch">🔁 Chơi lại</button>
       <button class="btn btn-ghost" id="btn-end-game">🏁 Kết thúc</button>
+      <button class="btn btn-cyan" id="btn-reveal-gift" style="display:none;">🎁 Reveal quà</button>
       <button class="btn btn-red" id="btn-reset">🗑 Reset</button>
     </div>
   </div>
@@ -1045,6 +1046,13 @@ function renderCurrentQuestionCard(game) {
 function applyControlButtonsState(game) {
   const revealBtn = document.getElementById('btn-reveal');
   const nextBtn = document.getElementById('btn-next');
+  const giftBtn = document.getElementById('btn-reveal-gift');
+  if (giftBtn) {
+    const canRevealGift = !!game && game.status === 'ended';
+    giftBtn.style.display = canRevealGift ? 'inline-block' : 'none';
+    giftBtn.disabled = !canRevealGift || !!game.giftRevealed;
+    giftBtn.textContent = game && game.giftRevealed ? '✅ Đã reveal quà' : '🎁 Reveal quà';
+  }
   if (!game || game.status === 'ended') {
     revealBtn.disabled = true;
     nextBtn.disabled = true;
@@ -1274,7 +1282,7 @@ document.getElementById('btn-next').addEventListener('click', () => {
 });
 // ── END GAME ──
 function endGame() {
-  db.ref('rooms/' + roomCode + '/game/status').set('ended');
+  db.ref('rooms/' + roomCode + '/game').update({ status:'ended', giftRevealed:false });
   gamePhase = 'ended';
   updateStatusBadge('ended');
   applyControlButtonsState({ status: 'ended' });
@@ -1283,6 +1291,13 @@ function endGame() {
 document.getElementById('btn-end-game').addEventListener('click', () => {
   if (!confirm('Kết thúc game? Người chơi sẽ thấy màn hình kết quả.')) return;
   endGame();
+});
+document.getElementById('btn-reveal-gift').addEventListener('click', () => {
+  if (!roomCode || !gameCache || gameCache.status !== 'ended' || gameCache.giftRevealed) return;
+  if (!confirm('Reveal món quà 20/10 trên điện thoại của người chơi?')) return;
+  db.ref('rooms/' + roomCode + '/game/giftRevealed').set(true)
+    .then(() => toast('🎁 Đã reveal quà trên màn hình lớn và điện thoại!'))
+    .catch(error => toast('❌ Không thể reveal quà: ' + error.message));
 });
 // ── REMATCH: giữ nguyên người chơi và đội, chỉ xoá điểm/lịch sử ván trước ──
 document.getElementById('btn-rematch').addEventListener('click', () => {
