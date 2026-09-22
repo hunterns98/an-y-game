@@ -479,6 +479,7 @@ let adminRevealTimer = null;
 let adminRevealKey = '';
 let hostStartCountdownTimer = null;
 let hostStartCountdownKey = '';
+let adminLevelTransitionTimer = null;
 const ADMIN_REVEAL_INTRO_MS = 300;
 const ADMIN_REVEAL_STEP_MS = 420;
 let gamePhase = 'setup'; // setup | playing | ended
@@ -1062,7 +1063,19 @@ function applyControlButtonsState(game) {
   // Không có bước “khóa đáp án”: host reveal trực tiếp sau khi người chơi trả lời.
   // Vẫn nhận cả trạng thái locked cũ để các phòng đang chạy có thể thoát vòng an toàn.
   revealBtn.disabled = phase === 'results';
-  nextBtn.disabled = phase !== 'results';
+  const transitionAt = Number(game.levelTransitionAt || 0);
+  if (phase === 'results' && game.levelBreak && transitionAt > serverNow()) {
+    nextBtn.disabled = true;
+    nextBtn.textContent = `⏳ Đang chiếu luật Level ${(game.level || 1) + 1}`;
+    if (adminLevelTransitionTimer) clearTimeout(adminLevelTransitionTimer);
+    adminLevelTransitionTimer = setTimeout(() => {
+      adminLevelTransitionTimer = null;
+      if (gameCache) applyControlButtonsState(gameCache);
+    }, Math.max(0, transitionAt - serverNow()) + 80);
+  } else {
+    nextBtn.disabled = phase !== 'results';
+    nextBtn.textContent = '➡️ Câu tiếp';
+  }
   revealBtn.textContent = '🔓 Reveal đáp án';
 }
 // ── SEND QUESTION ──
@@ -1239,13 +1252,20 @@ function revealAnswers() {
     game.phase = 'results';
     game.revealed = true;
     game.revealedAt = serverNow();
+    // Cùng một mốc cho player, display và host: 0.7s intro + từng đội 0.85s
+    // + 3.5s đọc bảng điểm + 4.5s trước khi chiếu luật Level mới.
+    game.levelTransitionAt = game.levelBreak
+      ? game.revealedAt + 700 + Object.keys(teams).length * 850 + 3500 + 4500
+      : null;
     // Snapshot đáp án được dùng cho reveal; đáp án đến muộn không thể làm phần
     // hiển thị khác với điểm đã chốt.
     game.finalAnswers = currentAnswers;
     gameCache = game;
     return baseRef.update({ game, teams });
   }).then(() => {
-    toast('🔓 Đã chốt điểm và reveal kết quả!');
+    toast(game.levelBreak
+      ? `🪄 Đã reveal! Đang chiếu luật Level ${(game.level || 1) + 1} trên màn hình lớn.`
+      : '🔓 Đã chốt điểm và reveal kết quả!');
   }).catch(error => {
     toast('❌ Không thể reveal: ' + error.message);
   }).finally(() => {

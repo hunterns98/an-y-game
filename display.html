@@ -78,6 +78,10 @@
   /* ── SCREEN MANAGEMENT ── */
   .screen { display: none; flex-direction: column; align-items: center; width: 100%; max-width: 1100px; gap: 22px; flex: 1; justify-content: center; }
   .screen.active { display: flex; animation: screenIn 0.45s cubic-bezier(0.34,1.4,0.64,1); }
+  /* Khi bảng điểm round đã lên, bỏ hẳn câu hỏi cũ để spotlight thuộc về thứ hạng. */
+  #screen-question.leaderboard-focus > .top-meta-row,
+  #screen-question.leaderboard-focus > #d-special-badge,
+  #screen-question.leaderboard-focus > .question-display-card { display:none!important; }
   .connection-banner { position:fixed; top:14px; left:50%; z-index:1000; transform:translate(-50%,-140%); transition:transform .3s ease; width:min(90vw,520px); padding:10px 16px; border-radius:12px; text-align:center; font-size:.82rem; font-weight:800; background:rgba(20,4,45,.97); border:1px solid var(--border); box-shadow:0 8px 24px rgba(0,0,0,.35); }
   .connection-banner.show { transform:translate(-50%,0); }
   .connection-banner.offline { color:#fca5a5; border-color:rgba(239,68,68,.55); background:rgba(70,8,30,.97); }
@@ -347,7 +351,7 @@
   <div class="screen" id="screen-waiting">
     <div class="waiting-card">
       <div class="lobby-join-banner">
-        <div class="lobby-join-copy">Mở&nbsp;<b>Ăn Ý</b>&nbsp;trên điện thoại hoặc quét mã QR để tham gia</div>
+        <div class="lobby-join-copy">Quét mã QR bằng camera điện thoại để tham gia</div>
         <div class="lobby-pin-box"><span class="lobby-pin-label">Mã phòng</span><strong class="big-room-code" id="d-room-code-big">—</strong></div>
         <div class="qr-box">
           <div id="d-qr-code"></div>
@@ -931,6 +935,7 @@ function renderQuestionDisplay(g) {
 }
 function showProgressView(phase='answering') {
   hideDisplayLevelTransition();
+  document.getElementById('screen-question').classList.remove('leaderboard-focus');
   setCommentatorVisible(phase === 'answering');
   document.getElementById('d-progress-wrap').style.display = 'block';
   document.getElementById('d-reveal-board').style.display = 'none';
@@ -972,6 +977,7 @@ function showRevealView(g) {
     // Reveal là một nhịp riêng. Khi bảng điểm xuất hiện, rút các hàng đáp án
     // để màn hình lớn không phải thu nhỏ chỉ để thấy đủ thông tin.
     document.getElementById('d-reveal-board').style.display = 'none';
+    document.getElementById('screen-question').classList.add('leaderboard-focus');
     const board = document.getElementById('d-round-leaderboard');
     board.style.display = 'block';
     board.classList.remove('leaderboard-enter');
@@ -979,11 +985,14 @@ function showRevealView(g) {
     renderRoundLeaderboard(g);
     if (elapsed < leaderboardAt) displayLeaderboardSfx();
     if (g.levelBreak && levelTransitionInfo[(g.level || 1) + 1]) {
-      // Nếu vừa chạy đủ reveal thì bắt đầu đếm từ lúc này; nếu F5 giữa intermission
-      // thì chỉ giữ phần thời gian còn lại.
-      const delay = elapsed >= leaderboardAt
-        ? Math.max(0, LEVEL_TRANSITION_DELAY_MS - (elapsed - leaderboardAt))
-        : LEVEL_TRANSITION_DELAY_MS;
+      // Mốc này do host ghi vào phòng lúc reveal. Nhờ vậy màn hình lớn, điện thoại
+      // và host luôn cùng chiếu luật level mới, kể cả khi một màn hình vừa tải lại.
+      const scheduledAt = Number(g.levelTransitionAt || 0);
+      const delay = scheduledAt
+        ? Math.max(0, scheduledAt - serverNow())
+        : (elapsed >= leaderboardAt
+          ? Math.max(0, LEVEL_TRANSITION_DELAY_MS - (elapsed - leaderboardAt))
+          : LEVEL_TRANSITION_DELAY_MS);
       if (levelTransitionTimer) clearTimeout(levelTransitionTimer);
       levelTransitionTimer = setTimeout(() => showDisplayLevelTransition((g.level || 1) + 1), delay);
     }

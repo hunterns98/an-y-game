@@ -1597,8 +1597,12 @@ function startPlayerRevealSequence(game) {
   if (elapsed >= revealAt) reveal();
   else playerRevealTimers.push(setTimeout(reveal, revealAt - elapsed));
   if (game.levelBreak && playerLevelTransitionInfo[(game.level || 1) + 1]) {
+    // Dùng mốc do host lưu để player không bị lệch với màn hình lớn nếu vừa reconnect.
+    const scheduledAt = Number(game.levelTransitionAt || 0);
     const transitionAt = leaderboardAt + PLAYER_LEVEL_TRANSITION_DELAY_MS;
-    const delay = Math.max(0, transitionAt - elapsed);
+    const delay = scheduledAt
+      ? Math.max(0, scheduledAt - serverNow())
+      : Math.max(0, transitionAt - elapsed);
     playerRevealTimers.push(setTimeout(() => showPlayerLevelTransition((game.level || 1) + 1), delay));
   }
 }
