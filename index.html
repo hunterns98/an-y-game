@@ -736,8 +736,8 @@
   <div class="gift-content" id="gift-content">
     <div class="gift-intro">
       <div class="gift-kicker">20 · 10 · 2026</div>
-      <h1 class="gift-title">🎁 Một món quà<br>20/10 dành cho bạn</h1>
-      <p class="gift-subtitle">Màn hình lớn đang vinh danh các đội. Còn đây là một lời chúc dành cho phái đẹp của phòng.<br>Cam on vi da den.</p>
+      <h1 class="gift-title">🎁 Một món quà 20/10 dành cho bạn</h1>
+      <p class="gift-subtitle">Cam on vi da den</p>
       <button class="gift-box-button" id="btn-open-gift" type="button" aria-label="Mở món quà 20 tháng 10">
         <span class="gift-bow"><span></span></span><span class="gift-box-lid"></span><span class="gift-box-base"></span><span class="gift-box-ribbon-v"></span><span class="gift-box-ribbon-h"></span>
       </button>
@@ -1091,7 +1091,7 @@ function showScreen(id) {
 // ─────────────────────────────────────────
 // CÁNH HỒNG RƠI (tối ưu: tối đa 60 cánh, tự dừng & dọn sạch sau ~3s để tránh tích tụ khi mở nhiều tab)
 // ─────────────────────────────────────────
-let confettiRAF, confettiStopTimer;
+let confettiRAF, confettiStopTimer, poemConfettiInterval;
 let giftOpened = false;
 function startConfetti() {
   const canvas = document.getElementById('confetti-canvas');
@@ -1136,6 +1136,14 @@ function stopConfetti() {
     const ctx = canvas.getContext('2d');
     ctx.clearRect(0, 0, canvas.width, canvas.height);
   }
+}
+function startPoemPetals() {
+  startConfetti();
+  if (!poemConfettiInterval) poemConfettiInterval = setInterval(startConfetti, 6000);
+}
+function stopPoemPetals() {
+  if (poemConfettiInterval) { clearInterval(poemConfettiInterval); poemConfettiInterval = null; }
+  stopConfetti();
 }
 // ─────────────────────────────────────────
 // FLOAT SCORE (dùng transform + opacity, ép GPU compositing để mượt hơn)
@@ -1541,7 +1549,7 @@ function listenGame() {
       document.getElementById('winner-screen').classList.remove('poem-open');
       giftOpened = false;
       document.getElementById('gift-content').classList.remove('open');
-      stopConfetti(); hidePlayerLevelTransition(); showScreen('lobby');
+      stopPoemPetals(); hidePlayerLevelTransition(); showScreen('lobby');
       return;
     }
     if (game.status === 'ended') {
@@ -1551,7 +1559,7 @@ function listenGame() {
         showEndForPlayer();
       } else {
         document.getElementById('winner-screen').classList.remove('show');
-        stopConfetti();
+        stopPoemPetals();
         document.getElementById('final-wait-screen').classList.add('show');
       }
       return;
@@ -2070,7 +2078,7 @@ document.getElementById('btn-open-gift').addEventListener('click', () => {
   winnerScreen.classList.add('poem-open');
   winnerScreen.scrollTop = 0;
   sfxWin();
-  startConfetti();
+  startPoemPetals();
 });
 // ── THIỆP 20/10 CÁ NHÂN ────────────────────────────────────────────────
 // Thiệp được vẽ tại máy người chơi (không tải ảnh lên server), theo tỷ lệ 9:16
