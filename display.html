@@ -321,6 +321,7 @@
 </style>
 </head>
 <body>
+<audio id="d-bgm" loop preload="metadata"><source src="assets/audio/happy-ukulele.mp3" type="audio/mpeg"></audio>
 <div class="connection-banner" id="d-connection-banner" role="status" aria-live="polite"></div>
 <div class="stars" id="stars"></div>
 <div class="made-by-footer">Made By Nams Thần Sales With <span>♥</span></div>
@@ -403,7 +404,7 @@
     </div>
   </div>
   <div class="screen" id="screen-gift-reveal">
-    <section class="display-gift-card"><span class="display-gift-icon">🎁</span><h1 class="display-gift-title">Cảm ơn mọi người<br>đã chơi hết mình!</h1><p class="display-gift-copy">Giờ hãy mở lại điện thoại để nhận một món quà nhỏ dành riêng cho phái đẹp của phòng nhé.</p></section>
+    <section class="display-gift-card"><span class="display-gift-icon">🎁</span><h1 class="display-gift-title">Cảm ơn mọi người<br>đã chơi hết mình!</h1><p class="display-gift-copy">Giờ hãy mở lại điện thoại để nhận quà nhé</p></section>
   </div>
 </div>
 <!-- Firebase -->
@@ -542,6 +543,16 @@ function showScreen(id) {
 // ── DISPLAY SFX (chỉ bắt đầu sau một thao tác người dùng; có thể tắt riêng) ──
 const DAC = window.AudioContext || window.webkitAudioContext;
 let dac, displaySfxEnabled = (() => { try { return localStorage.getItem('anygame_display_sfx') !== 'off'; } catch(e) { return true; } })();
+const displayBgm = document.getElementById('d-bgm');
+let displayBgmUnlocked = false;
+function syncDisplayBgm() {
+  if (!displayBgm) return;
+  displayBgm.volume = .12;
+  if (!displaySfxEnabled) { displayBgm.pause(); return; }
+  // play() chỉ thành công sau thao tác người dùng; lỗi autoplay được bỏ qua và
+  // sẽ thử lại ở lần bấm Âm thanh/Toàn màn hình tiếp theo.
+  displayBgm.play().catch(() => {});
+}
 function getDisplayAC() {
   if (!DAC) return null;
   if (!dac) dac = new DAC();
@@ -563,13 +574,27 @@ function displayLeaderboardSfx() { [523,659,784].forEach((f,i) => setTimeout(() 
 function displayWinSfx() { [523,659,784,1047].forEach((f,i) => setTimeout(() => displayTone(f,.35,.3), i*90)); }
 function updateDisplaySoundToggle() { document.getElementById('d-sound-toggle').textContent = displaySfxEnabled ? '🔊 Âm thanh' : '🔇 Đã tắt tiếng'; }
 document.getElementById('d-sound-toggle').addEventListener('click', () => {
+  // Lần chạm đầu vào nút này dùng để mở khóa audio (thay vì vô tình tắt nhạc).
+  // Từ lần sau nút mới hoạt động như bật/tắt thông thường.
+  if (!displayBgmUnlocked && displaySfxEnabled) {
+    displayBgmUnlocked = true;
+    getDisplayAC(); syncDisplayBgm(); displayTone(660, .12, .2);
+    return;
+  }
   displaySfxEnabled = !displaySfxEnabled;
   try { localStorage.setItem('anygame_display_sfx', displaySfxEnabled ? 'on' : 'off'); } catch(e) {}
-  getDisplayAC();
-  if (displaySfxEnabled) displayTone(660, .12, .2);
+  getDisplayAC(); displayBgmUnlocked = displaySfxEnabled;
+  if (displaySfxEnabled) { syncDisplayBgm(); displayTone(660, .12, .2); }
+  else syncDisplayBgm();
   updateDisplaySoundToggle();
 });
 updateDisplaySoundToggle();
+document.addEventListener('pointerdown', event => {
+  // Nút Âm thanh tự xử lý việc mở khóa ở handler riêng để không bị event này
+  // bật nhạc rồi click phía sau lại tắt ngay.
+  if (event.target.closest && event.target.closest('#d-sound-toggle')) return;
+  displayBgmUnlocked = true; getDisplayAC(); syncDisplayBgm();
+}, { once:true, capture:true });
 
 function updateFullscreenToggle() {
   const button = document.getElementById('d-fullscreen-toggle');
