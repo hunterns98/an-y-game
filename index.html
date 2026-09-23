@@ -2130,32 +2130,33 @@ async function buildPersonalCard() {
   else { ctx.fillStyle = '#fff7ed'; ctx.fillRect(0, 0, 1080, 1920); }
   // Form giống thiệp mẫu: lời chào ở phía trên phải, ảnh lớn bên trái.
   // Các nét chữ nhỏ giữ đúng vị trí của thiệp mẫu, tạo cảm giác một trang scrapbook hoàn chỉnh.
-  ctx.save(); ctx.translate(125, 104); ctx.rotate(-.30); ctx.fillStyle = '#69485b'; ctx.font = '500 31px "Dancing Script", cursive'; ctx.textAlign = 'center'; drawCardText(ctx, ['You are amazing','Just the way','you are ♡'], 0, 0, 40, '500 31px "Dancing Script", cursive', '#69485b'); ctx.restore();
-  const dearText = 'Dear ' + address + ' ' + name;
-  const dearSize = dearText.length > 13 ? 61 : 72;
-  ctx.save(); ctx.translate(760, 258); ctx.rotate(-.035); ctx.fillStyle = '#2d1728'; ctx.font = `700 ${dearSize}px "Dancing Script", cursive`; ctx.textAlign = 'center'; ctx.fillText(dearText, 0, 0); ctx.restore();
-  ctx.strokeStyle = '#d86e8e'; ctx.lineWidth = 9; ctx.beginPath(); ctx.moveTo(590, 297); ctx.lineTo(920, 297); ctx.stroke();
+  ctx.save(); ctx.translate(105, 98); ctx.rotate(-.30); drawCardText(ctx, ['You are amazing','Just the way','you are ♡'], 0, 0, 49, '500 38px "Dancing Script", cursive', '#69485b'); ctx.restore();
+  // Tiêu đề chia thành hai dòng như thiệp mẫu: “Dear” nhẹ, tên người nhận thật nổi bật.
+  const recipient = address + ' ' + name;
+  const recipientSize = recipient.length > 10 ? 86 : 112;
+  ctx.save(); ctx.translate(705, 182); ctx.rotate(-.035); ctx.textAlign = 'center'; ctx.fillStyle = '#2d1728'; ctx.font = '700 70px "Dancing Script", cursive'; ctx.fillText('Dear', 0, 0); ctx.font = `700 ${recipientSize}px "Dancing Script", cursive`; ctx.fillText(recipient, 48, 124); ctx.restore();
+  ctx.strokeStyle = '#d86e8e'; ctx.lineWidth = 10; ctx.beginPath(); ctx.moveTo(574, 342); ctx.lineTo(950, 342); ctx.stroke();
   // Đặt ảnh vào ô Polaroid có sẵn ở bên trái, không che khung ảnh hoặc phần lời chúc.
   const image = await loadCardImage(avatarSrc(name, myAvatar));
-  const imageDrawn = drawCoverImage(ctx, image, 69, 421, 445, 716);
-  if (!imageDrawn) { ctx.fillStyle = '#8e3b67'; ctx.fillRect(69, 421, 445, 716); ctx.fillStyle = '#fff'; ctx.font = '900 165px Arial'; ctx.textAlign = 'center'; ctx.fillText(name.charAt(0).toUpperCase(), 291, 810); }
-  ctx.save(); ctx.translate(292, 1210); ctx.rotate(-.035); ctx.fillStyle = '#5e344f'; ctx.font = '600 36px "Dancing Script", cursive'; ctx.textAlign = 'center'; ctx.fillText('Keep shining, ' + address + ' ' + name + ' ♥', 0, 0); ctx.restore();
+  const imageDrawn = drawCoverImage(ctx, image, 48, 420, 470, 754);
+  if (!imageDrawn) { ctx.fillStyle = '#8e3b67'; ctx.fillRect(48, 420, 470, 754); ctx.fillStyle = '#fff'; ctx.font = '900 165px Arial'; ctx.textAlign = 'center'; ctx.fillText(name.charAt(0).toUpperCase(), 283, 810); }
+  ctx.save(); ctx.translate(292, 1236); ctx.rotate(-.035); ctx.fillStyle = '#5e344f'; ctx.font = '600 44px "Dancing Script", cursive'; ctx.textAlign = 'center'; ctx.fillText('Keep shining, ' + address + ' ' + name + ' ♥', 0, 0); ctx.restore();
   // Giữ các câu thành dòng chủ ý (không bẻ chữ theo từng từ). Nếu tên/câu dài,
   // cỡ chữ giảm rất nhẹ nhưng vẫn cân trong đúng tờ giấy bên phải.
   const textLines = [`Chúc ${address} ${message.split('\n')[0]}`, ...message.split('\n').slice(1)].map(line => line.trim()).filter(Boolean);
-  let messageFontSize = 39;
-  while (messageFontSize > 28) {
+  let messageFontSize = 58;
+  while (messageFontSize > 36) {
     ctx.font = `600 ${messageFontSize}px "Dancing Script", cursive`;
-    if (textLines.every(line => ctx.measureText(line).width <= 410)) break;
+    if (textLines.every(line => ctx.measureText(line).width <= 450)) break;
     messageFontSize -= 1;
   }
   const lineHeight = Math.round(messageFontSize * 1.82);
-  const textStart = 778;
-  drawCardText(ctx, textLines, 810, textStart, lineHeight, `600 ${messageFontSize}px "Dancing Script", cursive`, '#251822');
+  const textStart = 790;
+  drawCardText(ctx, textLines, 818, textStart, lineHeight, `600 ${messageFontSize}px "Dancing Script", cursive`, '#251822');
   // Chữ ký được đặt ở khoảng trống cuối tờ giấy, thay vì đứng lẻ ở nền phía dưới.
-  ctx.fillStyle = '#342131'; ctx.font = '800 34px Arial,"Segoe UI",sans-serif'; ctx.textAlign = 'center'; ctx.fillText('Chúc mừng 20/10', 810, 1390); ctx.font = '600 27px Arial,"Segoe UI",sans-serif'; ctx.fillText('from Nams Thần Sales ♥', 810, 1434);
-  ctx.save(); ctx.translate(145, 1500); ctx.rotate(-.28); drawCardText(ctx, ['Good People','Brighter Days'], 0, 0, 46, '500 34px "Dancing Script", cursive', '#69485b'); ctx.restore();
-  ctx.save(); ctx.translate(855, 1740); ctx.rotate(-.16); drawCardText(ctx, ['More happy days','ahead ♡'], 0, 0, 42, '500 31px "Dancing Script", cursive', '#69485b'); ctx.restore();
+  ctx.fillStyle = '#342131'; ctx.font = '800 44px Arial,"Segoe UI",sans-serif'; ctx.textAlign = 'center'; ctx.fillText('Chúc mừng 20/10', 818, 1390); ctx.font = '600 34px Arial,"Segoe UI",sans-serif'; ctx.fillText('from Nams Thần Sales ♥', 818, 1442);
+  ctx.save(); ctx.translate(150, 1510); ctx.rotate(-.28); drawCardText(ctx, ['Good People','Brighter Days'], 0, 0, 56, '500 43px "Dancing Script", cursive', '#69485b'); ctx.restore();
+  ctx.save(); ctx.translate(858, 1738); ctx.rotate(-.16); drawCardText(ctx, ['More happy days','ahead ♡'], 0, 0, 52, '500 40px "Dancing Script", cursive', '#69485b'); ctx.restore();
   personalCardBlob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
   return URL.createObjectURL(personalCardBlob);
 }
