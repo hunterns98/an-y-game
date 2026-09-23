@@ -547,7 +547,7 @@ const displayBgm = document.getElementById('d-bgm');
 let displayBgmUnlocked = false;
 function syncDisplayBgm() {
   if (!displayBgm) return;
-  displayBgm.volume = .12;
+  displayBgm.volume = .05;
   if (!displaySfxEnabled) { displayBgm.pause(); return; }
   // play() chỉ thành công sau thao tác người dùng; lỗi autoplay được bỏ qua và
   // sẽ thử lại ở lần bấm Âm thanh/Toàn màn hình tiếp theo.

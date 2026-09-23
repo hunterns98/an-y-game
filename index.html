@@ -407,7 +407,8 @@
     text-align: center; padding: 40px 24px;
   }
   #winner-screen.show { display: flex; animation: screenIn 0.5s ease; }
-  #confetti-canvas { position: absolute; inset: 0; z-index:2; pointer-events: none; }
+  /* Hiệu ứng quà luôn phủ trọn viewport, kể cả khi bài thơ được cuộn dài trên điện thoại. */
+  #confetti-canvas { position: fixed; inset: 0; z-index:2; width:100vw; height:100vh; pointer-events: none; }
   .ws-content { position: relative; z-index: 1; }
   .ws-label { font-size: 0.7rem; letter-spacing: 0.3em; color: var(--muted); text-transform: uppercase; margin-bottom: 12px; }
   .ws-crown { font-size: 5rem; animation: crownBounce 1.5s ease-in-out infinite; display: block; margin-bottom: 8px; }
@@ -1089,61 +1090,48 @@ function showScreen(id) {
   document.getElementById('screen-' + id).classList.add('active');
 }
 // ─────────────────────────────────────────
-// CÁNH HỒNG RƠI (tối ưu: tối đa 60 cánh, tự dừng & dọn sạch sau ~3s để tránh tích tụ khi mở nhiều tab)
+// TRÁI TIM RƠI Ở PHẦN THƠ (liên tục đến khi rời màn hình quà)
 // ─────────────────────────────────────────
-let confettiRAF, confettiStopTimer, poemConfettiInterval;
+let confettiRAF;
 let giftOpened = false;
-function startConfetti() {
+function startPoemHearts() {
   const canvas = document.getElementById('confetti-canvas');
   const ctx = canvas.getContext('2d');
   canvas.width = window.innerWidth; canvas.height = window.innerHeight;
-  // Dọn timer/RAF cũ nếu còn sót (gọi liên tiếp)
   if (confettiRAF) cancelAnimationFrame(confettiRAF);
-  if (confettiStopTimer) clearTimeout(confettiStopTimer);
-  const PARTICLE_COUNT = 60;
-  const DURATION_MS = 2800;
+  const PARTICLE_COUNT = Math.min(28, Math.max(16, Math.round(canvas.width / 24)));
   const particles = Array.from({length:PARTICLE_COUNT}, () => ({
-    x: Math.random()*canvas.width, y: -20,
-    w: Math.random()*7+7, h: Math.random()*4+5,
-    color: ['#ff6b9a','#ff9fba','#ffd0dc','#e8447c','#f7a7bd'][Math.floor(Math.random()*5)],
-    vx: (Math.random()-0.5)*2.2, vy: Math.random()*2.2+1.5,
-    angle: Math.random()*Math.PI, spin: (Math.random()-.5)*.12
+    x: Math.random()*canvas.width, y: Math.random()*canvas.height,
+    size: Math.random()*12+13,
+    color: ['#e8447c','#ff5f96','#f78db1','#d93a70'][Math.floor(Math.random()*4)],
+    vx: (Math.random()-.5)*.7, vy: Math.random()*1.15+.55,
+    angle: Math.random()*Math.PI, spin: (Math.random()-.5)*.035,
+    opacity: Math.random()*.38+.38
   }));
-  const startTime = performance.now();
   function draw() {
     ctx.clearRect(0,0,canvas.width,canvas.height);
     particles.forEach(p => {
       p.x += p.vx; p.y += p.vy; p.angle += p.spin;
-      if (p.y > canvas.height) { p.y = -20; p.x = Math.random()*canvas.width; }
+      if (p.y > canvas.height + p.size) { p.y = -p.size; p.x = Math.random()*canvas.width; }
       ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.angle);
-      ctx.fillStyle = p.color; ctx.beginPath(); ctx.ellipse(0, 0, p.w, p.h, .35, 0, Math.PI * 2); ctx.fill();
+      ctx.globalAlpha = p.opacity;
+      ctx.fillStyle = p.color;
+      ctx.font = `${p.size}px sans-serif`;
+      ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      ctx.fillText('♥', 0, 0);
       ctx.restore();
     });
-    if (performance.now() - startTime < DURATION_MS) {
-      confettiRAF = requestAnimationFrame(draw);
-    } else {
-      // Hết thời gian: tự dừng và xoá sạch canvas, không để RAF/hạt tồn đọng
-      stopConfetti();
-    }
+    confettiRAF = requestAnimationFrame(draw);
   }
   draw();
 }
-function stopConfetti() {
+function stopPoemHearts() {
   if (confettiRAF) { cancelAnimationFrame(confettiRAF); confettiRAF = null; }
-  if (confettiStopTimer) { clearTimeout(confettiStopTimer); confettiStopTimer = null; }
   const canvas = document.getElementById('confetti-canvas');
   if (canvas) {
     const ctx = canvas.getContext('2d');
     ctx.clearRect(0, 0, canvas.width, canvas.height);
   }
-}
-function startPoemPetals() {
-  startConfetti();
-  if (!poemConfettiInterval) poemConfettiInterval = setInterval(startConfetti, 6000);
-}
-function stopPoemPetals() {
-  if (poemConfettiInterval) { clearInterval(poemConfettiInterval); poemConfettiInterval = null; }
-  stopConfetti();
 }
 // ─────────────────────────────────────────
 // FLOAT SCORE (dùng transform + opacity, ép GPU compositing để mượt hơn)
@@ -1549,7 +1537,7 @@ function listenGame() {
       document.getElementById('winner-screen').classList.remove('poem-open');
       giftOpened = false;
       document.getElementById('gift-content').classList.remove('open');
-      stopPoemPetals(); hidePlayerLevelTransition(); showScreen('lobby');
+      stopPoemHearts(); hidePlayerLevelTransition(); showScreen('lobby');
       return;
     }
     if (game.status === 'ended') {
@@ -1559,7 +1547,7 @@ function listenGame() {
         showEndForPlayer();
       } else {
         document.getElementById('winner-screen').classList.remove('show');
-        stopPoemPetals();
+        stopPoemHearts();
         document.getElementById('final-wait-screen').classList.add('show');
       }
       return;
@@ -2078,7 +2066,7 @@ document.getElementById('btn-open-gift').addEventListener('click', () => {
   winnerScreen.classList.add('poem-open');
   winnerScreen.scrollTop = 0;
   sfxWin();
-  startPoemPetals();
+  startPoemHearts();
 });
 // ── THIỆP 20/10 CÁ NHÂN ────────────────────────────────────────────────
 // Thiệp được vẽ tại máy người chơi (không tải ảnh lên server), theo tỷ lệ 9:16
