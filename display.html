@@ -71,10 +71,6 @@
   }
   .room-pill span { font-size: 0.65rem; letter-spacing: 0.18em; color: var(--muted); text-transform: uppercase; }
   .room-pill strong { font-size: 1.15rem; font-weight: 900; color: var(--gold); letter-spacing: 0.2em; }
-  .display-actions { display:flex; align-items:center; gap:8px; }
-  .d-sound-toggle, .d-fullscreen-toggle { padding:8px 11px; border-radius:99px; border:1px solid var(--border); background:rgba(255,255,255,.07); color:var(--text); font-size:.72rem; font-weight:800; cursor:pointer; }
-  .d-fullscreen-toggle { border-color:rgba(255,214,10,.42); color:var(--gold); }
-  .d-fullscreen-toggle:hover { background:rgba(255,214,10,.13); }
   /* ── SCREEN MANAGEMENT ── */
   .screen { display: none; flex-direction: column; align-items: center; width: 100%; max-width: 1100px; gap: 22px; flex: 1; justify-content: center; }
   .screen.active { display: flex; animation: screenIn 0.45s cubic-bezier(0.34,1.4,0.64,1); }
@@ -261,6 +257,18 @@
   .lb-rest { width:min(100%,560px); margin:0 auto; display:flex; flex-direction:column; gap:7px; }
   .lb-rest-row { display:grid; grid-template-columns:46px 1fr auto; align-items:center; gap:12px; padding:10px 14px; border-bottom:1px solid rgba(255,255,255,.18); text-align:left; font-size:1rem; }
   .lb-rest-rank { color:var(--muted); font-weight:900; } .lb-rest-team { font-weight:800; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; } .lb-rest-score { color:var(--gold); font-weight:900; }
+  /* Chung kết kiểu podium: nhạc mở đầu trước, sau đó gọi từng đội và cuối cùng là quán quân. */
+  .final-podium-show { min-height:530px; }
+  .final-podium-intro { min-height:92px; display:grid; place-items:center; padding:10px 18px 18px; }
+  .final-podium-kicker { color:var(--gold); font-weight:950; letter-spacing:.24em; font-size:.78rem; }
+  .final-podium-call { margin-top:6px; min-height:1.25em; font-size:clamp(1.55rem,3.4vw,2.65rem); font-weight:950; text-shadow:0 3px 12px rgba(0,0,0,.36); }
+  .final-podium-call.is-champion { color:var(--gold); animation:finalChampionCall .5s cubic-bezier(.2,1.5,.4,1) both; }
+  @keyframes finalChampionCall { from { opacity:0; transform:scale(.65) translateY(16px); } to { opacity:1; transform:none; } }
+  .final-podium-show .podium-card, .final-podium-show .lb-rest-row { opacity:0; visibility:hidden; }
+  .final-podium-show .podium-card { animation:none; }
+  .final-podium-show .podium-card.is-revealed { visibility:visible; animation:podiumRise .72s cubic-bezier(.22,1.52,.5,1) both; }
+  .final-podium-show .lb-rest-row.is-revealed { visibility:visible; animation:leaderboardIn .48s cubic-bezier(.34,1.4,.64,1) both; }
+  .final-podium-show .podium-card.rank-1.is-revealed { animation-duration:.9s; }
   .lb-tie-note { margin:0 auto 14px; padding:7px 12px; width:max-content; max-width:100%; border-radius:99px; color:var(--cyan); background:rgba(0,245,212,.1); border:1px solid rgba(0,245,212,.26); font-size:.75rem; font-weight:800; }
   .round-compact { width:min(100%,760px); margin:0 auto; padding:16px 18px; border:1px solid var(--border); border-radius:20px; background:linear-gradient(135deg,rgba(155,93,229,.15),rgba(255,255,255,.035)); text-align:left; }
   .round-compact-head { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:10px; }.round-compact-title { font-size:1.05rem; font-weight:950; }.round-compact-sub { color:var(--muted); font-size:.78rem; font-weight:800; }
@@ -333,10 +341,6 @@
 <div class="level-transition-overlay" id="d-level-transition" aria-live="assertive"><section class="level-transition-card"><div class="level-transition-kicker" id="d-level-kicker">LEVEL UP</div><div class="level-transition-title" id="d-level-title">—</div><p class="level-transition-rule" id="d-level-rule"></p><div class="level-transition-score" id="d-level-score"></div><p class="level-transition-wait">Cùng ghi nhớ luật mới · chờ host mở câu tiếp theo</p></section></div>
 <div id="top-bar">
   <div class="brand">❤️ Ăn Ý — Màn hình lớn</div>
-  <div class="display-actions">
-    <button class="d-sound-toggle" id="d-sound-toggle" type="button">🔊 Âm thanh</button>
-    <button class="d-fullscreen-toggle" id="d-fullscreen-toggle" type="button" title="Ẩn thanh địa chỉ và chiếu toàn màn hình">⛶ Toàn màn hình</button>
-  </div>
   <div class="room-pill"><span>Mã phòng</span><strong id="top-room-code">—</strong></div>
 </div>
 <div id="app">
@@ -563,7 +567,8 @@ let displayBgmUnlocked = false;
 function syncDisplayBgm({ restart = false } = {}) {
   Object.entries(displayMusic).forEach(([mode, track]) => {
     if (!track) return;
-    track.volume = mode === 'countdown' ? .025 : .035;
+    // Nhạc nền ở mức nghe tự nhiên trên màn hình lớn, vẫn nhường chỗ cho SFX.
+    track.volume = mode === 'countdown' ? .12 : .14;
     if (!displaySfxEnabled || mode !== displayMusicMode) {
       track.pause();
       if (mode !== displayMusicMode) track.currentTime = 0;
@@ -601,46 +606,30 @@ function displayTone(freq, dur=.18, vol=.22, type='triangle') {
 function displayRevealSfx() { displayTone(620, .16, .2); }
 function displayLeaderboardSfx() { [523,659,784].forEach((f,i) => setTimeout(() => displayTone(f,.22,.26), i*75)); }
 function displayWinSfx() { [523,659,784,1047].forEach((f,i) => setTimeout(() => displayTone(f,.35,.3), i*90)); }
-function updateDisplaySoundToggle() { document.getElementById('d-sound-toggle').textContent = displaySfxEnabled ? '🔊 Âm thanh' : '🔇 Đã tắt tiếng'; }
-document.getElementById('d-sound-toggle').addEventListener('click', () => {
-  // Lần chạm đầu vào nút này dùng để mở khóa audio (thay vì vô tình tắt nhạc).
-  // Từ lần sau nút mới hoạt động như bật/tắt thông thường.
-  if (!displayBgmUnlocked && displaySfxEnabled) {
-    displayBgmUnlocked = true;
-    getDisplayAC(); syncDisplayBgm(); displayTone(660, .12, .2);
-    return;
-  }
+function toggleDisplaySound() {
   displaySfxEnabled = !displaySfxEnabled;
   try { localStorage.setItem('anygame_display_sfx', displaySfxEnabled ? 'on' : 'off'); } catch(e) {}
   getDisplayAC(); displayBgmUnlocked = displaySfxEnabled;
   if (displaySfxEnabled) { syncDisplayBgm(); displayTone(660, .12, .2); }
   else syncDisplayBgm();
-  updateDisplaySoundToggle();
-});
-updateDisplaySoundToggle();
+}
 document.addEventListener('pointerdown', event => {
-  // Nút Âm thanh tự xử lý việc mở khóa ở handler riêng để không bị event này
-  // bật nhạc rồi click phía sau lại tắt ngay.
-  if (event.target.closest && event.target.closest('#d-sound-toggle')) return;
   displayBgmUnlocked = true; getDisplayAC(); syncDisplayBgm();
 }, { once:true, capture:true });
-
-function updateFullscreenToggle() {
-  const button = document.getElementById('d-fullscreen-toggle');
-  if (button) button.textContent = document.fullscreenElement ? '⛶ Thoát toàn màn hình' : '⛶ Toàn màn hình';
-}
-document.getElementById('d-fullscreen-toggle').addEventListener('click', async () => {
-  const button = document.getElementById('d-fullscreen-toggle');
+async function toggleDisplayFullscreen() {
   try {
     if (document.fullscreenElement) await document.exitFullscreen();
     else await document.documentElement.requestFullscreen();
-  } catch (error) {
-    button.textContent = '⚠️ Nhấn F11';
-    setTimeout(updateFullscreenToggle, 2200);
-  }
+  } catch (error) {}
+}
+// Điều khiển chỉ dành cho người vận hành, không hiện trên màn hình chiếu.
+document.addEventListener('keydown', event => {
+  if (event.ctrlKey || event.altKey || event.metaKey || event.repeat) return;
+  const tag = document.activeElement && document.activeElement.tagName;
+  if (tag === 'INPUT' || tag === 'TEXTAREA' || document.activeElement?.isContentEditable) return;
+  if (event.key.toLowerCase() === 'm') { event.preventDefault(); toggleDisplaySound(); }
+  if (event.key.toLowerCase() === 'f') { event.preventDefault(); toggleDisplayFullscreen(); }
 });
-document.addEventListener('fullscreenchange', updateFullscreenToggle);
-updateFullscreenToggle();
 // ── CONNECTION FEEDBACK ──
 let displayConnected = false, displayWasOffline = false, displayBannerTimer;
 function showDisplayConnection(message, kind='online', persistent=false) {
@@ -1090,7 +1079,7 @@ function renderPodiumLeaderboard(targetId, sorted, mode='round') {
   const podium = topByRank.map(({team, index}) => {
     const rank = rankAt(index);
     const medal = medals[Math.min(rank, 3)] || '🏅';
-    return `<article class="podium-card rank-${Math.min(rank,3)} podium-slot-${index + 1}">
+    return `<article class="podium-card rank-${Math.min(rank,3)} podium-slot-${index + 1}" data-final-index="${index}">
       <span class="podium-rank">HẠNG ${rank}</span>
       <div class="podium-avatars">${avatarImg(team.player1, rank === 1 ? 80 : 62)}${avatarImg(team.player2, rank === 1 ? 80 : 62)}</div>
       <div class="podium-medal">${medal}</div>
@@ -1099,19 +1088,19 @@ function renderPodiumLeaderboard(targetId, sorted, mode='round') {
     </article>`;
   }).join('');
   // Phần dưới podium giữ leaderboard gọn: chỉ hạng, tên đội và điểm — không lặp journey/streak.
-  const rest = sorted.slice(3).map((team, index) => {
-    const absoluteIndex = index + 3;
-    return `<div class="lb-rest-row"><span class="lb-rest-rank">${rankAt(absoluteIndex)}.</span><span class="lb-rest-team">${teamLabel(team)}</span><span class="lb-rest-score">${team.score || 0}</span></div>`;
+  // Chung kết gọi từ cuối bảng lên, nên đảo DOM phần đội chưa vào podium.
+  const restTeams = mode === 'final' ? sorted.slice(3).reverse() : sorted.slice(3);
+  const rest = restTeams.map((team, index) => {
+    const absoluteIndex = mode === 'final' ? sorted.indexOf(team) : index + 3;
+    return `<div class="lb-rest-row" data-final-index="${absoluteIndex}"><span class="lb-rest-rank">${rankAt(absoluteIndex)}.</span><span class="lb-rest-team">${teamLabel(team)}</span><span class="lb-rest-score">${team.score || 0}</span></div>`;
   }).join('');
   const heading = mode === 'final' ? 'Bảng xếp hạng chung cuộc' : 'Bảng xếp hạng hiện tại';
   const champion = '';
-  target.innerHTML = `${mode === 'final' ? '' : '<div class="lb-eyebrow">🏁 ROUND COMPLETE</div>'}
-    <h2 class="lb-title">${heading}</h2>
-    <div class="lb-divider"></div>
+  target.innerHTML = `${mode === 'final' ? '<section class="final-podium-show"><div class="final-podium-intro"><div><div class="final-podium-kicker">VINH DANH CÁC ĐỘI</div><div class="final-podium-call" id="d-final-podium-call">Sẵn sàng cho podium!</div></div></div>' : '<div class="lb-eyebrow">🏁 ROUND COMPLETE</div><h2 class="lb-title">' + heading + '</h2><div class="lb-divider"></div>'}
     ${champion}
     ${tiedFirst ? '<div class="lb-tie-note">🤝 ĐỒNG HẠNG DẪN ĐẦU</div>' : ''}
     ${podium ? `<div class="podium-grid${championIsSeparate ? ' final-runnerups' : ''}">${podium}</div>` : ''}
-    ${rest ? `<div class="lb-rest">${rest}</div>` : ''}`;
+    ${rest ? `<div class="lb-rest">${rest}</div>` : ''}${mode === 'final' ? '</section>' : ''}`;
 }
 function renderCompactRoundLeaderboard(targetId, sorted) {
   const target = document.getElementById(targetId);
@@ -1279,6 +1268,50 @@ function renderRevealBoard(g, opts={}) {
 // MÀN KẾT THÚC
 // ─────────────────────────────────────────
 let endedConfettiInterval;
+let finalPodiumTimers = [];
+let finalPodiumSequenceKey = '';
+function clearFinalPodiumSequence() {
+  finalPodiumTimers.forEach(clearTimeout);
+  finalPodiumTimers = [];
+  finalPodiumSequenceKey = '';
+}
+function finalPodiumLater(fn, delay) {
+  finalPodiumTimers.push(setTimeout(fn, delay));
+}
+function runFinalPodiumSequence(sorted) {
+  const board = document.getElementById('d-final-leaderboard');
+  if (!board) return;
+  const call = document.getElementById('d-final-podium-call');
+  const label = team => team.teamName || 'Đội chơi';
+  const reveal = (selector, text, champion = false) => {
+    const item = board.querySelector(selector);
+    if (!item) return;
+    item.classList.add('is-revealed');
+    if (call) {
+      call.textContent = text;
+      call.classList.toggle('is-champion', champion);
+    }
+    if (champion) displayWinSfx(); else displayLeaderboardSfx();
+  };
+  // Để phần intro của nhạc có khoảng thở. Đội hạng thấp được gọi trước theo thứ tự 8 → 4.
+  if (call) call.textContent = 'Sẵn sàng cho podium!';
+  const rest = sorted.slice(3).reverse();
+  rest.forEach((team, index) => {
+    finalPodiumLater(() => reveal(`[data-final-index="${sorted.indexOf(team)}"]`, `Hạng ${sorted.indexOf(team) + 1} · ${label(team)}`), 2600 + index * 760);
+  });
+  const topStart = 2600 + rest.length * 760 + 650;
+  const topSequence = [2, 1, 0].filter(index => sorted[index]);
+  topSequence.forEach((index, step) => {
+    const champion = index === 0;
+    finalPodiumLater(() => {
+      reveal(`[data-final-index="${index}"]`, champion ? `🏆 QUÁN QUÂN · ${label(sorted[index])}!` : `Hạng ${index + 1} · ${label(sorted[index])}`, champion);
+      if (champion) {
+        startDisplayConfetti();
+        if (!endedConfettiInterval) endedConfettiInterval = setInterval(startDisplayConfetti, 6000);
+      }
+    }, topStart + step * 1450);
+  });
+}
 // ── DỌN INTERVAL CONFETTI KHI RỜI MÀN ENDED (chỉ dừng interval, KHÔNG đụng RAF
 // đang chạy dở — burst hiện tại tự kết thúc trong tối đa ~3.2s như thiết kế cũ) ──
 function clearEndedConfetti() {
@@ -1296,19 +1329,21 @@ function showEnded() {
     const teams = snap.val() || {};
     const withIdx = Object.values(teams).map((t,i) => ({...t, _idx:i}));
     const sorted = withIdx.sort((a,b) => (b.score||0) - (a.score||0));
+    const sequenceKey = sorted.map(team => `${team.teamName || team._idx}:${team.score || 0}`).join('|');
+    if (finalPodiumSequenceKey === sequenceKey) return;
+    clearFinalPodiumSequence();
+    finalPodiumSequenceKey = sequenceKey;
+    setDisplayMusic('leaderboard', { restart: true });
     renderPodiumLeaderboard('d-final-leaderboard', sorted, 'final');
     document.getElementById('d-award-list').innerHTML = getAwards(withIdx).map(a => `<span class="award-chip">${a}</span>`).join('');
+    runFinalPodiumSequence(sorted);
   });
-  if (!endedConfettiInterval) {
-    displayWinSfx();
-    startDisplayConfetti();
-    endedConfettiInterval = setInterval(startDisplayConfetti, 6000);
-  }
 }
 function showGiftRevealDisplay() {
   setCommentatorVisible(false);
   setDisplayMusic('none');
   clearEndedConfetti();
+  clearFinalPodiumSequence();
   document.body.classList.add('floral-finale');
   showScreen('gift-reveal');
 }
