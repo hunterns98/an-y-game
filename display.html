@@ -226,6 +226,8 @@
   .rank-shift.up { color:var(--green); } .rank-shift.down { color:#fca5a5; }
   .leader-spotlight { display:none; width:100%; padding:12px 18px; border-radius:16px; text-align:center; background:linear-gradient(135deg,rgba(255,214,10,.22),rgba(255,45,120,.12)); border:1px solid rgba(255,214,10,.45); color:var(--gold); font-weight:900; animation:spotlightPulse 1.2s ease-in-out infinite alternate; }
   .leader-spotlight.show { display:block; } @keyframes spotlightPulse { to { box-shadow:0 0 30px rgba(255,214,10,.35); transform:scale(1.01); } }
+  .game-ending-notice { display:none; padding:10px 16px; border:1px solid rgba(255,214,10,.7); border-radius:999px; color:var(--gold); background:rgba(255,214,10,.12); box-shadow:0 0 22px rgba(255,214,10,.16); font-weight:950; font-size:clamp(.8rem,1.55vw,1rem); letter-spacing:.04em; animation:endingNoticePulse 1.2s ease-in-out infinite alternate; }
+  .game-ending-notice.show { display:block; } @keyframes endingNoticePulse { to { transform:scale(1.04); box-shadow:0 0 32px rgba(255,214,10,.33); } }
   .award-list { display:flex; flex-wrap:wrap; justify-content:center; gap:8px; margin-top:16px; }
   .award-chip { padding:8px 12px; border-radius:99px; background:rgba(0,245,212,.1); border:1px solid rgba(0,245,212,.3); color:var(--text); font-size:.8rem; font-weight:800; }
   .rr-team   { font-weight: 800; flex: 1; }
@@ -267,6 +269,19 @@
   .final-podium-show .podium-card, .final-podium-show .lb-rest-row { opacity:0; visibility:hidden; }
   .final-podium-show .podium-card { animation:none; }
   .final-podium-show .podium-card.is-revealed { visibility:visible; animation:podiumRise .72s cubic-bezier(.22,1.52,.5,1) both; }
+  .final-podium-show .podium-card.is-medal-stage .podium-avatars,
+  .final-podium-show .podium-card.is-medal-stage .podium-team,
+  .final-podium-show .podium-card.is-medal-stage .podium-points { opacity:0; }
+  .final-podium-show .podium-card.is-name-revealed .podium-avatars,
+  .final-podium-show .podium-card.is-name-revealed .podium-team,
+  .final-podium-show .podium-card.is-name-revealed .podium-points { opacity:1; transition:opacity .35s ease; }
+  .final-podium-show .podium-card.is-name-revealed .podium-team { animation:podiumNameDance 1.1s ease-in-out infinite alternate; }
+  @keyframes podiumNameDance { 0% { transform:rotate(-1.5deg) translateY(0); } 100% { transform:rotate(1.5deg) translateY(-5px); } }
+  #screen-ended.finale-dim .ended-content { filter:brightness(.47); transition:filter .45s ease; }
+  #screen-ended .ended-content { transition:filter .45s ease; }
+  #screen-ended.champion-spotlight .podium-card.rank-1 { box-shadow:0 0 0 5px rgba(255,244,177,.18),0 0 90px 26px rgba(255,214,10,.68),0 18px 36px rgba(0,0,0,.36); }
+  #screen-ended.champion-spotlight .podium-card.rank-1::before { content:''; position:absolute; z-index:0; inset:-40% -20% 10%; background:radial-gradient(ellipse at 50% 24%,rgba(255,255,220,.85),rgba(255,214,10,.28) 32%,transparent 68%); pointer-events:none; animation:stageLight 1s ease-in-out infinite alternate; }
+  @keyframes stageLight { to { transform:scale(1.16); opacity:.72; } }
   .final-podium-show .lb-rest-row.is-revealed { visibility:visible; animation:leaderboardIn .48s cubic-bezier(.34,1.4,.64,1) both; }
   .final-podium-show .podium-card.rank-1.is-revealed { animation-duration:.9s; }
   .lb-tie-note { margin:0 auto 14px; padding:7px 12px; width:max-content; max-width:100%; border-radius:99px; color:var(--cyan); background:rgba(0,245,212,.1); border:1px solid rgba(0,245,212,.26); font-size:.75rem; font-weight:800; }
@@ -385,6 +400,7 @@
       <div id="d-timer-wrap"><div class="timer-circle" id="d-timer-circle">—</div></div>
     </div>
     <div id="d-special-badge" class="special-badge" style="display:none;"></div>
+    <div id="d-game-ending-notice" class="game-ending-notice" aria-live="polite"></div>
     <div class="question-display-card">
       <div class="question-display-text" id="d-question-text">...</div>
       <div class="options-row" id="d-options-row" style="display:none;">
@@ -471,7 +487,10 @@ const COMMENTS = [
   'Sẽ có những con cá phải giả chó.',
   '🖤🩷 Hồng Đen trong khu vực bạn đóoooo.',
   '1 điều nhịn là 9 đứa ngồi lên đầu.',
-  "Trust me I'm a Dogtor."
+  "Trust me I'm a Dogtor.",
+  'Gừng càng già càng cay. Già càng ngày càng cưng.',
+  'H.hhh.hồ..i hồi chiều trời mưa.',
+  'Bạn thì tày rồi.'
 ];
 let commentBag = [];
 let lastShownCommentIdx = -1;
@@ -685,6 +704,12 @@ let revealSequenceComplete = false;
 let startCountdownKey = '';
 let startCountdownInterval = null;
 let countdownMusicKey = '';
+function startCountdownMusicFor(game) {
+  const musicKey = `${game.round || 0}:${Number(game.answerStartsAt || game.startedAt || 0)}`;
+  if (musicKey === countdownMusicKey) return;
+  countdownMusicKey = musicKey;
+  setDisplayMusic('countdown', { restart: true });
+}
 // Mỗi đội có đủ thời gian nhận ra mình có “ăn ý” hay không; sau đội cuối
 // còn một nhịp đọc chung trước khi bảng điểm xuất hiện.
 const REVEAL_INTRO_MS = 700;
@@ -872,7 +897,7 @@ function listenGameDisplay() {
   db.ref('rooms/' + myRoom + '/game').on('value', snap => {
     const g = snap.val();
     gameCache = g;
-    if (!g || g.status !== 'ended') clearEndedConfetti();
+    if (!g || g.status !== 'ended') { clearEndedConfetti(); clearFinalPodiumSequence(); }
     if (!g) { setDisplayMusic('lobby'); showScreen('waiting'); return; }
     if (g.status === 'ended') { g.giftRevealed ? showGiftRevealDisplay() : showEnded(); return; }
     if (g.status === 'starting') { setDisplayMusic('lobby'); showScreen('waiting'); showStartCountdown(g); return; }
@@ -896,6 +921,9 @@ function listenGameDisplay() {
       setCommentatorVisible(false);
       showStartCountdown(g, answerStartsAt, () => {
         if (gameCache && gameCache.status === 'playing' && gameCache.round === g.round && (gameCache.phase || 'answering') !== 'results') {
+          // Firebase không phát thêm event đúng khoảnh khắc countdown 3-2-1 kết thúc,
+          // nên phải chủ động khởi động nhạc 30 giây tại đây cho mọi câu từ câu 2.
+          startCountdownMusicFor(gameCache);
           showProgressView('answering');
           startDisplayTimer(gameCache);
         }
@@ -906,11 +934,7 @@ function listenGameDisplay() {
       setDisplayMusic('none');
       showRevealView(g);
     } else {
-      const musicKey = `${g.round || 0}:${answerStartsAt}`;
-      if (musicKey !== countdownMusicKey) {
-        countdownMusicKey = musicKey;
-        setDisplayMusic('countdown', { restart: true });
-      }
+      startCountdownMusicFor(g);
       showProgressView(phase);
       // `locked` chỉ còn có thể xuất hiện ở phòng từ phiên bản cũ; vẫn hiển thị
       // đồng hồ bình thường để phòng đó tiếp tục được chơi sau khi tải lại.
@@ -982,6 +1006,14 @@ function renderQuestionDisplay(g) {
   } else {
     optsRow.style.display = 'none';
   }
+  const remainingQuestions = Math.max(0, Number(g.totalRounds || 19) - Number(g.round || 0));
+  const endingNotice = document.getElementById('d-game-ending-notice');
+  if (remainingQuestions > 0 && remainingQuestions <= 2) {
+    endingNotice.textContent = `⚡ Còn ${remainingQuestions} câu hỏi nữa là game kết thúc!`;
+    endingNotice.classList.add('show');
+  } else {
+    endingNotice.classList.remove('show');
+  }
   renderProgress();
 }
 function showProgressView(phase='answering') {
@@ -1025,16 +1057,10 @@ function showRevealView(g) {
   const finish = () => {
     revealSequenceComplete = true;
     intro.classList.remove('show');
-    // Reveal là một nhịp riêng. Khi bảng điểm xuất hiện, rút các hàng đáp án
-    // để màn hình lớn không phải thu nhỏ chỉ để thấy đủ thông tin.
-    document.getElementById('d-reveal-board').style.display = 'none';
-    document.getElementById('screen-question').classList.add('leaderboard-focus');
-    const board = document.getElementById('d-round-leaderboard');
-    board.style.display = 'block';
-    board.classList.remove('leaderboard-enter');
-    requestAnimationFrame(() => board.classList.add('leaderboard-enter'));
-    renderRoundLeaderboard(g);
-    if (elapsed < leaderboardAt) displayLeaderboardSfx();
+    // Không công bố bảng điểm giữa game: giữ reveal để mọi người xem độ ăn ý,
+    // còn thứ hạng được dành trọn cho khoảnh khắc vinh danh cuối.
+    document.getElementById('d-reveal-board').style.display = 'grid';
+    document.getElementById('d-round-leaderboard').style.display = 'none';
     if (g.levelBreak && levelTransitionInfo[(g.level || 1) + 1]) {
       // Mốc này do host ghi vào phòng lúc reveal. Nhờ vậy màn hình lớn, điện thoại
       // và host luôn cùng chiếu luật level mới, kể cả khi một màn hình vừa tải lại.
@@ -1274,43 +1300,69 @@ function clearFinalPodiumSequence() {
   finalPodiumTimers.forEach(clearTimeout);
   finalPodiumTimers = [];
   finalPodiumSequenceKey = '';
+  const ended = document.getElementById('screen-ended');
+  if (ended) ended.classList.remove('finale-dim', 'champion-spotlight');
 }
 function finalPodiumLater(fn, delay) {
   finalPodiumTimers.push(setTimeout(fn, delay));
 }
 function runFinalPodiumSequence(sorted) {
   const board = document.getElementById('d-final-leaderboard');
+  const ended = document.getElementById('screen-ended');
   if (!board) return;
   const call = document.getElementById('d-final-podium-call');
   const label = team => team.teamName || 'Đội chơi';
-  const reveal = (selector, text, champion = false) => {
-    const item = board.querySelector(selector);
+  const showMedal = (index, text) => {
+    const item = board.querySelector(`[data-final-index="${index}"]`);
     if (!item) return;
-    item.classList.add('is-revealed');
+    item.classList.add('is-revealed', 'is-medal-stage');
+    if (call) { call.textContent = text; call.classList.remove('is-champion'); }
+  };
+  const revealName = (index, text, champion = false) => {
+    const item = board.querySelector(`[data-final-index="${index}"]`);
+    if (!item) return;
+    item.classList.add('is-name-revealed');
+    item.classList.remove('is-medal-stage');
     if (call) {
       call.textContent = text;
       call.classList.toggle('is-champion', champion);
     }
     if (champion) displayWinSfx(); else displayLeaderboardSfx();
   };
-  // Để phần intro của nhạc có khoảng thở. Đội hạng thấp được gọi trước theo thứ tự 8 → 4.
+  const revealRest = () => {
+    board.querySelectorAll('.lb-rest-row').forEach(item => item.classList.add('is-revealed'));
+  };
+  /*
+   * Nhịp tương ứng đoạn mở đầu của track podium:
+   * 01–03: bục/đồng, 04: tên hạng ba
+   * 05–07: bục/bạc, 08: tên hạng nhì
+   * 09–11: hạ sáng + vàng số 1, 12–14: spotlight + quán quân, sau đó mới mở phần còn lại.
+   */
   if (call) call.textContent = 'Sẵn sàng cho podium!';
-  const rest = sorted.slice(3).reverse();
-  rest.forEach((team, index) => {
-    finalPodiumLater(() => reveal(`[data-final-index="${sorted.indexOf(team)}"]`, `Hạng ${sorted.indexOf(team) + 1} · ${label(team)}`), 2600 + index * 760);
-  });
-  const topStart = 2600 + rest.length * 760 + 650;
-  const topSequence = [2, 1, 0].filter(index => sorted[index]);
-  topSequence.forEach((index, step) => {
-    const champion = index === 0;
-    finalPodiumLater(() => {
-      reveal(`[data-final-index="${index}"]`, champion ? `🏆 QUÁN QUÂN · ${label(sorted[index])}!` : `Hạng ${index + 1} · ${label(sorted[index])}`, champion);
-      if (champion) {
-        startDisplayConfetti();
-        if (!endedConfettiInterval) endedConfettiInterval = setInterval(startDisplayConfetti, 6000);
-      }
-    }, topStart + step * 1450);
-  });
+  if (sorted[2]) {
+    finalPodiumLater(() => showMedal(2, 'Hạng 3'), 1000);
+    finalPodiumLater(() => revealName(2, `🥉 HẠNG 3 · ${label(sorted[2])}`), 4000);
+  }
+  if (sorted[1]) {
+    finalPodiumLater(() => showMedal(1, 'Hạng 2'), 5000);
+    finalPodiumLater(() => revealName(1, `🥈 HẠNG 2 · ${label(sorted[1])}`), 8000);
+  }
+  finalPodiumLater(() => {
+    if (ended) ended.classList.add('finale-dim');
+    if (call) { call.textContent = '...'; call.classList.remove('is-champion'); }
+  }, 9000);
+  if (sorted[0]) finalPodiumLater(() => showMedal(0, '🥇'), 10000);
+  finalPodiumLater(() => {
+    if (ended) { ended.classList.remove('finale-dim'); ended.classList.add('champion-spotlight'); }
+    if (sorted[0]) revealName(0, `🏆 QUÁN QUÂN · ${label(sorted[0])}!`, true);
+    startDisplayConfetti();
+    if (!endedConfettiInterval) endedConfettiInterval = setInterval(startDisplayConfetti, 6000);
+  }, 12000);
+  finalPodiumLater(() => {
+    if (ended) ended.classList.remove('champion-spotlight');
+    revealRest();
+    if (call) { call.textContent = 'Chúc mừng các đội!'; call.classList.remove('is-champion'); }
+  }, 14000);
 }
 // ── DỌN INTERVAL CONFETTI KHI RỜI MÀN ENDED (chỉ dừng interval, KHÔNG đụng RAF
 // đang chạy dở — burst hiện tại tự kết thúc trong tối đa ~3.2s như thiết kế cũ) ──
