@@ -228,7 +228,9 @@
   .leader-spotlight.show { display:block; } @keyframes spotlightPulse { to { box-shadow:0 0 30px rgba(255,214,10,.35); transform:scale(1.01); } }
   .game-ending-notice { display:none; padding:10px 16px; border:1px solid rgba(255,214,10,.7); border-radius:999px; color:var(--gold); background:rgba(255,214,10,.12); box-shadow:0 0 22px rgba(255,214,10,.16); font-weight:950; font-size:clamp(.8rem,1.55vw,1rem); letter-spacing:.04em; animation:endingNoticePulse 1.2s ease-in-out infinite alternate; }
   .game-ending-notice.show { display:block; } @keyframes endingNoticePulse { to { transform:scale(1.04); box-shadow:0 0 32px rgba(255,214,10,.33); } }
-  .award-list { display:flex; flex-wrap:wrap; justify-content:center; gap:8px; margin-top:16px; }
+  .award-list { display:flex; flex-wrap:wrap; justify-content:center; gap:8px; margin-top:16px; opacity:0; visibility:hidden; transform:translateY(12px); }
+  .award-list.is-revealed { visibility:visible; animation:awardListIn .55s cubic-bezier(.22,1.4,.5,1) forwards; }
+  @keyframes awardListIn { to { opacity:1; transform:translateY(0); } }
   .award-chip { padding:8px 12px; border-radius:99px; background:rgba(0,245,212,.1); border:1px solid rgba(0,245,212,.3); color:var(--text); font-size:.8rem; font-weight:800; }
   .rr-team   { font-weight: 800; flex: 1; }
   .rr-ans    { font-size: 0.88rem; color: var(--muted); flex: 1.4; }
@@ -577,7 +579,9 @@ function showScreen(id) {
 }
 // ── DISPLAY SFX (chỉ bắt đầu sau một thao tác người dùng; có thể tắt riêng) ──
 const DAC = window.AudioContext || window.webkitAudioContext;
-let dac, displaySfxEnabled = (() => { try { return localStorage.getItem('anygame_display_sfx') !== 'off'; } catch(e) { return true; } })();
+// Mỗi lần mở display bắt đầu với âm thanh bật. Không lưu trạng thái mute cũ để
+// tránh một lần bấm M khi test làm mất nhạc ở lần chiếu sau.
+let dac, displaySfxEnabled = true;
 const displayMusic = {
   lobby: document.getElementById('d-music-lobby'),
   countdown: document.getElementById('d-music-countdown'),
@@ -634,15 +638,25 @@ function displayTone(freq, dur=.18, vol=.22, type='triangle') {
 function displayRevealSfx() { displayTone(620, .16, .2); }
 function displayLeaderboardSfx() { [523,659,784].forEach((f,i) => setTimeout(() => displayTone(f,.22,.26), i*75)); }
 function displayWinSfx() { [523,659,784,1047].forEach((f,i) => setTimeout(() => displayTone(f,.35,.3), i*90)); }
+function unlockDisplayAudio() {
+  displayBgmUnlocked = true;
+  getDisplayAC();
+  syncDisplayBgm();
+}
 function toggleDisplaySound() {
+  // Lần M đầu tiên chỉ mở khóa audio theo yêu cầu của Chrome/Safari, không tắt nhạc.
+  if (!displayBgmUnlocked) {
+    unlockDisplayAudio();
+    displayTone(660, .12, .2);
+    return;
+  }
   displaySfxEnabled = !displaySfxEnabled;
-  try { localStorage.setItem('anygame_display_sfx', displaySfxEnabled ? 'on' : 'off'); } catch(e) {}
-  getDisplayAC(); displayBgmUnlocked = displaySfxEnabled;
+  getDisplayAC();
   if (displaySfxEnabled) { syncDisplayBgm(); displayTone(660, .12, .2); }
   else syncDisplayBgm();
 }
 document.addEventListener('pointerdown', event => {
-  displayBgmUnlocked = true; getDisplayAC(); syncDisplayBgm();
+  unlockDisplayAudio();
 }, { once:true, capture:true });
 async function toggleDisplayFullscreen() {
   try {
@@ -656,7 +670,7 @@ document.addEventListener('keydown', event => {
   const tag = document.activeElement && document.activeElement.tagName;
   if (tag === 'INPUT' || tag === 'TEXTAREA' || document.activeElement?.isContentEditable) return;
   if (event.key.toLowerCase() === 'm') { event.preventDefault(); toggleDisplaySound(); }
-  if (event.key.toLowerCase() === 'f') { event.preventDefault(); toggleDisplayFullscreen(); }
+  if (event.key.toLowerCase() === 'f') { event.preventDefault(); unlockDisplayAudio(); toggleDisplayFullscreen(); }
 });
 // ── CONNECTION FEEDBACK ──
 let displayConnected = false, displayWasOffline = false, displayBannerTimer;
@@ -1123,8 +1137,8 @@ function renderPodiumLeaderboard(targetId, sorted, mode='round') {
     </article>`;
   }).join('');
   // Phần dưới podium giữ leaderboard gọn: chỉ hạng, tên đội và điểm — không lặp journey/streak.
-  // Chung kết gọi từ cuối bảng lên, nên đảo DOM phần đội chưa vào podium.
-  const restTeams = mode === 'final' ? sorted.slice(3).reverse() : sorted.slice(3);
+  // Thứ tự đọc tự nhiên luôn là hạng 4 → hạng cuối.
+  const restTeams = sorted.slice(3);
   const rest = restTeams.map((team, index) => {
     const absoluteIndex = mode === 'final' ? sorted.indexOf(team) : index + 3;
     return `<div class="lb-rest-row" data-final-index="${absoluteIndex}"><span class="lb-rest-rank">${rankAt(absoluteIndex)}.</span><span class="lb-rest-team">${teamLabel(team)}</span><span class="lb-rest-score">${team.score || 0}</span></div>`;
@@ -1372,6 +1386,7 @@ function runFinalPodiumSequence(sorted) {
     revealRest();
     if (call) { call.textContent = 'Chúc mừng các đội!'; call.classList.remove('is-champion'); }
   }, 17000);
+  finalPodiumLater(() => document.getElementById('d-award-list')?.classList.add('is-revealed'), 18200);
 }
 // ── DỌN INTERVAL CONFETTI KHI RỜI MÀN ENDED (chỉ dừng interval, KHÔNG đụng RAF
 // đang chạy dở — burst hiện tại tự kết thúc trong tối đa ~3.2s như thiết kế cũ) ──
@@ -1396,7 +1411,9 @@ function showEnded() {
     finalPodiumSequenceKey = sequenceKey;
     setDisplayMusic('leaderboard', { restart: true });
     renderPodiumLeaderboard('d-final-leaderboard', sorted, 'final');
-    document.getElementById('d-award-list').innerHTML = getAwards(withIdx).map(a => `<span class="award-chip">${a}</span>`).join('');
+    const awards = document.getElementById('d-award-list');
+    awards.classList.remove('is-revealed');
+    awards.innerHTML = getAwards(withIdx).map(a => `<span class="award-chip">${a}</span>`).join('');
     runFinalPodiumSequence(sorted);
   });
 }
