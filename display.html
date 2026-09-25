@@ -279,6 +279,14 @@
   @keyframes podiumNameDance { 0% { transform:rotate(-1.5deg) translateY(0); } 100% { transform:rotate(1.5deg) translateY(-5px); } }
   #screen-ended.finale-dim .ended-content { filter:brightness(.47); transition:filter .45s ease; }
   #screen-ended .ended-content { transition:filter .45s ease; }
+  #d-podium-spotlight { position:fixed; inset:0; z-index:2; pointer-events:none; overflow:hidden; opacity:0; }
+  #d-podium-spotlight::before { content:''; position:absolute; width:min(58vw,760px); height:min(58vw,760px); border-radius:50%; background:radial-gradient(circle,rgba(255,251,211,.96) 0%,rgba(255,225,120,.46) 20%,rgba(255,214,10,.14) 43%,transparent 70%); filter:blur(2px); transform:translate(-70vw,-45vh) scale(.88); }
+  #screen-ended.finale-dim #d-podium-spotlight { opacity:1; }
+  #screen-ended.finale-dim #d-podium-spotlight::before { animation:podiumSearchlight 3s cubic-bezier(.42,0,.2,1) forwards; }
+  @keyframes podiumSearchlight { 0% { transform:translate(-62vw,-42vh) scale(.9); } 26% { transform:translate(62vw,-18vh) scale(.98); } 53% { transform:translate(7vw,48vh) scale(.85); } 76% { transform:translate(68vw,40vh) scale(.74); } 100% { transform:translate(21vw,10vh) scale(.58); } }
+  #screen-ended.champion-spotlight #d-podium-spotlight { opacity:1; }
+  #screen-ended.champion-spotlight #d-podium-spotlight::before { transform:translate(21vw,10vh) scale(.58); animation:podiumLightZoomOut .85s ease-out forwards; }
+  @keyframes podiumLightZoomOut { to { transform:translate(21vw,10vh) scale(2.5); opacity:0; } }
   #screen-ended.champion-spotlight .podium-card.rank-1 { box-shadow:0 0 0 5px rgba(255,244,177,.18),0 0 90px 26px rgba(255,214,10,.68),0 18px 36px rgba(0,0,0,.36); }
   #screen-ended.champion-spotlight .podium-card.rank-1::before { content:''; position:absolute; z-index:0; inset:-40% -20% 10%; background:radial-gradient(ellipse at 50% 24%,rgba(255,255,220,.85),rgba(255,214,10,.28) 32%,transparent 68%); pointer-events:none; animation:stageLight 1s ease-in-out infinite alternate; }
   @keyframes stageLight { to { transform:scale(1.16); opacity:.72; } }
@@ -421,6 +429,7 @@
   <!-- ── SCREEN: ENDED ── -->
   <div class="screen" id="screen-ended">
     <canvas id="d-confetti-canvas"></canvas>
+    <div id="d-podium-spotlight" aria-hidden="true"></div>
     <div class="ended-content">
       <div class="kahoot-leaderboard" id="d-final-leaderboard"></div>
       <div class="award-list" id="d-award-list"></div>
@@ -1336,7 +1345,7 @@ function runFinalPodiumSequence(sorted) {
    * Nhịp tương ứng đoạn mở đầu của track podium:
    * 01–03: bục/đồng, 04: tên hạng ba
    * 05–07: bục/bạc, 08: tên hạng nhì
-   * 09–11: hạ sáng + vàng số 1, 12–14: spotlight + quán quân, sau đó mới mở phần còn lại.
+   * 09–14: hạ sáng + spotlight quét sân khấu + vàng số 1, 15: quán quân, sau đó mới mở phần còn lại.
    */
   if (call) call.textContent = 'Sẵn sàng cho podium!';
   if (sorted[2]) {
@@ -1357,12 +1366,12 @@ function runFinalPodiumSequence(sorted) {
     if (sorted[0]) revealName(0, `🏆 QUÁN QUÂN · ${label(sorted[0])}!`, true);
     startDisplayConfetti();
     if (!endedConfettiInterval) endedConfettiInterval = setInterval(startDisplayConfetti, 6000);
-  }, 12000);
+  }, 15000);
   finalPodiumLater(() => {
     if (ended) ended.classList.remove('champion-spotlight');
     revealRest();
     if (call) { call.textContent = 'Chúc mừng các đội!'; call.classList.remove('is-champion'); }
-  }, 14000);
+  }, 17000);
 }
 // ── DỌN INTERVAL CONFETTI KHI RỜI MÀN ENDED (chỉ dừng interval, KHÔNG đụng RAF
 // đang chạy dở — burst hiện tại tự kết thúc trong tối đa ~3.2s như thiết kế cũ) ──
