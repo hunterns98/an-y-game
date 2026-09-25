@@ -322,9 +322,9 @@
 </head>
 <body>
 <!-- Nhạc nền theo từng khoảnh khắc trên màn hình lớn. -->
-<audio id="d-music-lobby" loop preload="metadata"><source src="assets/audio/lobby.mp3" type="audio/mpeg"></audio>
-<audio id="d-music-countdown" preload="metadata"><source src="assets/audio/countdown-30s.mp3" type="audio/mpeg"></audio>
-<audio id="d-music-leaderboard" loop preload="metadata"><source src="assets/audio/leaderboard.mp3" type="audio/mpeg"></audio>
+<audio id="d-music-lobby" loop preload="auto"><source src="assets/audio/lobby.mp3" type="audio/mpeg"></audio>
+<audio id="d-music-countdown" preload="auto"><source src="assets/audio/countdown-30s.mp3" type="audio/mpeg"></audio>
+<audio id="d-music-leaderboard" loop preload="auto"><source src="assets/audio/leaderboard.mp3" type="audio/mpeg"></audio>
 <div class="connection-banner" id="d-connection-banner" role="status" aria-live="polite"></div>
 <div class="stars" id="stars"></div>
 <div class="made-by-footer">Made By Nams Thần Sales With <span>♥</span></div>
@@ -551,6 +551,13 @@ const displayMusic = {
   countdown: document.getElementById('d-music-countdown'),
   leaderboard: document.getElementById('d-music-leaderboard')
 };
+// Tải sẵn cả ba track khi mở display. Chúng chưa phát ở đây, nên không vướng
+// chính sách autoplay, nhưng đã có dữ liệu sẵn trước lúc game đổi trạng thái.
+Object.values(displayMusic).forEach(track => {
+  if (!track) return;
+  track.preload = 'auto';
+  track.load();
+});
 let displayMusicMode = 'lobby';
 let displayBgmUnlocked = false;
 function syncDisplayBgm({ restart = false } = {}) {
