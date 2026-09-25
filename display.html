@@ -599,8 +599,8 @@ let displayBgmUnlocked = false;
 function syncDisplayBgm({ restart = false } = {}) {
   Object.entries(displayMusic).forEach(([mode, track]) => {
     if (!track) return;
-    // Nhạc nền ở mức nghe tự nhiên trên màn hình lớn, vẫn nhường chỗ cho SFX.
-    track.volume = mode === 'countdown' ? .12 : .14;
+    // Nhạc nền nghe rõ trên TV/máy chiếu, vẫn thấp hơn hiệu ứng reveal và chiến thắng.
+    track.volume = mode === 'countdown' ? .22 : .25;
     if (!displaySfxEnabled || mode !== displayMusicMode) {
       track.pause();
       if (mode !== displayMusicMode) track.currentTime = 0;
@@ -1359,7 +1359,7 @@ function runFinalPodiumSequence(sorted) {
    * Nhịp tương ứng đoạn mở đầu của track podium:
    * 01–03: bục/đồng, 04: tên hạng ba
    * 05–07: bục/bạc, 08: tên hạng nhì
-   * 09–14: hạ sáng + spotlight quét sân khấu + vàng số 1, 15: quán quân, sau đó mới mở phần còn lại.
+   * 09–13: hạ sáng + spotlight quét sân khấu + vàng số 1, 14: quán quân, sau đó mới mở phần còn lại.
    */
   if (call) call.textContent = 'Sẵn sàng cho podium!';
   if (sorted[2]) {
@@ -1380,13 +1380,13 @@ function runFinalPodiumSequence(sorted) {
     if (sorted[0]) revealName(0, `🏆 QUÁN QUÂN · ${label(sorted[0])}!`, true);
     startDisplayConfetti();
     if (!endedConfettiInterval) endedConfettiInterval = setInterval(startDisplayConfetti, 6000);
-  }, 15000);
+  }, 14000);
   finalPodiumLater(() => {
     if (ended) ended.classList.remove('champion-spotlight');
     revealRest();
     if (call) { call.textContent = 'Chúc mừng các đội!'; call.classList.remove('is-champion'); }
-  }, 17000);
-  finalPodiumLater(() => document.getElementById('d-award-list')?.classList.add('is-revealed'), 18200);
+  }, 16000);
+  finalPodiumLater(() => document.getElementById('d-award-list')?.classList.add('is-revealed'), 17200);
 }
 // ── DỌN INTERVAL CONFETTI KHI RỜI MÀN ENDED (chỉ dừng interval, KHÔNG đụng RAF
 // đang chạy dở — burst hiện tại tự kết thúc trong tối đa ~3.2s như thiết kế cũ) ──
