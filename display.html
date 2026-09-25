@@ -321,7 +321,10 @@
 </style>
 </head>
 <body>
-<audio id="d-bgm" loop preload="metadata"><source src="assets/audio/happy-ukulele.mp3" type="audio/mpeg"></audio>
+<!-- Nhạc nền theo từng khoảnh khắc trên màn hình lớn. -->
+<audio id="d-music-lobby" loop preload="metadata"><source src="assets/audio/lobby.mp3" type="audio/mpeg"></audio>
+<audio id="d-music-countdown" preload="metadata"><source src="assets/audio/countdown-30s.mp3" type="audio/mpeg"></audio>
+<audio id="d-music-leaderboard" loop preload="metadata"><source src="assets/audio/leaderboard.mp3" type="audio/mpeg"></audio>
 <div class="connection-banner" id="d-connection-banner" role="status" aria-live="polite"></div>
 <div class="stars" id="stars"></div>
 <div class="made-by-footer">Made By Nams Thần Sales With <span>♥</span></div>
@@ -543,15 +546,34 @@ function showScreen(id) {
 // ── DISPLAY SFX (chỉ bắt đầu sau một thao tác người dùng; có thể tắt riêng) ──
 const DAC = window.AudioContext || window.webkitAudioContext;
 let dac, displaySfxEnabled = (() => { try { return localStorage.getItem('anygame_display_sfx') !== 'off'; } catch(e) { return true; } })();
-const displayBgm = document.getElementById('d-bgm');
+const displayMusic = {
+  lobby: document.getElementById('d-music-lobby'),
+  countdown: document.getElementById('d-music-countdown'),
+  leaderboard: document.getElementById('d-music-leaderboard')
+};
+let displayMusicMode = 'lobby';
 let displayBgmUnlocked = false;
-function syncDisplayBgm() {
-  if (!displayBgm) return;
-  displayBgm.volume = .05;
-  if (!displaySfxEnabled) { displayBgm.pause(); return; }
+function syncDisplayBgm({ restart = false } = {}) {
+  Object.entries(displayMusic).forEach(([mode, track]) => {
+    if (!track) return;
+    track.volume = mode === 'countdown' ? .025 : .035;
+    if (!displaySfxEnabled || mode !== displayMusicMode) {
+      track.pause();
+      if (mode !== displayMusicMode) track.currentTime = 0;
+    }
+  });
+  const activeTrack = displayMusic[displayMusicMode];
+  if (!activeTrack || !displaySfxEnabled) return;
+  if (restart) activeTrack.currentTime = 0;
   // play() chỉ thành công sau thao tác người dùng; lỗi autoplay được bỏ qua và
   // sẽ thử lại ở lần bấm Âm thanh/Toàn màn hình tiếp theo.
-  displayBgm.play().catch(() => {});
+  activeTrack.play().catch(() => {});
+}
+function setDisplayMusic(mode, { restart = false } = {}) {
+  if (mode !== 'none' && !displayMusic[mode]) return;
+  const changed = displayMusicMode !== mode;
+  displayMusicMode = mode;
+  syncDisplayBgm({ restart: restart || changed });
 }
 function getDisplayAC() {
   if (!DAC) return null;
@@ -666,6 +688,7 @@ let revealSfxTimers = [];
 let revealSequenceComplete = false;
 let startCountdownKey = '';
 let startCountdownInterval = null;
+let countdownMusicKey = '';
 // Mỗi đội có đủ thời gian nhận ra mình có “ăn ý” hay không; sau đội cuối
 // còn một nhịp đọc chung trước khi bảng điểm xuất hiện.
 const REVEAL_INTRO_MS = 700;
@@ -854,11 +877,11 @@ function listenGameDisplay() {
     const g = snap.val();
     gameCache = g;
     if (!g || g.status !== 'ended') clearEndedConfetti();
-    if (!g) { showScreen('waiting'); return; }
+    if (!g) { setDisplayMusic('lobby'); showScreen('waiting'); return; }
     if (g.status === 'ended') { g.giftRevealed ? showGiftRevealDisplay() : showEnded(); return; }
-    if (g.status === 'starting') { showScreen('waiting'); showStartCountdown(g); return; }
+    if (g.status === 'starting') { setDisplayMusic('lobby'); showScreen('waiting'); showStartCountdown(g); return; }
     hideStartCountdown();
-    if (g.status !== 'playing') { showScreen('waiting'); return; }
+    if (g.status !== 'playing') { setDisplayMusic('lobby'); showScreen('waiting'); return; }
     const phase = g.phase || (g.revealed ? 'results' : 'answering');
     const newRound = g.round || 0;
     if (newRound !== prevDisplayRound) {
@@ -873,6 +896,7 @@ function listenGameDisplay() {
     const answerStartsAt = Number(g.answerStartsAt || 0);
     const isRoundCountdown = phase !== 'results' && answerStartsAt > serverNow();
     if (isRoundCountdown) {
+      setDisplayMusic('none');
       setCommentatorVisible(false);
       showStartCountdown(g, answerStartsAt, () => {
         if (gameCache && gameCache.status === 'playing' && gameCache.round === g.round && (gameCache.phase || 'answering') !== 'results') {
@@ -883,8 +907,14 @@ function listenGameDisplay() {
       return;
     }
     if (phase === 'results') {
+      setDisplayMusic('none');
       showRevealView(g);
     } else {
+      const musicKey = `${g.round || 0}:${answerStartsAt}`;
+      if (musicKey !== countdownMusicKey) {
+        countdownMusicKey = musicKey;
+        setDisplayMusic('countdown', { restart: true });
+      }
       showProgressView(phase);
       // `locked` chỉ còn có thể xuất hiện ở phòng từ phiên bản cũ; vẫn hiển thị
       // đồng hồ bình thường để phòng đó tiếp tục được chơi sau khi tải lại.
@@ -1252,6 +1282,7 @@ function clearEndedConfetti() {
 }
 function showEnded() {
   setCommentatorVisible(false);
+  setDisplayMusic('leaderboard');
   document.body.classList.add('floral-finale');
   showScreen('ended');
   db.ref('rooms/' + myRoom + '/teams').once('value').then(snap => {
@@ -1269,6 +1300,7 @@ function showEnded() {
 }
 function showGiftRevealDisplay() {
   setCommentatorVisible(false);
+  setDisplayMusic('none');
   clearEndedConfetti();
   document.body.classList.add('floral-finale');
   showScreen('gift-reveal');
