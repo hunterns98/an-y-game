@@ -401,7 +401,6 @@
         </div>
       </div>
       <div class="lobby-brand">❤️ Ăn Ý</div>
-      <div class="lobby-status">Đang chờ host bắt đầu game...</div>
     </div>
     <div class="waiting-section">
       <div class="waiting-section-label">Người chơi đã sẵn sàng</div>
@@ -846,7 +845,9 @@ function avatarImg(name, size) {
   const initials = String(name || '?').trim().split(/\s+/).map(part => part.charAt(0)).join('').slice(0,2).toUpperCase().replace(/[<>&"']/g, '');
   if (!num) return `<span class="avatar-frame" style="--avatar-size:${size}px"><span class="avatar-placeholder">${initials}</span></span>`;
   const fallback = PlayerAvatars.fallbackSrc(num);
-  return `<span class="avatar-frame" style="--avatar-size:${size}px"><span class="avatar-placeholder">${initials}</span><img class="avatar-thumb" style="object-position:${PlayerAvatars.positionFor(name)}" src="${PlayerAvatars.srcFor(name,num)}" onload="this.parentElement.classList.add('is-loaded')" onerror="this.onerror=null;this.src='${fallback}'" alt=""></span>`;
+  const avatarPosition = PlayerAvatars.positionFor(name);
+  const avatarZoom = PlayerAvatars.zoomFor(name);
+  return `<span class="avatar-frame" style="--avatar-size:${size}px"><span class="avatar-placeholder">${initials}</span><img class="avatar-thumb" style="object-position:${avatarPosition};transform:scale(${avatarZoom});transform-origin:${avatarPosition}" src="${PlayerAvatars.srcFor(name,num)}" onload="this.parentElement.classList.add('is-loaded')" onerror="this.onerror=null;this.src='${fallback}'" alt=""></span>`;
 }
 // ─────────────────────────────────────────
 // LẮNG NGHE NGƯỜI CHƠI (màn chờ)
@@ -888,7 +889,7 @@ function renderWaitingPlayers() {
   // Sau nhịp chào mừng 1–2 giây, các thẻ quay lại trạng thái floating liên tục.
   if (hasNewPlayer) setTimeout(() => el.querySelectorAll('.is-new-player,.is-lobby-pulse').forEach(chip => chip.classList.remove('is-new-player', 'is-lobby-pulse')), 2100);
   document.getElementById('d-player-count').textContent = list.length
-    ? `✨ ${list.length} người đã vào · đang chờ host bắt đầu`
+    ? `✨ ${list.length} người đã vào · đang chờ BTC bắt đầu`
     : 'Đang chờ người chơi đầu tiên...';
 }
 // ─────────────────────────────────────────

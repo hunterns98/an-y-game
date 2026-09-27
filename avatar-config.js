@@ -6,21 +6,21 @@
 
   var PEOPLE = {
     nhung:     { slot: 1,  file: 'nhung.webp' },
-    thuy:      { slot: 2,  file: 'thuy.webp' },
+    thuy:      { slot: 2,  file: 'thuy.webp', position: '50% 36%', zoom: 1.58 },
     an:        { slot: 3,  file: 'an.webp' },
-    thoan:     { slot: 4,  file: 'thoan.webp' },
+    thoan:     { slot: 4,  file: 'thoan.webp', position: '50% 38%', zoom: 1.58 },
     phuong:    { slot: 5,  file: 'phuong.webp' },
     anh:       { slot: 6,  file: 'anh.webp' },
-    giang:     { slot: 7,  file: 'giang.webp' },
-    hanh:      { slot: 8,  file: 'hanh.webp' },
-    le:        { slot: 9,  file: 'le.webp' },
-    maianh:    { slot: 10, file: 'mai-anh.webp' },
+    giang:     { slot: 7,  file: 'giang.webp', position: '52% 38%', zoom: 1.55 },
+    hanh:      { slot: 8,  file: 'hanh.webp', position: '50% 36%', zoom: 1.58 },
+    le:        { slot: 9,  file: 'le.webp', position: '52% 38%', zoom: 1.65 },
+    maianh:    { slot: 10, file: 'mai-anh.webp', position: '50% 37%', zoom: 1.58 },
     linh:      { slot: 11, file: 'linh.webp' },
-    hang:      { slot: 12, file: 'hang.webp' },
+    hang:      { slot: 12, file: 'hang.webp', position: '52% 35%', zoom: 1.55 },
     hoa:       { slot: 13, file: 'hoa.webp' },
     // Ảnh gốc ngang, gương mặt ở lệch về bên phải nên avatar cần crop riêng.
-    trang:     { slot: 14, file: 'trang.webp', position: '80% 38%' },
-    truc:      { slot: 15, file: 'truc.webp' },
+    trang:     { slot: 14, file: 'trang.webp', position: '84% 35%', zoom: 2.05 },
+    truc:      { slot: 15, file: 'truc.webp', position: '52% 37%', zoom: 1.58 },
     lien:      { slot: 16, file: 'lien.webp' }
   };
 
@@ -41,6 +41,7 @@
     randomNumber: function () { return Math.random() < 0.5 ? 17 : 18; },
     fallbackSrc: fallbackSrc,
     positionFor: function (name) { var entry = entryFor(name); return (entry && entry.position) || '50% 50%'; },
+    zoomFor: function (name) { var entry = entryFor(name); return (entry && entry.zoom) || 1; },
     srcFor: function (name, slot) {
       var entry = entryFor(name);
       return entry ? 'assets/avatars/players/' + entry.file : fallbackSrc(slot);

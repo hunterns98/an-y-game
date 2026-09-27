@@ -1260,8 +1260,34 @@ function revealAnswers() {
     // Snapshot đáp án được dùng cho reveal; đáp án đến muộn không thể làm phần
     // hiển thị khác với điểm đã chốt.
     game.finalAnswers = currentAnswers;
+    // Lưu "ký ức" bất biến của từng câu trước khi câu sau ghi đè game/answers.
+    // Chỉ giao diện của đúng đội mới đọc phần dữ liệu của họ ở màn xem lại.
+    const historyRound = {
+      round: game.round,
+      level: game.level || 1,
+      question: game.question || '',
+      type: game.type || 'choice',
+      special: !!game.special,
+      optionA: game.optionA || '',
+      optionB: game.optionB || '',
+      revealedAt: game.revealedAt,
+      teams: {}
+    };
+    Object.entries(teams).forEach(([key, team]) => {
+      const result = results[key] || {};
+      historyRound.teams[key] = {
+        teamName: team.teamName || '',
+        player1: team.player1 || '',
+        player2: team.player2 || '',
+        answer1: result.a1 == null ? '' : String(result.a1),
+        answer2: result.a2 == null ? '' : String(result.a2),
+        match: !!result.match,
+        points: Number(result.pts || 0),
+        unique: !!result.isUnique
+      };
+    });
     gameCache = game;
-    return baseRef.update({ game, teams });
+    return baseRef.update({ game, teams, ['history/rounds/' + game.round]: historyRound });
   }).then(() => {
     toast(game.levelBreak
       ? `🪄 Đã reveal! Đang chiếu luật Level ${(game.level || 1) + 1} trên màn hình lớn.`
@@ -1330,6 +1356,7 @@ document.getElementById('btn-rematch').addEventListener('click', () => {
   db.ref('rooms/' + roomCode).update({
     teams,
     answers:null,
+    history:null,
     game:{ status:'waiting', round:-1, phase:'waiting', totalRounds:questions.length, rematchAt:firebase.database.ServerValue.TIMESTAMP }
   }).then(() => {
     currentRound = 0; gamePhase = 'setup'; lastKnownRevealed = false;

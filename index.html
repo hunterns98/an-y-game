@@ -453,6 +453,8 @@
   .poem-signature { margin-top:23px; padding-top:16px; border-top:1px solid rgba(33,25,27,.28); color:#21191b; font-family:'Dancing Script','Segoe Script',cursive; font-size:clamp(1.15rem,5.5vw,1.5rem); font-weight:700; }
   .gift-card-action { margin:24px auto 2px; min-height:48px; padding:12px 20px; border:0; border-radius:999px; color:#fff; background:linear-gradient(135deg,#e82b74,#8d195d); box-shadow:0 9px 18px rgba(127,18,70,.28); font:800 .9rem/1.2 Arial,'Segoe UI',sans-serif; cursor:pointer; -webkit-tap-highlight-color:transparent; }
   .gift-card-action:active { transform:scale(.97); }
+  .gift-history-action { margin-top:10px; min-height:46px; padding:11px 18px; border:1px solid rgba(124,72,91,.32); border-radius:999px; color:#4a2031; background:rgba(255,255,255,.72); font:800 .86rem/1.2 Arial,'Segoe UI',sans-serif; cursor:pointer; -webkit-tap-highlight-color:transparent; }
+  .gift-history-action:active { transform:scale(.97); }
   #personal-card-modal { display:none; position:fixed; inset:0; z-index:10010; overflow:auto; padding:max(20px,env(safe-area-inset-top)) 16px max(24px,env(safe-area-inset-bottom)); background:rgba(13,2,23,.9); }
   #personal-card-modal.show { display:flex; align-items:flex-start; justify-content:center; }
   .personal-card-dialog { width:min(100%,390px); margin:auto; padding:16px; border-radius:24px; background:#fff8f0; box-shadow:0 24px 72px rgba(0,0,0,.52); text-align:center; }
@@ -461,6 +463,19 @@
   #personal-card-preview { display:block; width:100%; border-radius:14px; box-shadow:0 9px 22px rgba(70,25,52,.22); }
   .personal-card-save { width:100%; margin-top:14px; padding:13px 18px; border:0; border-radius:14px; color:#fff; background:linear-gradient(135deg,#e82b74,#9b1d66); font-weight:900; font-size:.95rem; cursor:pointer; }
   .personal-card-hint { margin:10px 5px 2px; color:#76556d; font-size:.75rem; line-height:1.4; }
+  #match-history-modal { display:none; position:fixed; inset:0; z-index:10020; overflow:auto; padding:max(16px,env(safe-area-inset-top)) 14px max(20px,env(safe-area-inset-bottom)); background:rgba(13,2,23,.92); }
+  #match-history-modal.show { display:block; }
+  .history-dialog { width:min(100%,510px); margin:0 auto; padding:20px 15px 26px; border-radius:24px; color:#281425; background:linear-gradient(145deg,#fffdf9,#f8e9e0); box-shadow:0 24px 72px rgba(0,0,0,.55); }
+  .history-head { display:flex; align-items:flex-start; justify-content:space-between; gap:12px; padding:2px 5px 15px; border-bottom:1px solid rgba(98,50,72,.16); }
+  .history-title { margin:0; font-size:1.35rem; line-height:1.18; font-weight:950; }.history-subtitle { margin:5px 0 0; color:#7c485f; font-size:.82rem; font-weight:750; }
+  .history-close { flex:0 0 auto; width:36px; height:36px; border:0; border-radius:50%; color:#fff; background:#8d195d; font-size:1.55rem; line-height:1; cursor:pointer; }
+  .history-list { display:flex; flex-direction:column; gap:12px; margin-top:15px; }
+  .history-round { overflow:hidden; border:1px solid rgba(124,72,91,.2); border-radius:18px; background:rgba(255,255,255,.76); box-shadow:0 5px 15px rgba(91,42,58,.08); }
+  .history-round-head { display:flex; align-items:center; justify-content:space-between; gap:10px; padding:11px 13px 8px; color:#7d294f; font-size:.72rem; font-weight:950; letter-spacing:.06em; text-transform:uppercase; }
+  .history-question { padding:0 13px 11px; font-size:.97rem; font-weight:850; line-height:1.38; }
+  .history-answers { display:grid; grid-template-columns:1fr 1fr; gap:8px; padding:11px 13px; border-top:1px solid rgba(124,72,91,.13); background:rgba(255,245,247,.7); }
+  .history-answer { min-width:0; padding:9px; border-radius:12px; background:#fff; }.history-answer-name { display:block; overflow:hidden; color:#956278; font-size:.68rem; font-weight:900; text-overflow:ellipsis; white-space:nowrap; }.history-answer-value { display:block; margin-top:4px; color:#331727; font-size:.85rem; font-weight:850; line-height:1.34; overflow-wrap:anywhere; }
+  .history-result { display:flex; align-items:center; justify-content:space-between; gap:9px; padding:10px 13px 12px; font-size:.82rem; font-weight:900; }.history-result.match { color:#087a55; }.history-result.miss { color:#9d3455; }.history-points { flex:0 0 auto; padding:5px 9px; border-radius:99px; color:#5b2841; background:#ffe3b4; }.history-empty { padding:28px 15px; color:#765565; text-align:center; font-size:.92rem; font-weight:750; line-height:1.5; }
   /* ── CONFETTI ── */
   /* (drawn via canvas) */
   /* ── TOAST ── */
@@ -739,6 +754,7 @@
       </div>
       <p class="poem-signature">From Nams Thần Sales With Lốp</p>
       <button class="gift-card-action" id="btn-create-personal-card" type="button">💌 Xem thiệp của bạn</button>
+      <button class="gift-history-action" id="btn-open-match-history" type="button">📖 Xem lại ván đấu của đội</button>
     </article>
   </div>
 </div>
@@ -748,6 +764,15 @@
     <img id="personal-card-preview" alt="Thiệp 20/10 cá nhân">
     <button class="personal-card-save" id="btn-save-personal-card" type="button">📥 Lưu thiệp về máy</button>
     <p class="personal-card-hint">Trên iPhone, bạn có thể chọn Chia sẻ → Lưu hình ảnh.</p>
+  </section>
+</div>
+<div id="match-history-modal" role="dialog" aria-modal="true" aria-label="Lịch sử ván đấu">
+  <section class="history-dialog">
+    <div class="history-head">
+      <div><h2 class="history-title">📖 Lịch sử Ăn Ý</h2><p class="history-subtitle" id="history-team-label">Đáp án của đội bạn</p></div>
+      <button class="history-close" id="btn-close-match-history" type="button" aria-label="Đóng lịch sử">×</button>
+    </div>
+    <div class="history-list" id="match-history-list"></div>
   </section>
 </div>
 <!-- MAIN APP -->
@@ -1208,6 +1233,8 @@ function setAvatarImage(img, name, n) {
   if (!img) return;
   img.onerror = () => { img.onerror = null; img.src = PlayerAvatars.fallbackSrc(n); };
   img.style.objectPosition = PlayerAvatars.positionFor(name);
+  img.style.transform = `scale(${PlayerAvatars.zoomFor(name)})`;
+  img.style.transformOrigin = PlayerAvatars.positionFor(name);
   img.src = avatarSrc(name, n);
 }
 function drawAvatar(callback) {
@@ -1993,6 +2020,60 @@ document.getElementById('btn-open-gift').addEventListener('click', () => {
   sfxWin();
   startPoemHearts();
 });
+// ── LỊCH SỬ VÁN ĐẤU: chỉ dựng lại các đáp án của chính đội người xem ─────
+function escapeHistoryHtml(value) {
+  return String(value == null ? '' : value).replace(/[&<>'"]/g, char => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', "'":'&#39;', '"':'&quot;' })[char]);
+}
+function historyAnswerLabel(value, item) {
+  if (!value) return 'Chưa trả lời';
+  if (item.type === 'choice' && value === 'A') return item.optionA || 'Lựa chọn A';
+  if (item.type === 'choice' && value === 'B') return item.optionB || 'Lựa chọn B';
+  return value;
+}
+function historyQuestionLabel(item) {
+  const round = Number(item.round || 0) + 1;
+  return `Level ${item.level || 1} · Câu ${round}${item.special ? ' · Câu đặc biệt' : ''}`;
+}
+function renderMatchHistory(rounds) {
+  const list = document.getElementById('match-history-list');
+  const teamLabel = document.getElementById('history-team-label');
+  const mine = rounds.map(item => ({ item, team: item.teams && item.teams[myTeamKey] })).filter(entry => entry.team);
+  if (!mine.length) {
+    teamLabel.textContent = 'Đáp án của đội bạn';
+    list.innerHTML = '<div class="history-empty">Chưa có lịch sử cho ván này.<br>Những câu được reveal từ bây giờ sẽ tự lưu ở đây.</div>';
+    return;
+  }
+  const firstTeam = mine[0].team;
+  teamLabel.textContent = firstTeam.teamName || `${firstTeam.player1} & ${firstTeam.player2}`;
+  list.innerHTML = mine.map(({ item, team }) => {
+    const matched = !!team.match;
+    const a1 = escapeHistoryHtml(historyAnswerLabel(team.answer1, item));
+    const a2 = escapeHistoryHtml(historyAnswerLabel(team.answer2, item));
+    return `<article class="history-round">
+      <div class="history-round-head"><span>${escapeHistoryHtml(historyQuestionLabel(item))}</span><span>${matched ? '💞 Ăn ý' : '🤔 Chưa trùng'}</span></div>
+      <p class="history-question">${escapeHistoryHtml(item.question || 'Câu hỏi')}</p>
+      <div class="history-answers">
+        <div class="history-answer"><span class="history-answer-name">${escapeHistoryHtml(team.player1 || 'Bạn 1')}</span><span class="history-answer-value">${a1}</span></div>
+        <div class="history-answer"><span class="history-answer-name">${escapeHistoryHtml(team.player2 || 'Bạn 2')}</span><span class="history-answer-value">${a2}</span></div>
+      </div>
+      <div class="history-result ${matched ? 'match' : 'miss'}"><span>${matched ? (team.unique ? '🌟 Trùng độc nhất!' : '💞 Hai bạn đã chọn giống nhau') : 'Hai bạn đã chọn khác nhau'}</span><span class="history-points">+${Number(team.points || 0)} điểm</span></div>
+    </article>`;
+  }).join('');
+}
+function openMatchHistory() {
+  const modal = document.getElementById('match-history-modal');
+  const list = document.getElementById('match-history-list');
+  modal.classList.add('show');
+  list.innerHTML = '<div class="history-empty">Đang mở lịch sử ván đấu…</div>';
+  if (!myRoom || !myTeamKey) { list.innerHTML = '<div class="history-empty">Chưa xác định được đội của bạn.</div>'; return; }
+  db.ref('rooms/' + myRoom + '/history/rounds').once('value').then(snapshot => {
+    const rounds = Object.values(snapshot.val() || {}).sort((a, b) => Number(a.round || 0) - Number(b.round || 0));
+    renderMatchHistory(rounds);
+  }).catch(() => { list.innerHTML = '<div class="history-empty">Chưa thể tải lịch sử. Bạn thử lại sau nhé.</div>'; });
+}
+document.getElementById('btn-open-match-history').addEventListener('click', openMatchHistory);
+document.getElementById('btn-close-match-history').addEventListener('click', () => document.getElementById('match-history-modal').classList.remove('show'));
+document.getElementById('match-history-modal').addEventListener('click', event => { if (event.target.id === 'match-history-modal') event.currentTarget.classList.remove('show'); });
 // ── THIỆP 20/10 CÁ NHÂN ────────────────────────────────────────────────
 // Thiệp được vẽ tại máy người chơi (không tải ảnh lên server), theo tỷ lệ 9:16
 // để lưu story nét trên điện thoại. Ảnh lấy đúng avatar đã gắn với tên trong game.
