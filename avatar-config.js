@@ -18,7 +18,8 @@
     linh:      { slot: 11, file: 'linh.webp' },
     hang:      { slot: 12, file: 'hang.webp' },
     hoa:       { slot: 13, file: 'hoa.webp' },
-    trang:     { slot: 14, file: 'trang.webp' },
+    // Ảnh gốc ngang, gương mặt ở lệch về bên phải nên avatar cần crop riêng.
+    trang:     { slot: 14, file: 'trang.webp', position: '80% 38%' },
     truc:      { slot: 15, file: 'truc.webp' },
     lien:      { slot: 16, file: 'lien.webp' }
   };
@@ -39,6 +40,7 @@
     randomPool: function () { return [17, 18]; },
     randomNumber: function () { return Math.random() < 0.5 ? 17 : 18; },
     fallbackSrc: fallbackSrc,
+    positionFor: function (name) { var entry = entryFor(name); return (entry && entry.position) || '50% 50%'; },
     srcFor: function (name, slot) {
       var entry = entryFor(name);
       return entry ? 'assets/avatars/players/' + entry.file : fallbackSrc(slot);

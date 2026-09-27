@@ -347,18 +347,6 @@
     font-size: 0.9rem; font-weight: 800; color: var(--gold);
   }
   .result-wait { font-size: 0.8rem; color: var(--muted); margin-top: 12px; }
-  /* ── SCORE DISPLAY ── */
-  .team-score-banner {
-    width: 100%; max-width: 480px;
-    display: flex; align-items: center; justify-content: space-between;
-    background: rgba(255,255,255,0.04);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: 12px 20px;
-  }
-  .tsb-label { font-size: 0.65rem; letter-spacing: 0.2em; color: var(--muted); text-transform: uppercase; }
-  .tsb-score { font-size: 1.6rem; font-weight: 900; color: var(--gold); }
-  .tsb-team  { font-size: 0.85rem; font-weight: 700; color: var(--text); }
   /* ── FLOATING SCORE (transform + opacity, will-change ép GPU compositing cho mượt) ── */
   .float-score {
     position: fixed; pointer-events: none; z-index: 9999;
@@ -827,10 +815,6 @@
         <button class="btn-save-name" id="btn-save-team-name">Lưu</button>
       </div>
     </div>
-    <div class="team-score-banner" id="score-banner" style="display:none;">
-      <div><div class="tsb-label">Điểm đội</div><div class="tsb-team" id="tsb-team">—</div></div>
-      <div class="tsb-score" id="tsb-score">0</div>
-    </div>
     <!-- HOW TO PLAY / DEMO GUIDE -->
     <div id="howto-card-wrap">
     <div class="howto-card" id="howto-card">
@@ -935,10 +919,6 @@
       <div class="chosen-label" id="chosen-label">Bạn đã chọn</div>
       <div class="chosen-answer" id="chosen-display">—</div>
       <div class="chosen-sub" id="chosen-sub">Đang chờ đồng đội trả lời...</div>
-    </div>
-    <div class="team-score-banner" id="score-banner-q">
-      <div><div class="tsb-label">Đội của bạn</div><div class="tsb-team" id="tsb-q-team">—</div></div>
-      <div class="tsb-score" id="tsb-q-score">0</div>
     </div>
   </div>
   <!-- ── SCREEN: RESULT ── -->
@@ -1227,6 +1207,7 @@ function avatarSrc(name, n) { return PlayerAvatars.srcFor(name, n); }
 function setAvatarImage(img, name, n) {
   if (!img) return;
   img.onerror = () => { img.onerror = null; img.src = PlayerAvatars.fallbackSrc(n); };
+  img.style.objectPosition = PlayerAvatars.positionFor(name);
   img.src = avatarSrc(name, n);
 }
 function drawAvatar(callback) {
@@ -1433,8 +1414,6 @@ function findMyTeam() {
         if (partner) renderPartnerAvatar(partner);
         // Team name editor
         renderTeamNameUI(team, key);
-        // Score banner
-        updateScoreBanners(team.score||0, partner, team.teamName);
         // Gắn đúng listener theo đồng đội hiện tại. Có thể ghép lại đội khi test,
         // nên không dùng cờ boolean cố định làm listener cũ bị kẹt.
         if (partner) listenPartnerStatus(partner);
@@ -1449,23 +1428,9 @@ function findMyTeam() {
         myTeam = t;
         const partner = t.player1===myName ? t.player2 : t.player1;
         renderTeamNameUI(t, myTeamKey);
-        updateScoreBanners(t.score||0, partner, t.teamName);
       });
     }
   });
-}
-function updateScoreBanners(score, partnerName, teamName) {
-  const teamLabel = teamName || (myName + ' & ' + (partnerName||'?'));
-  ['score-banner','score-banner-q'].forEach(id => {
-    const el = document.getElementById(id);
-    if (el) el.style.display = 'flex';
-  });
-  document.getElementById('tsb-team')&&(document.getElementById('tsb-team').textContent = teamLabel);
-  document.getElementById('tsb-score')&&(document.getElementById('tsb-score').textContent = score);
-  document.getElementById('tsb-q-team')&&(document.getElementById('tsb-q-team').textContent = teamLabel);
-  document.getElementById('tsb-q-score')&&(document.getElementById('tsb-q-score').textContent = score);
-  document.getElementById('tsb-r-team')&&(document.getElementById('tsb-r-team').textContent = teamLabel);
-  document.getElementById('tsb-r-score')&&(document.getElementById('tsb-r-score').textContent = score);
 }
 // ─────────────────────────────────────────
 // PARTNER STATUS (báo "đồng đội đã trả lời" ngay trên màn câu hỏi)
