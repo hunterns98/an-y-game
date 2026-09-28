@@ -448,27 +448,27 @@
 <script>
 const questions = [
   // ── LEVEL 1: Thấu Hiểu Nông (A/B) ──
-  { level:1, text:"Ăn bún đậu bạn chấm với:", a:"Mắm tôm", b:"Nước mắm", special:false },
-  { level:1, text:"Nếu phải nuôi pet, bạn chọn:", a:"Chó", b:"Mèo", special:false },
-  { level:1, text:"Lựa chọn A là đáp án đúng. Hãy chọn:", a:"Lựa chọn B", b:"Lựa chọn A", special:false },
-  { level:1, text:"Bộ môn thể thao nếu phải chọn:", a:"Píc cờ bôn", b:"Cầu lông", special:false },
+  { level:1, text:"Khóc trên ô tô hay Cười trên xe máy:", a:"Khóc trên ô tô", b:"Cười trên xe máy", special:false },
+  { level:1, text:"Được chọn một, bạn chọn:", a:"Đẹp nhất phòng", b:"Giàu nhất phòng", special:false },
   { level:1, text:"Đâu là từ đúng theo cách hiểu của bạn:", a:"Menu", b:"Melu", special:false },
-  { level:1, text:"Lựa chọn đồ uống có cồn sau:", a:"Bia", b:"Rượu", special:false },
-  { level:1, text:"Đến giờ nạp calo rồi, bạn chọn:", a:"Ăn lẩu", b:"Ăn nướng", special:false },
-  { level:1, text:"Điền tiếp vào câu thành ngữ “Đều như vắt…”:", a:"chanh", b:"tranh", special:false },
+  { level:1, text:"Ai đó nói “Có chuyện này nhưng đừng kể ai”. Bạn sẽ:", a:"Giữ đúng lời hứa", b:"Kể một người cũng dặn vậy", special:false },
+  { level:1, text:"Có một nhóm đang nấu xói người khác, vừa hay lại là người bạn không thích. Bạn sẽ:", a:"Tham gia cùng", b:"Bỏ qua", special:false },
+  { level:1, text:"Biết mình sai nhưng đang cãi rất hăng. Bạn sẽ:", a:"Nhận sai", b:"Tiếp tục cãi", special:false },
+  { level:1, text:"Đang hóng chuyện đến đoạn hay thì tới giờ về. Bạn chọn:", a:"Về đúng giờ", b:"Ở lại vì trách nhiệm", special:false },
+  { level:1, text:"Lựa chọn A là đáp án đúng. Hãy chọn:", a:"Lựa chọn B", b:"Lựa chọn A", special:false },
   // ── LEVEL 2: Thấu Hiểu Trung (Ai là ai?) ──
-  { level:2, text:"Trong 2 bạn, ai là người cục súc hơn?", type:"who_is" },
-  { level:2, text:"Trong 2 bạn, ai là người nhiều nyc hơn?", type:"who_is" },
+  { level:2, text:"Trong 2 bạn, ai là người cục súc, sẵn sàng chan người khác, không ngán bố con ai?", type:"who_is" },
+  { level:2, text:"Trong 2 bạn, ai là người khen đồng đội xinh nhưng vẫn thấy mình xinh hơn?", type:"who_is" },
   { level:2, text:"Trong 2 bạn, ai là người hay nấu xói người khác?", type:"who_is" },
-  { level:2, text:"Trong 2 bạn, ai là người não cá vàng?", type:"who_is" },
-  { level:2, text:"Trong 2 bạn, ai là camera chạy bằng cơm?", type:"who_is" },
-  { level:2, text:"Trong 2 bạn, ai là “rắn độc”?", type:"who_is" },
+  { level:2, text:"Trong 2 bạn, ai là người hám zai hơn (yêu cái đẹp)?", type:"who_is" },
+  { level:2, text:"Trong 2 bạn, ai là nhà sáng tạo nội dung, suy diễn một tin nhắn thành cả bộ phim?", type:"who_is" },
+  { level:2, text:"Trong 2 bạn, ai là người miệng nói “kệ/bỏ đi” nhưng trong lòng lại để bụng?", type:"who_is" },
   // ── LEVEL 3: Thấu Hiểu Sâu (Ăn Điểm Cao) ──
-  { level:3, text:"Tỉnh nào bắt đầu bằng chữ 'T'?", type:"text", special:true },
-  { level:3, text:"Món ăn nào có trong mâm lễ ngày Tết?", type:"text", special:true },
-  { level:3, text:"Hãy miêu tả Sầu Riêng bằng một từ?", type:"text", special:true },
-  { level:3, text:"Kể tên một Giám Đốc Nhà Máy?", type:"text", special:true },
-  { level:3, text:"Kể tên một nam phòng sales (tính cả người cũ)?", type:"text", special:true }
+  { level:3, text:"Kể tên một thứ người ta hay “liếm” (ghi trực tiếp, không cần “Cái…..”)", type:"text", special:true },
+  { level:3, text:"Một con vật hay được dùng để chỉ tính cách con người", type:"text", special:true },
+  { level:3, text:"Kể tên một Trợ lý Nhà Máy", type:"text", special:true },
+  { level:3, text:"Kể tên một Giám Đốc Nhà Máy", type:"text", special:true },
+  { level:3, text:"Kể tên một nam phòng sales (tính cả người cũ, chỉ cần ghi tên, không cần ghi anh/chị/em)", type:"text", special:true }
 ];
 // ── STATE ──
 let roomCode = '';
