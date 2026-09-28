@@ -42,6 +42,7 @@
   .commentator-bubble { position:fixed; right:clamp(14px,2.4vw,34px); bottom:clamp(18px,3vw,38px); z-index:8; display:none; max-width:min(390px,calc(100vw - 32px)); padding:12px 17px; border:1px solid rgba(255,214,10,.48); border-radius:18px 18px 4px 18px; background:linear-gradient(135deg,rgba(54,14,97,.94),rgba(27,6,57,.94)); color:#fff4c7; box-shadow:0 12px 30px rgba(0,0,0,.3),0 0 18px rgba(255,45,120,.14); font-size:clamp(.78rem,1.35vw,.96rem); font-weight:800; line-height:1.4; text-align:left; pointer-events:none; animation:commentatorIn .38s cubic-bezier(.2,1.35,.4,1) both; }
   .commentator-bubble::before { content:'Quote vô tri'; display:block; margin-bottom:4px; color:var(--gold); font-size:.64em; font-weight:950; letter-spacing:.12em; text-transform:uppercase; }
   .commentator-bubble.hide { animation:commentatorOut .32s ease-in both; }
+  .quote-pink-heart { display:inline-block; width:1em; height:1em; vertical-align:-.12em; }
   @keyframes commentatorIn { from{opacity:0;transform:translateY(14px) scale(.94)} to{opacity:1;transform:none} }
   @keyframes commentatorOut { to{opacity:0;transform:translateY(10px) scale(.96)} }
   /* ── STARS (nhẹ, chỉ trang trí) ── */
@@ -494,7 +495,7 @@ const COMMENTS = [
   'Doki Doki, Fuwa Fuwa, Oishikunare, Moe Moe Kun.',
   'Đen tình đỏ bạc. Bạn đen cả hai.',
   'Một ngày thật tuyệt, tuyệt vọng!',
-  'Họ cười tôi vì tôi khác họ. Tôi cười họ thì họ đấm tôi.',
+  'Họ cười tôi vì tôi khác họ. Tôi cười họ vì họ cười với tôi.',
   'Cứ tưởng mình là love, ai ngờ đâu là lốp.',
   'Bây giờ em đã có chồng, như chim vào lồng như cá cắn câu.',
   'Cá cắn câu biết đâu mà gỡ? Chim vào lồng biết ngày nào ra?',
@@ -509,8 +510,13 @@ const COMMENTS = [
   '1 điều nhịn là 9 đứa ngồi lên đầu.',
   "Trust me I'm a Dogtor.",
   'Gừng càng già càng cay. Già càng ngày càng cưng.',
-  'H.hhh.hồ..i hồi chiều trời mưa.',
-  'Bạn thì tày rồi.'
+  'H.hhh.hồ..i hồi chiều trời mưa. Hồi chiều....mưa.',
+  'Bạn thì tày rồi.',
+  'Nothing beats a Jet2 holiday.',
+  'Nếu bắt phải chọn giữa gia đình và chết, tôi vẫn chọn gia đình.',
+  'Anh em mình cứ thế thôi hẹ hẹ hẹ.',
+  'Trí thông minh giản zị.',
+  'Kính thưa hội đồng xét xử'
 ];
 let commentBag = [];
 let lastShownCommentIdx = -1;
@@ -549,12 +555,32 @@ function hideCommentator(immediate = false) {
     bubble.classList.remove('hide');
   }, { once: true });
 }
+function renderCommentText(target, comment) {
+  // Tim hồng Unicode mới chưa có trên mọi máy: vẽ SVG nội tuyến, không cần font/CDN.
+  const parts = comment.split('🩷');
+  target.textContent = '';
+  parts.forEach((part, index) => {
+    if (index > 0) {
+      const heart = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+      heart.setAttribute('class', 'quote-pink-heart');
+      heart.setAttribute('viewBox', '0 0 24 24');
+      heart.setAttribute('role', 'img');
+      heart.setAttribute('aria-label', 'Tim hồng');
+      const shape = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+      shape.setAttribute('fill', '#f78fba');
+      shape.setAttribute('d', 'M12 21 3.5 12.6C-2 7.1 5.5-1 12 5.5 18.5-1 26 7.1 20.5 12.6Z');
+      heart.appendChild(shape);
+      target.appendChild(heart);
+    }
+    target.appendChild(document.createTextNode(part));
+  });
+}
 function showComment() {
   if (!commentatorVisible) return;
   const bubble = document.getElementById('commentator-bubble');
   const text = document.getElementById('commentator-text');
   if (!bubble || !text) return;
-  text.textContent = COMMENTS[nextCommentIdx()];
+  renderCommentText(text, COMMENTS[nextCommentIdx()]);
   bubble.style.display = 'block';
   bubble.classList.remove('hide');
   clearTimeout(commentatorHideTimer);
