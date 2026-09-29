@@ -1,0 +1,667 @@
+<!doctype html><html lang="vi"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Test Demo · Công bố điểm</title><style>
+  :root {
+    --bg:       #0a0015;
+    --border:   rgba(255,255,255,0.12);
+    --pink:     #ff2d78;
+    --cyan:     #00f5d4;
+    --gold:     #ffd60a;
+    --purple:   #9b5de5;
+    --green:    #22c55e;
+    --text:     #f0e6ff;
+    --muted:    #9980b0;
+    --radius:   20px;
+    --radius-lg:28px;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body {
+    height: 100%; background: var(--bg); color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    overflow-x: hidden;
+  }
+  body {
+    background-image:
+      radial-gradient(ellipse 90% 50% at 50% -10%, rgba(155,93,229,0.3) 0%, transparent 65%),
+      radial-gradient(ellipse 60% 40% at 85% 90%, rgba(255,45,120,0.16) 0%, transparent 60%);
+    min-height: 100vh;
+  }
+  /* Nền cảnh mờ kiểu game show: có không khí 20/10 nhưng không cạnh tranh với câu hỏi. */
+  body:not(.floral-finale) {
+    background-image:linear-gradient(180deg,rgba(10,0,21,.7),rgba(10,0,21,.82)),url('assets/backgrounds/gameplay-20-10-blur.png');
+    background-size:cover; background-position:center; background-attachment:fixed;
+  }
+  .made-by-footer { position:fixed; left:14px; bottom:10px; z-index:5; display:flex; align-items:center; gap:4px; color:var(--muted); font-size:.7rem; font-weight:600; letter-spacing:.02em; pointer-events:none; text-shadow:0 1px 4px rgba(0,0,0,.55); }
+  .made-by-footer span { color:var(--pink); display:inline-block; animation:footerHeartBeat 1.3s ease-in-out infinite; }
+  @keyframes footerHeartBeat { 0%,100%{transform:scale(1)}50%{transform:scale(1.25)} }
+  /* ── AUTO COMMENTATOR: chỉ làm nền vui ở lobby / lúc đang trả lời ── */
+  .commentator-bubble { position:fixed; right:clamp(14px,2.4vw,34px); bottom:clamp(18px,3vw,38px); z-index:8; display:none; max-width:min(390px,calc(100vw - 32px)); padding:12px 17px; border:1px solid rgba(255,214,10,.48); border-radius:18px 18px 4px 18px; background:linear-gradient(135deg,rgba(54,14,97,.94),rgba(27,6,57,.94)); color:#fff4c7; box-shadow:0 12px 30px rgba(0,0,0,.3),0 0 18px rgba(255,45,120,.14); font-size:clamp(.78rem,1.35vw,.96rem); font-weight:800; line-height:1.4; text-align:left; pointer-events:none; animation:commentatorIn .38s cubic-bezier(.2,1.35,.4,1) both; }
+  .commentator-bubble::before { content:'Quote vô tri'; display:block; margin-bottom:4px; color:var(--gold); font-size:.64em; font-weight:950; letter-spacing:.12em; text-transform:uppercase; }
+  .commentator-bubble.hide { animation:commentatorOut .32s ease-in both; }
+  .quote-pink-heart { display:inline-block; width:1em; height:1em; vertical-align:-.12em; }
+  @keyframes commentatorIn { from{opacity:0;transform:translateY(14px) scale(.94)} to{opacity:1;transform:none} }
+  @keyframes commentatorOut { to{opacity:0;transform:translateY(10px) scale(.96)} }
+  /* ── STARS (nhẹ, chỉ trang trí) ── */
+  .stars { position: fixed; inset: 0; pointer-events: none; z-index: 0; overflow: hidden; }
+  .star { position: absolute; border-radius: 50%; background: white; opacity: 0; animation: twinkle var(--d,4s) var(--delay,0s) infinite; }
+  @keyframes twinkle { 0%,100%{opacity:0;transform:scale(0.5);} 50%{opacity:var(--op,0.5);transform:scale(1);} }
+  @media (prefers-reduced-motion: reduce) { .star { animation: none; } }
+  /* ── LAYOUT ── */
+  #app { position: relative; z-index: 1; min-height: 100vh; display: flex; flex-direction: column; align-items: center; padding: 0 28px 40px; }
+  /* ── TOP BAR ── */
+  #top-bar {
+    display: none; width: 100%; max-width: 1100px;
+    align-items: center; justify-content: space-between;
+    padding: 22px 4px 18px;
+  }
+  /* Display là màn chiếu: bỏ toàn bộ thanh điều hướng để ưu tiên không gian nội dung. */
+  #top-bar { display:none!important; }
+  .brand {
+    font-size: 1.5rem; font-weight: 900;
+    background: linear-gradient(135deg, var(--pink), var(--gold), var(--cyan));
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+  }
+  .room-pill {
+    display: flex; align-items: center; gap: 10px;
+    background: rgba(255,214,10,0.1); border: 1.5px dashed rgba(255,214,10,0.4);
+    border-radius: 99px; padding: 8px 20px;
+  }
+  .room-pill span { font-size: 0.65rem; letter-spacing: 0.18em; color: var(--muted); text-transform: uppercase; }
+  .room-pill strong { font-size: 1.15rem; font-weight: 900; color: var(--gold); letter-spacing: 0.2em; }
+  /* ── SCREEN MANAGEMENT ── */
+  .screen { display: none; flex-direction: column; align-items: center; width: 100%; max-width: 1100px; gap: 22px; flex: 1; justify-content: center; }
+  .screen.active { display: flex; animation: screenIn 0.45s cubic-bezier(0.34,1.4,0.64,1); }
+  /* Khi bảng điểm round đã lên, bỏ hẳn câu hỏi cũ để spotlight thuộc về thứ hạng. */
+  #screen-question.leaderboard-focus > .top-meta-row,
+  #screen-question.leaderboard-focus > #d-special-badge,
+  #screen-question.leaderboard-focus > .question-display-card { display:none!important; }
+  .connection-banner { position:fixed; top:14px; left:50%; z-index:1000; transform:translate(-50%,-140%); transition:transform .3s ease; width:min(90vw,520px); padding:10px 16px; border-radius:12px; text-align:center; font-size:.82rem; font-weight:800; background:rgba(20,4,45,.97); border:1px solid var(--border); box-shadow:0 8px 24px rgba(0,0,0,.35); }
+  .connection-banner.show { transform:translate(-50%,0); }
+  .connection-banner.offline { color:#fca5a5; border-color:rgba(239,68,68,.55); background:rgba(70,8,30,.97); }
+  .connection-banner.online { color:var(--cyan); border-color:rgba(0,245,212,.45); }
+  @keyframes screenIn { from{opacity:0;transform:translateY(18px);} to{opacity:1;transform:translateY(0);} }
+  /* ── ENTER ROOM SCREEN ── */
+  .enter-card {
+    background: linear-gradient(135deg, rgba(255,255,255,0.08), rgba(255,255,255,0.02));
+    border: 1px solid var(--border); border-radius: var(--radius-lg);
+    padding: 48px 40px; text-align: center; max-width: 480px;
+  }
+  .enter-emoji { font-size: 3.4rem; display: block; margin-bottom: 10px; }
+  .enter-title { font-size: 1.6rem; font-weight: 900; margin-bottom: 8px; }
+  .enter-sub { font-size: 0.9rem; color: var(--muted); margin-bottom: 26px; line-height: 1.5; }
+  .enter-input {
+    width: 100%; padding: 16px; text-align: center; letter-spacing: 0.35em; text-transform: uppercase;
+    background: rgba(255,255,255,0.07); border: 1.5px solid var(--border); border-radius: var(--radius);
+    color: var(--text); font-size: 1.5rem; font-weight: 900; outline: none; margin-bottom: 14px;
+  }
+  .enter-input:focus { border-color: var(--cyan); }
+  .enter-btn {
+    width: 100%; padding: 16px; border: none; border-radius: var(--radius);
+    background: linear-gradient(135deg, var(--pink), #d4006d); color: white;
+    font-size: 1rem; font-weight: 800; cursor: pointer; letter-spacing: 0.05em;
+  }
+  .enter-btn:hover { filter: brightness(1.1); }
+  .enter-error { color: #ff6b6b; font-size: 0.85rem; margin-top: 12px; min-height: 18px; font-weight: 700; }
+  /* ── WAITING SCREEN / TV LOBBY ── */
+  #screen-waiting { justify-content:flex-start; gap:20px; padding-top:18px; }
+  .waiting-card { width:100%; text-align:center; }
+  .lobby-join-banner { width:min(100%,1080px); margin:0 auto; display:grid; grid-template-columns:minmax(0,1fr) minmax(250px,.78fr) 148px; align-items:stretch; overflow:hidden; border-radius:18px; background:rgba(255,255,255,.96); color:#24074b; box-shadow:0 16px 42px rgba(0,0,0,.3); }
+  .lobby-join-copy { min-width:0; padding:18px 20px; display:flex; align-items:center; justify-content:center; font-family:Arial,'Segoe UI',sans-serif; font-size:clamp(.82rem,1.12vw,1rem); font-weight:800; line-height:1.2; text-align:center; white-space:nowrap; }
+  .lobby-join-copy b { white-space:nowrap; }
+  .lobby-pin-box { min-width:0; padding:14px 20px; display:flex; flex-direction:column; align-items:center; justify-content:center; border-left:2px solid #6f35cc; border-right:2px solid #6f35cc; text-align:center; }
+  .lobby-pin-label { font-size:.7rem; letter-spacing:.16em; font-weight:900; text-transform:uppercase; color:#75519c; }
+  .big-room-code { font-size:clamp(2.1rem,5vw,4rem); line-height:1; font-weight:950; letter-spacing:.12em; color:#210058; white-space:nowrap; }
+  .qr-box { width:148px; min-width:148px; padding:8px; display:grid; place-items:center; overflow:hidden; background:white; }
+  #d-qr-code { width:132px; height:132px; display:grid; place-items:center; overflow:hidden; background:white; padding:2px; border-radius:8px; line-height:0; }
+  #d-qr-code img, #d-qr-code canvas { display:block; width:128px!important; height:128px!important; max-width:100%; max-height:100%; }
+  .qr-label { display:none; }
+  .lobby-brand { margin:10px 0 2px; font-size:clamp(2.4rem,5vw,4.2rem); font-weight:950; letter-spacing:-.05em; background:linear-gradient(135deg,#fff 10%,var(--pink) 45%,var(--gold)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; text-shadow:none; }
+  .lobby-status { color:var(--text); font-size:1.05rem; font-weight:800; }
+  .waiting-section { width:100%; max-width:1000px; text-align:center; }
+  .waiting-section-label { font-size:.72rem; font-weight:900; letter-spacing:.22em; text-transform:uppercase; color:var(--muted); margin-bottom:10px; }
+  .player-lobby-grid { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:8px; }
+  .d-chip { display:flex; align-items:center; gap:12px; min-width:0; padding:10px 14px; text-align:left; background:linear-gradient(100deg,rgba(41,25,159,.86),rgba(78,41,203,.72)); border:1px solid rgba(255,255,255,.13); border-radius:10px; font-size:clamp(.9rem,1.8vw,1.12rem); font-weight:850; box-shadow:0 6px 14px rgba(0,0,0,.14); animation:lobbyChipFloat var(--float-duration,3.7s) ease-in-out var(--float-delay,0s) infinite alternate; }
+  .d-chip.is-new-player { animation:playerJoinPop var(--join-pop-duration,1.35s) cubic-bezier(.22,1.45,.5,1) both; border-color:rgba(0,245,212,.85); box-shadow:0 0 24px rgba(0,245,212,.3),0 6px 14px rgba(0,0,0,.14); }
+  @keyframes playerJoinPop { 0%{transform:scale(.88);opacity:.15} 22%{transform:scale(1.1);opacity:1} 48%{transform:scale(.97)} 72%{transform:scale(1.045)} 100%{transform:scale(1);opacity:1} }
+  .d-chip.is-lobby-pulse:not(.is-new-player) { animation:lobbyChipPulse var(--join-pop-duration,1.35s) cubic-bezier(.25,1.28,.45,1) both; animation-delay:var(--join-pop-delay,0s); }
+  @keyframes lobbyChipPulse { 0%{transform:scale(1)} 28%{transform:scale(1.045)} 58%{transform:scale(.985)} 100%{transform:scale(1)} }
+  @keyframes lobbyChipFloat { 0%{transform:translateY(0) rotate(-.18deg)} 100%{transform:translateY(-5px) rotate(.18deg)} }
+  .d-chip img { width:38px!important; height:38px!important; flex:0 0 auto; } .d-chip-name { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  @keyframes chipIn { from{opacity:0;transform:scale(.78) translateY(8px)} to{opacity:1;transform:scale(1) translateY(0)} }
+  .d-chip-empty { grid-column:1/-1; color:var(--muted); font-size:1rem; padding:18px; }
+  #d-player-count { font-size:.85rem; color:var(--cyan); font-weight:800; margin-top:10px; }
+  .lobby-team-status { display:inline-flex; gap:8px; align-items:center; padding:8px 14px; border-radius:99px; color:var(--cyan); background:rgba(0,245,212,.1); border:1px solid rgba(0,245,212,.28); font-weight:800; font-size:.85rem; }
+  @media (max-width:700px) { .lobby-join-banner{grid-template-columns:minmax(0,1fr) 132px;}.lobby-join-copy{display:none}.lobby-pin-box{border-left:0;padding:12px}.big-room-code{font-size:2rem}.qr-box{width:132px;min-width:132px}.player-lobby-grid{grid-template-columns:repeat(2,minmax(0,1fr));} }
+  .d-pair {
+    display: flex; align-items: center; gap: 12px; text-align: left;
+    background: rgba(255,255,255,0.05); border: 1px solid var(--border);
+    border-radius: 14px; padding: 14px 18px;
+  }
+  .d-pair-num {
+    flex-shrink: 0; width: 32px; height: 32px; border-radius: 50%;
+    background: rgba(255,214,10,0.18); border: 1px solid rgba(255,214,10,0.4);
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 900; color: var(--gold); font-size: 0.95rem;
+  }
+  .d-pair-names { font-size: 1.05rem; font-weight: 700; }
+  /* ── QUESTION SCREEN ── */
+  #screen-question { gap: 18px; }
+  .top-meta-row { width: 100%; display: flex; justify-content: space-between; align-items: center; }
+  .round-badge {
+    background: rgba(255,214,10,0.15); border: 1px solid rgba(255,214,10,0.35);
+    border-radius: 99px; padding: 8px 22px;
+    font-size: 0.95rem; font-weight: 800; color: var(--gold);
+    letter-spacing: 0.1em; text-transform: uppercase;
+  }
+  #d-timer-wrap { display: flex; align-items: center; }
+  .timer-circle {
+    width: 100px; height: 100px; border-radius: 50%;
+    border: 5px solid var(--pink);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 2.1rem; font-weight: 900; color: var(--pink);
+    background: rgba(255,45,120,0.1);
+    transition: color 0.3s, border-color 0.3s;
+  }
+  .timer-circle.urgent { border-color: var(--gold); color: var(--gold); animation: urgentPulse 0.5s ease-in-out infinite; }
+  .timer-circle.warning { border-color:#ff9f1c; color:#ffcf55; animation:warningPulse 1s ease-in-out infinite; }.timer-circle.critical { border-color:#ff3d71; color:#fff; background:rgba(255,45,120,.28); transform:scale(1.08); }
+  @keyframes warningPulse { 50% { box-shadow:0 0 20px rgba(255,159,28,.42); } }
+  @keyframes urgentPulse { 50% { box-shadow: 0 0 28px rgba(255,214,10,0.65); } }
+  .special-badge {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: rgba(255,45,120,0.2); border: 1px solid rgba(255,45,120,0.4);
+    border-radius: 99px; padding: 7px 20px;
+    font-size: 0.85rem; font-weight: 800; color: var(--pink);
+  }
+  .question-display-card {
+    width: 100%; text-align: center; padding: 36px 30px;
+    background: linear-gradient(135deg, rgba(255,255,255,0.08), rgba(255,255,255,0.02));
+    border: 1px solid var(--border); border-radius: var(--radius-lg);
+  }
+  .question-display-text {
+    font-size: 2.3rem; font-weight: 900; line-height: 1.35;
+  }
+  .question-display-text.animate-in { animation: questionIn 0.5s cubic-bezier(0.34,1.4,0.64,1); }
+  @keyframes questionIn { from{opacity:0;transform:scale(0.92) translateY(8px);} to{opacity:1;transform:scale(1) translateY(0);} }
+  .options-row { display: flex; gap: 16px; justify-content: center; margin-top: 22px; }
+  .opt-box {
+    flex: 1; max-width: 320px;
+    background: rgba(255,255,255,0.06); border: 1.5px solid var(--border);
+    border-radius: var(--radius); padding: 16px 18px;
+  }
+  .opt-tag { display: block; font-size: 0.7rem; letter-spacing: 0.2em; color: var(--muted); text-transform: uppercase; margin-bottom: 6px; }
+  #d-opt-a, #d-opt-b { font-size: 1.15rem; font-weight: 700; }
+  .progress-wrap { text-align: center; }
+  .progress-label { font-size: 0.85rem; letter-spacing: 0.1em; color: var(--muted); text-transform: uppercase; margin-bottom: 6px; }
+  .progress-count { font-size: 2rem; font-weight: 900; color: var(--cyan); }
+  .team-ready-grid { width:min(100%,760px); display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; margin:12px auto 0; }
+  .team-ready-card { display:flex; align-items:center; justify-content:space-between; gap:9px; padding:9px 12px; border:1px solid var(--border); border-radius:12px; background:rgba(255,255,255,.045); text-align:left; font-size:.8rem; font-weight:800; transition:.25s ease; }
+  .team-ready-card.ready { border-color:rgba(34,197,94,.65); background:rgba(34,197,94,.13); color:#bbf7d0; box-shadow:0 0 18px rgba(34,197,94,.12); }
+  .team-ready-name { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }.team-ready-state { flex:0 0 auto; color:var(--muted); }.team-ready-card.ready .team-ready-state { color:var(--green); }
+  #d-start-countdown { position:fixed; inset:0; z-index:50; display:none; flex-direction:column; align-items:center; justify-content:center; gap:8px; background:rgba(10,0,21,.97); backdrop-filter:blur(10px); text-align:center; }
+  #d-start-countdown.show { display:flex; }.start-count-num { min-width:120px; color:var(--gold); font-size:clamp(5rem,17vw,11rem); line-height:.85; font-weight:950; text-shadow:0 0 34px rgba(255,214,10,.45); animation:startCountPop .68s cubic-bezier(.2,1.55,.4,1); }.start-count-label { color:var(--text); font-size:clamp(1rem,2.4vw,1.55rem); font-weight:900; letter-spacing:.12em; text-transform:uppercase; } @keyframes startCountPop { from{opacity:0;transform:scale(.5)}to{opacity:1;transform:scale(1)} }
+  .level-transition-overlay { position:fixed; inset:0; z-index:70; display:none; place-items:center; padding:28px; background:radial-gradient(circle at 50% 25%,#5b1c78 0%,#210536 42%,#0a0015 76%); text-align:center; }
+  .level-transition-overlay.show { display:grid; animation:levelTransitionIn .55s cubic-bezier(.2,1.35,.4,1); }
+  .level-transition-card { width:min(100%,760px); padding:clamp(28px,5vw,56px); border:1px solid rgba(255,214,10,.75); border-radius:32px; background:linear-gradient(145deg,#6e164e,#321160); box-shadow:0 0 56px rgba(155,93,229,.5); }
+  .level-transition-kicker { color:var(--gold); font-size:clamp(.8rem,1.6vw,1rem); font-weight:950; letter-spacing:.24em; }.level-transition-title { margin:10px 0 16px; font-size:clamp(2rem,5vw,4rem); font-weight:950; }.level-transition-rule { max-width:600px; margin:0 auto; font-size:clamp(1rem,2vw,1.3rem); line-height:1.45; color:var(--text); }.level-transition-score { display:inline-block; margin:20px 0 16px; padding:10px 18px; border-radius:99px; background:rgba(0,245,212,.12); border:1px solid rgba(0,245,212,.4); color:var(--cyan); font-size:clamp(1rem,2vw,1.25rem); font-weight:950; }.level-transition-wait { color:var(--muted); font-size:.9rem; font-weight:800; } @keyframes levelTransitionIn { from{opacity:0;transform:scale(.92)}to{opacity:1;transform:scale(1)} }
+  @media (max-width:700px) { .team-ready-grid { grid-template-columns:1fr; } }
+  /* ── REVEAL BOARD ── */
+  /* Tối đa 8 đội: hai cột x bốn hàng để đủ toàn bộ kết quả, không có thanh cuộn. */
+  .reveal-board { width:100%; display:none; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px 14px; max-height:none; overflow:visible; }
+  .reveal-row {
+    display: flex; align-items: center; justify-content: space-between; gap: 14px;
+    padding: 14px 20px; border-radius: 14px;
+    background: rgba(255,255,255,0.05); border: 1.5px solid var(--border);
+    font-size: 0.98rem;
+  }
+  .reveal-row.match   { border-color: var(--green); background: rgba(34,197,94,0.1); }
+  .reveal-row.nomatch { border-color: rgba(239,68,68,0.35); background: rgba(239,68,68,0.06); }
+  .reveal-row.reveal-pending { opacity:0; transform:translateY(16px) scale(0.97); animation:revealRowIn 0.42s cubic-bezier(0.34,1.4,0.64,1) forwards; }
+  @media(max-width:900px) { .reveal-board { grid-template-columns:1fr; } }
+  @keyframes revealRowIn { to { opacity:1; transform:translateY(0) scale(1); } }
+  .reveal-intro { display:none; width:100%; text-align:center; padding:14px; border:1px solid rgba(0,245,212,0.35); border-radius:16px; background:rgba(0,245,212,0.08); color:var(--cyan); font-size:0.78rem; font-weight:900; letter-spacing:0.18em; animation:revealIntroPulse 0.7s ease-in-out infinite alternate; }
+  .reveal-intro.show { display:block; }
+  @keyframes revealIntroPulse { to { box-shadow:0 0 28px rgba(0,245,212,0.3); } }
+  .leaderboard-enter { animation:leaderboardIn 0.5s cubic-bezier(0.34,1.4,0.64,1); }
+  @keyframes leaderboardIn { from { opacity:0; transform:translateY(18px) scale(0.97); } to { opacity:1; transform:translateY(0) scale(1); } }
+  .rank-shift { display:inline-block; margin-left:8px; font-size:.75rem; font-weight:900; animation:rankPop .55s cubic-bezier(.34,1.5,.64,1) both; }
+  @keyframes rankPop { from { opacity:0; transform:scale(.3) translateY(8px); } to { opacity:1; transform:scale(1) translateY(0); } }
+  .rank-shift.up { color:var(--green); } .rank-shift.down { color:#fca5a5; }
+  .leader-spotlight { display:none; width:100%; padding:12px 18px; border-radius:16px; text-align:center; background:linear-gradient(135deg,rgba(255,214,10,.22),rgba(255,45,120,.12)); border:1px solid rgba(255,214,10,.45); color:var(--gold); font-weight:900; animation:spotlightPulse 1.2s ease-in-out infinite alternate; }
+  .leader-spotlight.show { display:block; } @keyframes spotlightPulse { to { box-shadow:0 0 30px rgba(255,214,10,.35); transform:scale(1.01); } }
+  .game-ending-notice { display:none; padding:10px 16px; border:1px solid rgba(255,214,10,.7); border-radius:999px; color:var(--gold); background:rgba(255,214,10,.12); box-shadow:0 0 22px rgba(255,214,10,.16); font-weight:950; font-size:clamp(.8rem,1.55vw,1rem); letter-spacing:.04em; animation:endingNoticePulse 1.2s ease-in-out infinite alternate; }
+  .game-ending-notice.show { display:block; } @keyframes endingNoticePulse { to { transform:scale(1.04); box-shadow:0 0 32px rgba(255,214,10,.33); } }
+  .award-list { display:flex; flex-wrap:wrap; justify-content:center; gap:8px; margin-top:16px; opacity:0; visibility:hidden; transform:translateY(12px); }
+  .award-list.is-revealed { visibility:visible; animation:awardListIn .55s cubic-bezier(.22,1.4,.5,1) forwards; }
+  @keyframes awardListIn { to { opacity:1; transform:translateY(0); } }
+  .award-chip { padding:8px 12px; border-radius:99px; background:rgba(0,245,212,.1); border:1px solid rgba(0,245,212,.3); color:var(--text); font-size:.8rem; font-weight:800; }
+  .rr-team   { font-weight: 800; flex: 1; }
+  .rr-ans    { font-size: 0.88rem; color: var(--muted); flex: 1.4; }
+  .rr-result { font-weight: 900; font-size: 0.95rem; white-space: nowrap; }
+  .rr-result.win  { color: var(--green); }
+  .rr-result.lose { color: var(--muted); }
+  .reveal-empty { color: var(--muted); text-align: center; padding: 20px; }
+  /* ── KAHOOT-STYLE LEADERBOARD / PODIUM ── */
+  .kahoot-leaderboard { width:min(100%, 940px); margin:0 auto; text-align:center; }
+  .lb-eyebrow { color:var(--purple); font-size:.76rem; font-weight:900; letter-spacing:.25em; text-transform:uppercase; margin-bottom:6px; }
+  .lb-title { font-size:clamp(1.6rem,3.5vw,2.6rem); font-weight:900; margin-bottom:16px; }
+  .lb-divider { height:1px; width:min(100%,660px); margin:0 auto 22px; background:linear-gradient(90deg,transparent,rgba(255,255,255,.55),transparent); }
+  .podium-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:14px; align-items:end; margin:0 auto 20px; }
+  .podium-grid.final-runnerups { grid-template-columns:repeat(2,minmax(0,280px)); justify-content:center; max-width:590px; }
+  .podium-card { position:relative; min-height:180px; padding:20px 12px 16px; border-radius:24px; overflow:hidden; background:rgba(155,93,229,.16); border:1px solid rgba(255,255,255,.13); box-shadow:0 12px 28px rgba(0,0,0,.2); animation:podiumRise .65s cubic-bezier(.34,1.45,.64,1) both; }
+  .podium-card::after { content:''; position:absolute; width:160px; height:160px; border-radius:50%; top:-92px; right:-50px; background:rgba(255,255,255,.06); pointer-events:none; }
+  .podium-card.rank-1 { min-height:222px; padding-top:24px; background:linear-gradient(160deg,rgba(255,214,10,.3),rgba(155,93,229,.35)); border-color:rgba(255,214,10,.65); box-shadow:0 0 38px rgba(255,214,10,.26),0 16px 32px rgba(0,0,0,.28); animation-delay:.16s; }
+  .podium-card.rank-2 { animation-delay:0s; } .podium-card.rank-3 { animation-delay:.32s; }
+  @keyframes podiumRise { from{opacity:0;transform:translateY(44px) scale(.84)} to{opacity:1;transform:translateY(0) scale(1)} }
+  .podium-medal { position:relative; z-index:1; width:62px; height:62px; margin:0 auto 10px; display:grid; place-items:center; border-radius:50%; font-size:2.3rem; background:rgba(8,0,21,.38); border:2px solid rgba(255,255,255,.22); filter:drop-shadow(0 7px 7px rgba(0,0,0,.3)); }
+  .rank-1 .podium-medal { width:80px; height:80px; font-size:3.1rem; border-color:rgba(255,214,10,.8); box-shadow:0 0 22px rgba(255,214,10,.48); }
+  .podium-avatars { position:relative; z-index:1; display:flex; justify-content:center; margin:0 0 12px; }
+  .podium-avatars .avatar-frame { margin:0 -10px; }.podium-avatars img { border-width:3px; box-shadow:0 4px 10px rgba(0,0,0,.4); }
+  .podium-team { position:relative; z-index:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:clamp(.9rem,1.8vw,1.2rem); font-weight:900; }
+  .podium-points { position:relative; z-index:1; display:block; width:100%; margin-top:7px; text-align:center; color:var(--gold); font-size:1.05rem; font-weight:900; }
+  .rank-1 .podium-points { color:var(--cyan); font-size:1.25rem; }
+  .podium-rank { position:absolute; top:10px; left:12px; color:rgba(255,255,255,.55); font-size:.72rem; font-weight:900; letter-spacing:.12em; }
+  .lb-rest { width:min(100%,560px); margin:0 auto; display:flex; flex-direction:column; gap:7px; }
+  .lb-rest-row { display:grid; grid-template-columns:46px 1fr auto; align-items:center; gap:12px; padding:10px 14px; border-bottom:1px solid rgba(255,255,255,.18); text-align:left; font-size:1rem; }
+  .lb-rest-rank { color:var(--muted); font-weight:900; } .lb-rest-team { font-weight:800; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; } .lb-rest-score { color:var(--gold); font-weight:900; }
+  /* Chung kết kiểu podium: nhạc mở đầu trước, sau đó gọi từng đội và cuối cùng là quán quân. */
+  .final-podium-show { min-height:530px; }
+  .final-podium-intro { min-height:92px; display:grid; place-items:center; padding:10px 18px 18px; }
+  .final-podium-kicker { color:var(--gold); font-weight:950; letter-spacing:.24em; font-size:.78rem; }
+  .final-podium-call { margin-top:6px; min-height:1.25em; font-size:clamp(1.55rem,3.4vw,2.65rem); font-weight:950; text-shadow:0 3px 12px rgba(0,0,0,.36); }
+  .final-podium-call.is-champion { color:var(--gold); animation:finalChampionCall .5s cubic-bezier(.2,1.5,.4,1) both; }
+  @keyframes finalChampionCall { from { opacity:0; transform:scale(.65) translateY(16px); } to { opacity:1; transform:none; } }
+  .final-podium-show .podium-card, .final-podium-show .lb-rest-row { opacity:0; visibility:hidden; }
+  .final-podium-show .podium-card { height:140px; min-height:140px!important; animation:none; transition:height 1.15s cubic-bezier(.2,1.22,.38,1); }
+  .final-podium-show .podium-card.is-revealed { visibility:visible; animation:podiumRise .72s cubic-bezier(.22,1.52,.5,1) both; }
+  .final-podium-show .podium-card.is-score-grown { height:var(--podium-score-height,220px); }
+  .final-podium-show .podium-card.is-medal-stage .podium-avatars,
+  .final-podium-show .podium-card.is-medal-stage .podium-team,
+  .final-podium-show .podium-card.is-medal-stage .podium-points { display:none; }
+  .final-podium-show .podium-card.is-medal-stage .podium-avatars { display:none; }
+  .final-podium-show .podium-card.is-medal-stage .podium-team { display:none; }
+  .final-podium-show .podium-card.is-name-revealed .podium-avatars { display:flex; opacity:1; transition:opacity .35s ease; }
+  .final-podium-show .podium-card.is-name-revealed .podium-team { display:block; opacity:1; transition:opacity .35s ease; }
+  .final-podium-show .podium-card.is-name-revealed .podium-points { display:block; opacity:1; transition:opacity .35s ease; }
+  .final-podium-show .podium-card.is-name-revealed .podium-avatars { display:flex; }
+  .final-podium-show .podium-card.is-name-revealed .podium-team { display:block; }
+  .final-podium-show .podium-card.is-name-revealed .podium-team { animation:podiumNameDance 1.1s ease-in-out infinite alternate; }
+  @keyframes podiumNameDance { 0% { transform:rotate(-1.5deg) translateY(0); } 100% { transform:rotate(1.5deg) translateY(-5px); } }
+  #screen-ended.finale-dim .ended-content { filter:brightness(.22); transition:filter .45s ease; }
+  #screen-ended .ended-content { transition:filter .45s ease; }
+  #d-podium-spotlight { position:fixed; inset:0; z-index:2; pointer-events:none; overflow:hidden; opacity:0; }
+  #d-podium-spotlight::before { content:''; position:absolute; width:min(58vw,760px); height:min(58vw,760px); border-radius:50%; background:radial-gradient(circle,rgba(255,251,211,.96) 0%,rgba(255,225,120,.46) 20%,rgba(255,214,10,.14) 43%,transparent 70%); filter:blur(2px); transform:translate(-70vw,-45vh) scale(.88); }
+  #screen-ended.finale-dim #d-podium-spotlight { opacity:1; }
+  #screen-ended.finale-dim #d-podium-spotlight::before { animation:podiumSearchlight 3s cubic-bezier(.42,0,.2,1) forwards; }
+  @keyframes podiumSearchlight { 0% { transform:translate(-62vw,-42vh) scale(.9); } 26% { transform:translate(62vw,-18vh) scale(.98); } 53% { transform:translate(7vw,48vh) scale(.85); } 76% { transform:translate(68vw,40vh) scale(.74); } 100% { transform:translate(21vw,10vh) scale(.58); } }
+  #screen-ended.champion-spotlight #d-podium-spotlight { opacity:1; }
+  #screen-ended.champion-spotlight #d-podium-spotlight::before { transform:translate(21vw,10vh) scale(.58); animation:podiumLightZoomOut .85s ease-out forwards; }
+  @keyframes podiumLightZoomOut { to { transform:translate(21vw,10vh) scale(2.5); opacity:0; } }
+  #screen-ended.champion-spotlight .podium-card.rank-1 { box-shadow:0 0 0 5px rgba(255,244,177,.18),0 0 90px 26px rgba(255,214,10,.68),0 18px 36px rgba(0,0,0,.36); }
+  #screen-ended.champion-spotlight .podium-card.rank-1::before { content:''; position:absolute; z-index:0; inset:-40% -20% 10%; background:radial-gradient(ellipse at 50% 24%,rgba(255,255,220,.85),rgba(255,214,10,.28) 32%,transparent 68%); pointer-events:none; animation:stageLight 1s ease-in-out infinite alternate; }
+  @keyframes stageLight { to { transform:scale(1.16); opacity:.72; } }
+  .final-podium-show .lb-rest-row.is-revealed { visibility:visible; animation:leaderboardIn .48s cubic-bezier(.34,1.4,.64,1) both; }
+  .final-podium-show .podium-card.rank-1.is-revealed { animation-duration:.9s; }
+  .lb-tie-note { margin:0 auto 14px; padding:7px 12px; width:max-content; max-width:100%; border-radius:99px; color:var(--cyan); background:rgba(0,245,212,.1); border:1px solid rgba(0,245,212,.26); font-size:.75rem; font-weight:800; }
+  .round-compact { width:min(100%,760px); margin:0 auto; padding:16px 18px; border:1px solid var(--border); border-radius:20px; background:linear-gradient(135deg,rgba(155,93,229,.15),rgba(255,255,255,.035)); text-align:left; }
+  .round-compact-head { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:10px; }.round-compact-title { font-size:1.05rem; font-weight:950; }.round-compact-sub { color:var(--muted); font-size:.78rem; font-weight:800; }
+  .round-compact-list { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); column-gap:26px; }.round-compact-row { display:grid; grid-template-columns:32px minmax(0,1fr) auto; gap:10px; align-items:center; padding:8px 4px; border-top:1px solid rgba(255,255,255,.1); font-size:.88rem; }.round-compact-rank { color:var(--gold); font-weight:950; }.round-compact-team { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-weight:850; }.round-compact-score { color:var(--cyan); font-weight:950; }.round-compact-empty { padding:10px 0 2px; color:var(--cyan); text-align:center; font-size:.9rem; font-weight:850; }
+  @media(max-width:620px) { .round-compact-list { grid-template-columns:1fr; } }
+  .champion-hero { position:relative; overflow:hidden; width:min(100%,620px); margin:0 auto 24px; padding:22px 26px 20px; border:1px solid rgba(255,214,10,.72); border-radius:28px; background:radial-gradient(circle at 50% 0,rgba(255,214,10,.34),transparent 52%),linear-gradient(145deg,rgba(255,45,120,.22),rgba(80,27,157,.35)); box-shadow:0 0 44px rgba(255,214,10,.22),0 14px 34px rgba(0,0,0,.28); animation:championEnter .8s cubic-bezier(.2,1.4,.4,1) both; }
+  .champion-hero::before,.champion-hero::after { content:'✦'; position:absolute; color:var(--gold); font-size:1.5rem; opacity:.8; animation:championSparkle 1.3s ease-in-out infinite alternate; }.champion-hero::before{left:11%;top:22%;}.champion-hero::after{right:11%;top:36%;animation-delay:.45s;}
+  @keyframes championEnter { from{opacity:0;transform:translateY(30px) scale(.85)} to{opacity:1;transform:none} } @keyframes championSparkle { to{transform:scale(1.5) rotate(25deg);opacity:.25} }
+  .champion-kicker { position:relative; z-index:1; color:var(--gold); font-size:.78rem; letter-spacing:.22em; font-weight:950; }
+  .champion-avatars { position:relative; z-index:1; display:flex; justify-content:center; margin:10px 0 -7px; }
+  .champion-avatars .avatar-frame { margin:0 -13px; }.champion-avatars .avatar-thumb { width:112px!important; height:112px!important; border:4px solid var(--gold); box-shadow:0 8px 24px rgba(0,0,0,.4); }
+  .champion-team { position:relative; z-index:1; font-size:clamp(1.55rem,4vw,2.35rem); font-weight:950; text-shadow:0 3px 9px rgba(0,0,0,.35); }
+  .champion-score { position:relative; z-index:1; margin-top:4px; font-size:1.04rem; font-weight:900; color:var(--cyan); }
+  @media (max-width:700px) { .podium-grid { gap:7px; } .podium-card { min-height:150px; padding:15px 7px 12px; border-radius:18px; } .podium-card.rank-1 { min-height:184px; } .podium-medal { width:48px; height:48px; font-size:1.8rem; } .rank-1 .podium-medal { width:60px; height:60px; font-size:2.3rem; } .podium-avatars .avatar-frame,.podium-avatars img { width:48px!important;height:48px!important; } .rank-1 .podium-avatars .avatar-frame,.rank-1 .podium-avatars img { width:60px!important;height:60px!important; } .podium-team { font-size:.8rem; } .podium-points { font-size:.85rem; } .champion-avatars .avatar-frame { width:78px!important;height:78px!important; } .champion-avatars .avatar-thumb { width:78px!important; height:78px!important; } }
+  /* ── ENDED SCREEN ── */
+  #screen-ended { position: relative; }
+  #screen-gift-reveal { position:relative; text-align:center; }
+  .display-gift-card { width:min(100%,760px); padding:clamp(34px,7vw,72px) clamp(24px,6vw,58px); border:1px solid rgba(255,214,10,.72); border-radius:34px; background:linear-gradient(145deg,rgba(110,22,78,.94),rgba(50,17,96,.96)); box-shadow:0 0 62px rgba(255,45,120,.26); }
+  .display-gift-icon { display:block; font-size:clamp(4rem,10vw,7rem); animation:giftDisplayFloat 1.8s ease-in-out infinite; }.display-gift-title { margin:16px 0 14px; font-size:clamp(2rem,5vw,4rem); line-height:1.16; font-weight:950; }.display-gift-copy { max-width:590px; margin:0 auto; color:var(--text); font-size:clamp(1rem,2.1vw,1.35rem); font-weight:700; line-height:1.5; }.display-gift-note { margin-top:22px; color:var(--cyan); font-size:clamp(.9rem,1.7vw,1.1rem); font-weight:950; } @keyframes giftDisplayFloat { 50%{transform:translateY(-10px) rotate(3deg)} }
+  /* Chung kết 20/10: nền chỉ tải/hiện ở màn cuối, không làm nặng lúc chơi. */
+  body.floral-finale { background-image:linear-gradient(180deg,rgba(20,0,35,.22),rgba(18,0,30,.58)),url('assets/backgrounds/finale-20-10-floral.png'); background-position:center; background-size:cover; background-attachment:fixed; }
+  body.floral-finale .stars { opacity:.28; }
+  body.floral-finale .ended-label { color:#fff2c7; text-shadow:0 2px 10px rgba(42,0,55,.8); }
+  body.floral-finale .lb-eyebrow { color:#fff1a8; text-shadow:0 2px 8px rgba(42,0,55,.8); }
+  body.floral-finale .lb-title { text-shadow:0 3px 14px rgba(42,0,55,.9); }
+  /* Podium theo thứ tự Kahoot: hạng 2 – hạng 1 – hạng 3, cạnh nhau và cùng chạm đáy. */
+  body.floral-finale .podium-grid { width:min(100%,900px); gap:22px; }
+  body.floral-finale .podium-card { min-height:220px; border-radius:22px 22px 4px 4px; background:linear-gradient(180deg,#66309a,#3f1674); border-color:rgba(255,214,10,.42); box-shadow:0 11px 0 rgba(43,10,74,.72),0 14px 26px rgba(38,0,54,.42); }
+  body.floral-finale .podium-card.rank-1 { min-height:310px; background:linear-gradient(180deg,#8a43ad,#541b89); border-color:#ffcf53; }
+  body.floral-finale .podium-card.rank-2 { width:96%; justify-self:center; min-height:255px; background:linear-gradient(180deg,#783aa1,#481a7b); }
+  body.floral-finale .podium-card.rank-3 { width:86%; justify-self:center; min-height:180px; }
+  body.floral-finale .award-chip { background:rgba(69,21,112,.8); border-color:rgba(255,225,130,.6); }
+  #d-confetti-canvas { position: fixed; inset: 0; pointer-events: none; z-index: 0; }
+  .ended-content { position: relative; z-index: 1; text-align: center; }
+  .ended-label { font-size: 0.8rem; letter-spacing: 0.3em; color: var(--muted); text-transform: uppercase; margin-bottom: 14px; }
+  /* ── AVATAR ── */
+  .avatar-frame { position:relative; display:inline-grid; width:var(--avatar-size); height:var(--avatar-size); flex:0 0 var(--avatar-size); place-items:center; overflow:hidden; border-radius:50%; vertical-align:middle; background:linear-gradient(145deg,#8b5cf6,#ec4899); border:2px solid rgba(255,255,255,.3); box-shadow:inset 0 0 0 1px rgba(255,255,255,.15); }
+  .avatar-placeholder { color:white; font-size:calc(var(--avatar-size) * .36); font-weight:950; letter-spacing:-.05em; line-height:1; text-shadow:0 1px 3px rgba(0,0,0,.25); }
+  .avatar-thumb { position:absolute; inset:0; width:100%!important; height:100%!important; border-radius:50%; object-fit:cover; opacity:0; transition:opacity .22s ease; border:0; }
+  .avatar-frame.is-loaded .avatar-thumb { opacity:1; }
+  .ended-sub { font-size: 0.85rem; letter-spacing: 0.2em; color: var(--purple); text-transform: uppercase; margin-bottom: 16px; }
+  .ended-list { display: flex; flex-direction: column; gap: 10px; max-width: 480px; margin: 0 auto; }
+  .d-ws-row {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 14px 20px; border-radius: 14px;
+    background: rgba(255,255,255,0.06); border: 1.5px solid var(--border);
+    font-size: 1.05rem;
+  }
+  .d-ws-rank { width: 30px; font-size: 1.3rem; }
+  .d-ws-team { flex: 1; text-align: left; padding: 0 12px; font-weight: 700; }
+  .d-ws-pts { font-weight: 900; color: var(--gold); font-size: 1.15rem; }
+  @media (max-width: 700px) {
+    .question-display-text { font-size: 1.6rem; }
+    .big-room-code { font-size: 2.8rem; }
+    .ended-name { font-size: 2.2rem; }
+    .timer-circle { width: 76px; height: 76px; font-size: 1.6rem; }
+  }
+
+body{overflow:auto}nav{position:sticky;top:0;z-index:99999;background:#210b37;padding:16px;display:flex;gap:16px;flex-wrap:wrap;align-items:center}nav a{color:#ffc4e4}select{padding:10px;border-radius:8px}main{max-width:1200px;margin:auto;padding:24px}#d-reveal-board{display:block}#board{margin-top:24px}
+</style></head><body><nav><a href="test-demo.html">← Test Demo người chơi</a><strong>Màn hình lớn · Dữ liệu minh họa</strong><select id="mode" aria-label="Màn hình"><option value="round">Công bố điểm sau câu</option><option value="level">Bảng xếp hạng chuyển level</option><option value="final">Vinh danh chung cuộc</option></select><select id="type" aria-label="Loại câu"><option value="choice">Level 1 · A/B</option><option value="who_is">Level 2 · Ai là ai</option><option value="text">Level 3 · Tự nhập</option></select></nav><main><div id="d-reveal-board"></div><div id="board"></div></main><script>
+window.normalizeAnswer =  function(str) {
+  if (str === null || str === undefined) return '';
+  return str
+    .toString()
+    .trim()
+    .toLowerCase()
+    .replace(/đ/g, 'd')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/\s+/g, '');
+};
+
+// ─────────────────────────────────────────────────────────────────────────
+// game-logic.js — Ăn Ý shared game logic
+//
+// NGUYÊN TẮC BẮT BUỘC:
+//   - Chỉ chứa PURE FUNCTIONS: cùng input → luôn cùng output.
+//   - KHÔNG Firebase (không db.ref, không transaction, không .set/.once).
+//   - KHÔNG DOM (không document, không innerHTML).
+//   - KHÔNG side-effect (không console.log ngoài lỗi, không mutate input).
+//   - KHÔNG build HTML/UI — mỗi trang (admin/index/display) tự render
+//     bằng data thuần trả về từ các hàm dưới đây.
+//
+// PHỤ THUỘC:
+//   - Cần window.normalizeAnswer (định nghĩa trong firebase.js) đã được
+//     load TRƯỚC file này. game-logic.js không tự định nghĩa lại
+//     normalizeAnswer để tránh duplicate logic đã thống nhất giữ nguyên
+//     trong firebase.js.
+//
+// NGUỒN THAM CHIẾU (canonical logic, KHÔNG đổi công thức):
+//   admin.html → computeRevealResults() — nơi duy nhất ghi team.score thật.
+//   Các hàm dưới đây tái tạo lại ĐÚNG công thức đó, tách phần tính toán
+//   ra khỏi phần build HTML (avatarImg, rowsHtml...) vốn vẫn ở lại từng file.
+// ─────────────────────────────────────────────────────────────────────────
+(function (global) {
+  'use strict';
+
+  function getNormalizeAnswer() {
+    var fn = global.normalizeAnswer;
+    if (typeof fn !== 'function') {
+      throw new Error(
+        'GameLogic: window.normalizeAnswer không tồn tại. ' +
+        'Hãy load firebase.js TRƯỚC game-logic.js.'
+      );
+    }
+    return fn;
+  }
+
+  // ── CHOICE (A/B) ──────────────────────────────────────────────────────
+  // A/B là lựa chọn cố định → so khớp trực tiếp, KHÔNG normalize.
+  // Giữ đúng công thức gốc từ admin.html: a1 && a2 && a1 === a2
+  function computeChoiceResult(a1, a2, special) {
+    var match = !!(a1 && a2 && a1 === a2);
+    var pts = match ? (special ? 3 : 1) : 0;
+    return { match: match, pts: pts };
+  }
+
+  // ── WHO_IS (đoán tên) ─────────────────────────────────────────────────
+  // Có normalize vì đây là text tự gõ tên người.
+  function computeWhoIsResult(a1, a2) {
+    var normalizeAnswer = getNormalizeAnswer();
+    var n1 = normalizeAnswer(a1);
+    var n2 = normalizeAnswer(a2);
+    var match = !!(n1 && n2 && n1 === n2);
+    var pts = match ? 2 : 0;
+    return { match: match, pts: pts };
+  }
+
+  // ── TEXT (tự điền, có tính isUnique toàn phòng) ─────────────────────
+  // teams:   { [teamKey]: { player1, player2, score, teamName? } }
+  // answers: { [playerName]: { answer, round, timestamp } }
+  // Trả về: { [teamKey]: { match, pts, isUnique, a1, a2 } }
+  function computeTextResults(teams, answers) {
+    var normalizeAnswer = getNormalizeAnswer();
+    teams = teams || {};
+    answers = answers || {};
+
+    var teamInfo = {};
+    var matchCountByNorm = {};
+
+    Object.keys(teams).forEach(function (key) {
+      var team = teams[key] || {};
+      var a1 = (answers[team.player1] && answers[team.player1].answer) || '';
+      var a2 = (answers[team.player2] && answers[team.player2].answer) || '';
+      var n1 = normalizeAnswer(a1);
+      var n2 = normalizeAnswer(a2);
+      var match = !!(n1 && n2 && n1 === n2);
+      teamInfo[key] = { a1: a1, a2: a2, match: match, norm: n1 };
+      if (match) {
+        matchCountByNorm[n1] = (matchCountByNorm[n1] || 0) + 1;
+      }
+    });
+
+    var results = {};
+    Object.keys(teams).forEach(function (key) {
+      var info = teamInfo[key];
+      var pts = 0;
+      var isUnique = false;
+      if (info.match) {
+        isUnique = matchCountByNorm[info.norm] === 1;
+        pts = isUnique ? 3 : 1;
+      }
+      results[key] = {
+        match: info.match,
+        pts: pts,
+        isUnique: isUnique,
+        a1: info.a1,
+        a2: info.a2
+      };
+    });
+    return results;
+  }
+
+  // ── DISPATCH THEO game.type ──────────────────────────────────────────
+  // game:    { type, special, ... } — chỉ đọc field, không ghi
+  // teams:   { [teamKey]: { player1, player2, score, ... } }
+  // answers: { [playerName]: { answer, ... } }
+  // Trả về: { [teamKey]: { match, pts, isUnique, a1, a2 } } cho MỌI loại câu hỏi.
+  function computeRoundResults(game, teams, answers) {
+    game = game || {};
+    teams = teams || {};
+    answers = answers || {};
+    var qType = game.type || 'choice';
+
+    if (qType === 'text') {
+      return computeTextResults(teams, answers);
+    }
+
+    var results = {};
+
+    if (qType === 'who_is') {
+      Object.keys(teams).forEach(function (key) {
+        var team = teams[key] || {};
+        var a1 = (answers[team.player1] && answers[team.player1].answer) || '';
+        var a2 = (answers[team.player2] && answers[team.player2].answer) || '';
+        var r = computeWhoIsResult(a1, a2);
+        results[key] = { match: r.match, pts: r.pts, isUnique: false, a1: a1, a2: a2 };
+      });
+      return results;
+    }
+
+    // choice (mặc định)
+    Object.keys(teams).forEach(function (key) {
+      var team = teams[key] || {};
+      var a1 = answers[team.player1] ? answers[team.player1].answer : null;
+      var a2 = answers[team.player2] ? answers[team.player2].answer : null;
+      var r = computeChoiceResult(a1, a2, !!game.special);
+      results[key] = { match: r.match, pts: r.pts, isUnique: false, a1: a1, a2: a2 };
+    });
+    return results;
+  }
+
+  global.GameLogic = {
+    computeChoiceResult: computeChoiceResult,
+    computeWhoIsResult: computeWhoIsResult,
+    computeTextResults: computeTextResults,
+    computeRoundResults: computeRoundResults
+  };
+})(typeof window !== 'undefined' ? window : globalThis);
+
+const teamsCache={},answersCache={};
+const people=['Nhung','Thủy','An','Thoan','Phượng','Ánh','Giang','Hạnh','Lệ','Mai Anh','Linh','Hằng','Hoa','Trang','Trúc','Liên'];
+const keys=['nhung','thuy','an','thoan','phuong','anh','giang','hanh','le','mai-anh','linh','hang','hoa','trang','truc','lien'];
+function avatarImg(name,size){return '<img alt="'+name+'" src="assets/avatars/players/'+keys[people.indexOf(name)]+'.webp" style="width:'+size+'px;height:'+size+'px;border-radius:50%;object-fit:cover">';}
+for(let i=0;i<8;i++)teamsCache[i]={player1:people[i*2],player2:people[i*2+1],teamName:'Đội '+(i+1),score:18-i,_idx:i};
+function renderPodiumLeaderboard(targetId, sorted, mode='round') {
+  const target = document.getElementById(targetId);
+  if (!target) return;
+  const teamLabel = t => t.teamName || ('Đội ' + (t._idx + 1));
+  if (!sorted.length) { target.innerHTML = '<div class="reveal-empty">Chưa có dữ liệu</div>'; return; }
+  const rankAt = index => index > 0 && (sorted[index].score || 0) === (sorted[index - 1].score || 0)
+    ? rankAt(index - 1) : index + 1;
+  const medals = { 1:'🥇', 2:'🥈', 3:'🥉' };
+  const topScore = sorted[0].score || 0;
+  const tiedFirst = sorted.filter(t => (t.score || 0) === topScore).length > 1;
+  // Kahoot-style: hạng 2 – hạng 1 – hạng 3 đứng cạnh nhau, quán quân chỉ xuất hiện ở bục giữa.
+  const championIsSeparate = false;
+  const topByRank = [1, 0, 2].map(index => ({ team:sorted[index], index })).filter(x => x.team);
+  const podium = topByRank.map(({team, index}) => {
+    const rank = rankAt(index);
+    const medal = medals[Math.min(rank, 3)] || '🏅';
+    // Độ cao bục theo điểm thực tế: đội dẫn đầu luôn cao nhất, nhưng các đội
+    // vẫn có chiều cao tối thiểu để huy chương và tên đội không bị chật.
+    const scoreRatio = topScore > 0 ? Math.max(0, (team.score || 0) / topScore) : 1;
+    const podiumHeight = Math.round(170 + scoreRatio * 140);
+    return `<article class="podium-card rank-${Math.min(rank,3)} podium-slot-${index + 1}" data-final-index="${index}" style="--podium-score-height:${podiumHeight}px">
+      <span class="podium-rank">HẠNG ${rank}</span>
+      <div class="podium-avatars">${avatarImg(team.player1, rank === 1 ? 80 : 62)}${avatarImg(team.player2, rank === 1 ? 80 : 62)}</div>
+      <div class="podium-medal">${medal}</div>
+      <div class="podium-team">${teamLabel(team)}${rankShiftHtml(team)}</div>
+      <div class="podium-points">${team.score || 0} điểm</div>
+    </article>`;
+  }).join('');
+  // Phần dưới podium giữ leaderboard gọn: chỉ hạng, tên đội và điểm — không lặp journey/streak.
+  // Thứ tự đọc tự nhiên luôn là hạng 4 → hạng cuối.
+  const restTeams = sorted.slice(3);
+  const rest = restTeams.map((team, index) => {
+    const absoluteIndex = mode === 'final' ? sorted.indexOf(team) : index + 3;
+    return `<div class="lb-rest-row" data-final-index="${absoluteIndex}"><span class="lb-rest-rank">${rankAt(absoluteIndex)}.</span><span class="lb-rest-team">${teamLabel(team)}</span><span class="lb-rest-score">${team.score || 0}</span></div>`;
+  }).join('');
+  const heading = mode === 'final' ? 'Bảng xếp hạng chung cuộc' : 'Bảng xếp hạng hiện tại';
+  const champion = '';
+  target.innerHTML = `${mode === 'final' ? '<section class="final-podium-show"><div class="final-podium-intro"><div><div class="final-podium-kicker">VINH DANH CÁC ĐỘI</div><div class="final-podium-call" id="d-final-podium-call">Sẵn sàng cho podium!</div></div></div>' : '<div class="lb-eyebrow">🏁 ROUND COMPLETE</div><h2 class="lb-title">' + heading + '</h2><div class="lb-divider"></div>'}
+    ${champion}
+    ${tiedFirst ? '<div class="lb-tie-note">🤝 ĐỒNG HẠNG DẪN ĐẦU</div>' : ''}
+    ${podium ? `<div class="podium-grid${championIsSeparate ? ' final-runnerups' : ''}">${podium}</div>` : ''}
+    ${rest ? `<div class="lb-rest">${rest}</div>` : ''}${mode === 'final' ? '</section>' : ''}`;
+}
+function renderCompactRoundLeaderboard(targetId, sorted) {
+  const target = document.getElementById(targetId);
+  if (!target) return;
+  const allTiedAtZero = sorted.length > 1 && sorted.every(team => (team.score || 0) === 0);
+  const label = team => team.teamName || ('Đội ' + (team._idx + 1));
+  if (allTiedAtZero) {
+    target.innerHTML = `<div class="round-compact"><div class="round-compact-head"><span class="round-compact-title">📊 Bảng điểm vừa cập nhật</span><span class="round-compact-sub">Câu tiếp theo sẽ tạo khác biệt</span></div><div class="round-compact-empty">⚡ Chưa phân định — tất cả đội đang cùng 0 điểm!</div></div>`;
+    return;
+  }
+  const rankAt = index => index > 0 && (sorted[index].score || 0) === (sorted[index - 1].score || 0) ? rankAt(index - 1) : index + 1;
+  // Tối đa tám đội được xếp hai cột: vẫn đủ tất cả tên đội nhưng chỉ cao bốn hàng.
+  const rows = sorted.map((team, index) => `<div class="round-compact-row"><span class="round-compact-rank">${rankAt(index)}.</span><span class="round-compact-team">${label(team)}${rankShiftHtml(team)}${streakHtml(team)}</span><span class="round-compact-score">${team.score || 0}</span></div>`).join('');
+  target.innerHTML = `<div class="round-compact"><div class="round-compact-head"><span class="round-compact-title">📊 Bảng điểm vừa cập nhật</span><span class="round-compact-sub">${sorted.length} đội</span></div><div class="round-compact-list">${rows}</div></div>`;
+}
+function rankShiftHtml(team) {
+  const change = team.lastRankChange;
+  if (!change || !change.delta) return '';
+  return change.delta > 0
+    ? `<span class="rank-shift up">▲ ${change.delta}</span>`
+    : `<span class="rank-shift down">▼ ${Math.abs(change.delta)}</span>`;
+}
+function streakHtml(team) {
+  const streak = team.stats && team.stats.currentStreak;
+  return streak >= 2 ? `<span class="rank-shift up">🔥 ${streak}</span>` : '';
+}
+function resolveChoiceText(val, game) {
+  if (val === 'A') return game.optionA || 'A';
+  if (val === 'B') return game.optionB || 'B';
+  return val;
+}
+function revealRowHtml(label, p1, a1, p2, a2, match, resultLabel) {
+  return `<div class="reveal-row ${match?'match':'nomatch'}">
+    <div class="rr-team">${avatarImg(p1,24)} ${avatarImg(p2,24)} ${label}</div>
+    <div class="rr-ans">${p1}: <b>${a1||'—'}</b> &nbsp;&nbsp; ${p2||'?'}: <b>${a2||'—'}</b></div>
+    <div class="rr-result ${match?'win':'lose'}">${resultLabel}</div>
+  </div>`;
+}
+function renderRevealBoard(g, opts={}) {
+  const qType = g.type || 'choice';
+  const teams = teamsCache;
+  const answers = g.finalAnswers || answersCache;
+  const teamLabel = (t, i) => t.teamName || ('Đội ' + (i+1));
+  const rows = [];
+
+  // ── Tính match/isUnique bằng GameLogic (pure function — game-logic.js) ──
+  // Công thức GIỮ NGUYÊN 100% so với bản gốc (xem game-logic.js: computeChoiceResult /
+  // computeWhoIsResult / computeTextResults). Ở đây chỉ còn build HTML (DOM/UI),
+  // đúng nguyên tắc GameLogic không Firebase/không DOM/không UI.
+  const results = GameLogic.computeRoundResults(g, teams, answers);
+
+  if (qType === 'who_is') {
+    Object.entries(teams).forEach(([key, team], i) => {
+      const r = results[key];
+      rows.push(revealRowHtml(teamLabel(team,i), team.player1, r.a1, team.player2, r.a2, r.match, r.match ? '🕵️ +2' : '😅 0'));
+    });
+  } else if (qType === 'text') {
+    Object.entries(teams).forEach(([key, team], i) => {
+      const r = results[key];
+      let label = '😅 0';
+      if (r.match) {
+        label = r.isUnique ? '🌟 +3 (độc nhất)' : '💞 +1 (trùng đội khác)';
+      }
+      rows.push(revealRowHtml(teamLabel(team,i), team.player1, r.a1, team.player2, r.a2, r.match, label));
+    });
+  } else {
+    Object.entries(teams).forEach(([key, team], i) => {
+      const r = results[key];
+      const label = r.match ? (g.special ? '🌟 +3' : '💞 +1') : '😅 0';
+      rows.push(revealRowHtml(teamLabel(team,i), team.player1, resolveChoiceText(r.a1, g), team.player2, resolveChoiceText(r.a2, g), r.match, label));
+    });
+  }
+  const elapsed = opts.elapsed || 0;
+  const stagedRows = opts.staged ? rows.map((row, index) => {
+    return row.replace('class="reveal-row ', `class="reveal-row reveal-pending `);
+  }) : rows;
+  // Chỉ thêm delay vào những hàng đang chờ reveal. Không delay khi F5 sau khi sequence đã xong.
+  const html = stagedRows.map((row, index) => opts.staged
+    ? row.replace('">', `" style="animation-delay:${Math.max(0, REVEAL_INTRO_MS + index * REVEAL_STEP_MS - elapsed)}ms">`)
+    : row).join('');
+  document.getElementById('d-reveal-board').innerHTML = html || '<div class="reveal-empty">Không có đáp án</div>';
+}
+function draw(){
+ const mode=document.getElementById('mode').value;
+ const type=document.getElementById('type').value;
+ Object.values(teamsCache).forEach((t,i)=>{
+   const a=type==='choice'?'A':type==='who_is'?t.player1:i<2?'Kem':i===2?'Chuối':'Mèo';
+   const b=i===3?(type==='choice'?'B':type==='who_is'?t.player2:'Khác'):i===6?'':a;
+   answersCache[t.player1]={answer:a};answersCache[t.player2]={answer:b};
+ });
+ const game={type,optionA:'Tham gia cùng',optionB:'Bỏ qua'};
+ document.getElementById('d-reveal-board').style.display=mode==='round'?'block':'none';
+ const results=GameLogic.computeRoundResults(game,teamsCache,answersCache);
+ const sorted=Object.entries(teamsCache).map(([key,t])=>({...t,score:t.score+results[key].pts})).sort((a,b)=>b.score-a.score);
+ if(mode==='round'){renderRevealBoard(game);renderCompactRoundLeaderboard('board',sorted);}
+ else {renderPodiumLeaderboard('board',sorted,mode==='final'?'final':'round');document.querySelectorAll('.podium-card,.lb-rest-row').forEach(el=>el.classList.add('is-revealed','is-name-revealed','is-score-grown'));}
+}
+document.querySelectorAll('select').forEach(el=>el.onchange=draw);draw();
+</script></body></html>

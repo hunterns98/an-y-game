@@ -710,6 +710,46 @@
     .btn-answer { padding: 18px 12px; font-size: 0.88rem; }
   }
 </style>
+<style id="desktop-layout">
+@media(min-width:850px){
+body #app{padding:0 40px 32px;max-width:1200px;margin:auto;min-height:100vh}
+body .game-header{max-width:1080px;text-align:left;padding:24px 0}.game-header .sound-toggle{right:0}
+body .screen{max-width:1080px}
+body #screen-lobby.active{display:grid;grid-template-columns:340px minmax(0,1fr);gap:18px;align-items:start}
+body #screen-lobby>.card{max-width:none;grid-column:1}
+body #howto-card-wrap{grid-column:2;grid-row:1 / span 3;width:100%;align-self:stretch}
+body .howto-card{height:100%;padding:28px;max-height:none}body .howto-scroll{max-height:none}
+body #screen-question.active{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(320px,1fr);gap:20px;align-items:stretch}
+body #screen-question>div:first-child{grid-column:1/-1;max-width:none!important}
+body #partner-status-pill{grid-column:2;grid-row:2;justify-self:stretch;text-align:center}
+body #special-badge-wrap{grid-column:1;grid-row:2;max-width:none!important}
+body .question-card{grid-column:1;grid-row:3 / span 2;max-width:none;min-height:300px;display:flex;align-items:center;padding:40px}
+body .q-text{font-size:clamp(24px,2.5vw,34px);line-height:1.4;text-align:left}
+body #answer-grid,body #who-answer-wrap,body #answer-text-wrap,body #status-chosen{grid-column:2;grid-row:3;max-width:none;width:100%;align-self:stretch}
+body #answer-grid{grid-template-columns:1fr;gap:14px}body .btn-answer{min-height:116px;font-size:20px;text-align:left;padding:24px}
+body #btn-submit-choice{grid-column:2;grid-row:4;width:100%;max-width:none;align-self:end}
+body .btn-who-choice{min-height:150px;font-size:22px}
+body #screen-result.active{min-height:450px}body .result-card{max-width:900px;min-height:380px;padding:40px}body .result-details{width:100%}body .result-answers{gap:24px}body .result-ans-box{max-width:320px;padding:24px}body .rab-val{font-size:24px}
+}
+    @media(min-width:850px) {
+      body .gift-content { width:min(100%,1040px); }
+      body .gift-intro { padding:38px 60px; border:1px solid #875077; border-radius:32px; background:rgba(255,255,255,.04); }
+      body .gift-title { max-width:650px; font-size:38px; }
+      body .gift-subtitle { max-width:600px; font-size:18px; }
+      body .poem-card { padding:32px 48px; }
+      body .gift-content.open { width:min(100%,720px); }
+      body .poem-body { display:block; font-size:23px; line-height:1.7; }
+      body .poem-stanza + .poem-stanza { margin-top:24px; }
+      body .history-dialog { width:min(100%,960px); padding:32px; }
+      body .history-question { font-size:18px; }
+      body .history-answer-value { font-size:17px; }
+      body .poem-title { font-size:40px; }
+      body .personal-card-dialog { width:min(100%,850px); display:grid; grid-template-columns:minmax(0,420px) minmax(220px,1fr); gap:16px 28px; padding:28px; align-items:start; }
+      body #personal-card-preview { grid-column:1; grid-row:1 / span 5; max-height:76vh; width:100%; object-fit:contain; box-shadow:none; }
+      body .personal-card-close { grid-column:2; justify-self:end; }
+      body .preview-card-picker,body .personal-card-save,body .personal-card-hint { grid-column:2; }
+    }
+</style>
 </head>
 <body>
 <!-- Animated gradient background -->

@@ -1,0 +1,48 @@
+const fs = require('fs');
+let page = fs.readFileSync('index.html', 'utf8').replace(/<script\b[^>]*>[\s\S]*?<\/script>/g, '').replace(/<style id="desktop-layout">[\s\S]*?<\/style>/, '');
+const css = `
+.preview-toolbar{position:sticky;top:0;z-index:99999;background:#160b2b;padding:12px 20px;display:flex;gap:8px;align-items:center;flex-wrap:wrap;border-bottom:1px solid #654586;font:13px Arial;color:#fff}
+.preview-toolbar strong{margin-right:auto}.preview-toolbar button{background:#302044;color:white;border:1px solid #785994;border-radius:8px;padding:9px 12px;cursor:pointer}.preview-toolbar button.active{background:#b52775;border-color:#ff89c4}
+.preview-note{text-align:center;color:#c1aacc;font-size:12px;padding:8px}body{overflow-x:hidden}
+body.phone #app{width:390px;max-width:100%;margin:auto;padding:12px 14px 30px;border:1px solid #604376;border-radius:24px}body.phone .game-header{display:none}
+@media(min-width:850px){
+body:not(.phone) #app{padding:0 40px 32px;max-width:1200px;margin:auto;min-height:calc(100vh - 100px)}
+body:not(.phone) .game-header{max-width:1080px;text-align:left;padding:24px 0}.game-header .sound-toggle{right:0}
+body:not(.phone) .screen{max-width:1080px}
+body:not(.phone) #screen-lobby.active{display:grid;grid-template-columns:340px minmax(0,1fr);gap:18px;align-items:start}
+body:not(.phone) #screen-lobby>.card{max-width:none;grid-column:1}
+body:not(.phone) #howto-card-wrap{grid-column:2;grid-row:1 / span 3;width:100%;align-self:stretch}
+body:not(.phone) .howto-card{height:100%;padding:28px;max-height:none}body:not(.phone) .howto-scroll{max-height:none}
+body:not(.phone) #screen-question.active{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(320px,1fr);gap:20px;align-items:stretch}
+body:not(.phone) #screen-question>div:first-child{grid-column:1/-1;max-width:none!important}
+body:not(.phone) #partner-status-pill{grid-column:2;grid-row:2;justify-self:stretch;text-align:center}
+body:not(.phone) #special-badge-wrap{grid-column:1;grid-row:2;max-width:none!important}
+body:not(.phone) .question-card{grid-column:1;grid-row:3 / span 2;max-width:none;min-height:300px;display:flex;align-items:center;padding:40px}
+body:not(.phone) .q-text{font-size:clamp(24px,2.5vw,34px);line-height:1.4;text-align:left}
+body:not(.phone) #answer-grid,body:not(.phone) #who-answer-wrap,body:not(.phone) #answer-text-wrap,body:not(.phone) #status-chosen{grid-column:2;grid-row:3;max-width:none;width:100%;align-self:stretch}
+body:not(.phone) #answer-grid{grid-template-columns:1fr;gap:14px}body:not(.phone) .btn-answer{min-height:116px;font-size:20px;text-align:left;padding:24px}
+body:not(.phone) #btn-submit-choice{grid-column:2;grid-row:4;width:100%;max-width:none;align-self:end}
+body:not(.phone) .btn-who-choice{min-height:150px;font-size:22px}
+body:not(.phone) #screen-result.active{min-height:450px}body:not(.phone) .result-card{max-width:900px;min-height:380px;padding:40px}body:not(.phone) .result-details{width:100%}body:not(.phone) .result-answers{gap:24px}body:not(.phone) .result-ans-box{max-width:320px;padding:24px}body:not(.phone) .rab-val{font-size:24px}
+}
+`;
+page=page.replace('</head>','<style>'+css+'</style></head>').replace('<body>',`<body><nav class="preview-toolbar"><strong>Ăn Ý · Bản thử bố cục</strong><button data-view="lobby">Phòng chờ</button><button data-view="choice">Level 1</button><button data-view="who">Level 2</button><button data-view="text">Level 3</button><button data-view="result">Kết quả</button><button id="preview-phone">Xem điện thoại</button></nav><p class="preview-note">Dữ liệu minh họa · Không gửi đáp án vào phòng thật · Bản game gốc được giữ nguyên</p>`);
+const js=`
+const $=id=>document.getElementById(id);let view='choice';let chosen='Tham gia cùng';
+window.switchHowtoTab=n=>{document.querySelectorAll('.howto-panel').forEach(e=>e.classList.remove('active'));$('howto-panel-'+n).classList.add('active');document.querySelectorAll('.howto-tab-btn').forEach(e=>e.classList.toggle('active',e.dataset.tab==n));};
+window.selectChoice=c=>{chosen=c==='A'?'Tham gia cùng':'Bỏ qua';['a','b'].forEach(x=>$('btn-'+x).classList.toggle('selected',x===c.toLowerCase()));$('btn-submit-choice').disabled=false;};
+function show(v){view=v;$('btn-submit-choice').disabled=true;$('btn-submit-who').disabled=true;['btn-a','btn-b','btn-who-self','btn-who-partner'].forEach(id=>$(id).classList.remove('selected'));document.querySelectorAll('.screen').forEach(e=>e.classList.remove('active'));document.querySelectorAll('[data-view]').forEach(e=>e.classList.toggle('active',e.dataset.view===v));$('screen-'+(v==='lobby'?'lobby':v==='result'?'result':'question')).classList.add('active');
+$('answer-grid').style.display=v==='choice'?'grid':'none';$('btn-submit-choice').style.display=v==='choice'?'block':'none';$('who-answer-wrap').style.display=v==='who'?'flex':'none';$('answer-text-wrap').style.display=v==='text'?'flex':'none';$('status-chosen').style.display='none';$('special-badge-wrap').style.display=v==='choice'?'none':'block';$('special-badge-text').textContent=v==='who'?'🕵️ Cùng chọn một người +2 điểm':'✍️ Trùng ý +1 · Trùng và độc nhất +3';$('timer-circle').textContent='30';$('round-badge').textContent=v==='who'?'Level 2 · Câu 9 / 19':v==='text'?'Level 3 · Câu 19 / 19':'Level 1 · Câu 5 / 19';$('q-text').textContent=v==='who'?'Trong 2 bạn, ai là người khen đồng đội xinh nhưng vẫn thấy mình xinh hơn?':v==='text'?'Kể tên một nam phòng sales (tính cả người cũ, chỉ cần ghi tên, không cần ghi anh/chị/em)':'Có một nhóm đang nấu xói người khác, vừa hay lại là người bạn không thích. Bạn sẽ:';
+$('opt-a-text').textContent='Tham gia cùng';$('opt-b-text').textContent='Bỏ qua';}
+$('lobby-avatar-img').src='assets/avatars/players/nhung.webp';$('my-avatar-row').style.display='flex';$('my-avatar-name').textContent='Nhung';$('partner-display').style.display='block';$('partner-name-text').textContent='Thủy';$('partner-avatar-img').src='assets/avatars/players/thuy.webp';$('partner-avatar-img').style.display='block';$('partner-avatar-fallback').style.display='none';$('team-name-card').style.display='block';$('team-name-val').textContent='Chị em cùng sóng';$('who-self-name').textContent='Nhung';$('who-partner-name').textContent='Thủy';$('partner-status-text').textContent='⏳ Thủy đang chọn đáp án…';$('result-reveal-intro').style.display='none';$('result-details').classList.remove('hidden');$('result-match').textContent='💞';$('result-title').textContent='Ăn ý quá đi!';$('result-answers').innerHTML='<div class="result-ans-box"><div class="rab-label">Nhung</div><div class="rab-val">Tham gia cùng</div></div><div class="result-ans-box"><div class="rab-label">Thủy</div><div class="rab-val">Tham gia cùng</div></div>';$('result-points-wrap').innerHTML='<div class="result-points">+1 điểm cho đội</div>';
+document.querySelectorAll('[data-view]').forEach(b=>b.onclick=()=>show(b.dataset.view));$('preview-phone').onclick=()=>{document.body.classList.toggle('phone');$('preview-phone').textContent=document.body.classList.contains('phone')?'Xem máy tính':'Xem điện thoại';};
+['btn-who-self','btn-who-partner'].forEach(id=>$(id).onclick=()=>{chosen=id==='btn-who-self'?'Nhung':'Thủy';['btn-who-self','btn-who-partner'].forEach(x=>$(x).classList.toggle('selected',x===id));$('btn-submit-who').disabled=false;});['btn-submit-choice','btn-submit-who','btn-submit-free'].forEach(id=>$(id).onclick=()=>{if(id==='btn-submit-free'&&!$('inp-free-answer').value.trim())return;const answer=id==='btn-submit-free'?$('inp-free-answer').value.trim():chosen;const points=id==='btn-submit-who'?2:id==='btn-submit-free'?3:1;show('result');document.querySelectorAll('.rab-val').forEach(e=>e.textContent=answer);$('result-points-wrap').textContent='+'+points+' điểm cho đội · Kết quả minh họa';});
+$('btn-edit-team-name').onclick=()=>{const name=prompt('Tên đội minh họa', $('team-name-val').textContent);if(name&&name.trim())$('team-name-val').textContent=name.trim();};$('sound-toggle').style.display='none';document.querySelectorAll('[onclick^="demo"]').forEach(b=>{b.removeAttribute('onclick');b.disabled=true;b.title='Dùng các nút Level phía trên để thử trả lời';});show('choice');
+`;
+const questionSource = fs.readFileSync('admin.html','utf8').match(/const questions = (\[[\s\S]*?\n\]);/)[1];
+const finale = 'const previewQuestions = '+questionSource+';\n'+fs.readFileSync('desktop-preview-finale.js','utf8');
+const states = fs.readFileSync('test-demo-states.js','utf8');
+page=page.replace('Ăn Ý · Bản thử bố cục','Ăn Ý · Test Demo').replace('Bản game gốc được giữ nguyên','Chọn màn bất kỳ để duyệt giao diện');
+page=page.replace('</body>','<script>'+js+'\n'+finale+'\n'+states+'</script></body>');
+fs.writeFileSync('desktop-preview.html',page);fs.writeFileSync('test-demo.html',page);
+new Function(js+'\n'+finale+'\n'+states);console.log('Built Test Demo and desktop-preview compatibility copy.');

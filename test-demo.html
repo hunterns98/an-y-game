@@ -1,0 +1,1175 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Ăn Ý ❤️ — Game Show</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:       #0a0015;
+    --card:     rgba(255,255,255,0.06);
+    --border:   rgba(255,255,255,0.12);
+    --pink:     #ff2d78;
+    --cyan:     #00f5d4;
+    --gold:     #ffd60a;
+    --purple:   #9b5de5;
+    --text:     #f0e6ff;
+    --muted:    #9980b0;
+    --radius:   20px;
+    --radius-lg:28px;
+  }
+  *, *::before, *::after { box-sizing:border-box; margin:0; padding:0; }
+  html, body {
+    height: 100%;
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    overflow-x: hidden;
+  }
+  body {
+    background-image:
+      radial-gradient(ellipse 80% 50% at 50% -20%, rgba(155,93,229,0.35) 0%, transparent 70%),
+      radial-gradient(ellipse 60% 40% at 80% 100%, rgba(255,45,120,0.2) 0%, transparent 60%);
+    min-height: 100vh;
+  }
+  /* ── ANIMATED GRADIENT BACKGROUND (game-show glow, subtle & smooth) ── */
+  .gradient-bg {
+    position: fixed; inset: -10%; z-index: -1; pointer-events: none;
+    background: linear-gradient(
+      120deg,
+      #1a0030 0%,
+      #2a0845 18%,
+      #4a0e5c 35%,
+      #1f0a4a 52%,
+      #3a0a3a 70%,
+      #150535 88%,
+      #1a0030 100%
+    );
+    background-size: 280% 280%;
+    animation: gradientFlow 22s ease-in-out infinite;
+    filter: saturate(1.15);
+  }
+  @keyframes gradientFlow {
+    0%   { background-position: 0% 30%; }
+    25%  { background-position: 60% 70%; }
+    50%  { background-position: 100% 30%; }
+    75%  { background-position: 40% 0%; }
+    100% { background-position: 0% 30%; }
+  }
+  .gradient-bg::after {
+    content: '';
+    position: absolute; inset: 0;
+    background:
+      radial-gradient(ellipse 60% 45% at 20% 15%, rgba(255,45,120,0.16) 0%, transparent 65%),
+      radial-gradient(ellipse 55% 45% at 85% 85%, rgba(0,245,212,0.10) 0%, transparent 65%);
+    mix-blend-mode: screen;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .gradient-bg { animation: none; }
+  }
+  /* ── FOOTER CREDIT ── */
+  .made-by-footer {
+    position: fixed; left: 14px; bottom: 10px; z-index: 5;
+    font-size: 0.7rem; font-weight: 600; color: var(--muted);
+    letter-spacing: 0.02em; pointer-events: none;
+    display: flex; align-items: center; gap: 4px;
+    text-shadow: 0 1px 4px rgba(0,0,0,0.4);
+  }
+  .made-by-footer span {
+    color: var(--pink); display: inline-block;
+    animation: footerHeartBeat 1.3s ease-in-out infinite;
+  }
+  @keyframes footerHeartBeat {
+    0%,100% { transform: scale(1); }
+    50%     { transform: scale(1.25); }
+  }
+  /* ── SCROLLING STARS BG ── */
+  .stars {
+    position: fixed; inset: 0; pointer-events: none; z-index: 0; overflow: hidden;
+  }
+  .star {
+    position: absolute; border-radius: 50%;
+    background: white; opacity: 0;
+    animation: twinkle var(--d, 4s) var(--delay, 0s) infinite;
+  }
+  @keyframes twinkle {
+    0%,100% { opacity:0; transform:scale(0.5); }
+    50% { opacity: var(--op, 0.6); transform:scale(1); }
+  }
+  /* ── LAYOUT ── */
+  #app {
+    position: relative; z-index: 1;
+    min-height: 100vh;
+    display: flex; flex-direction: column; align-items: center;
+    padding: 0 16px 40px;
+  }
+  /* ── HEADER ── */
+  .game-header {
+    width: 100%; max-width: 480px; position:relative;
+    text-align: center;
+    padding: 32px 0 20px;
+  }
+  .logo-text {
+    font-size: 2.8rem; font-weight: 900;
+    letter-spacing: -0.02em;
+    background: linear-gradient(135deg, var(--pink), var(--gold), var(--cyan));
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    background-clip: text;
+    line-height: 1;
+  }
+  .logo-sub {
+    font-size: 0.75rem; letter-spacing: 0.25em; color: var(--muted);
+    text-transform: uppercase; margin-top: 6px;
+  }
+  .sound-toggle { position:absolute; right:16px; top:25px; padding:8px 10px; border-radius:99px; border:1px solid var(--border); background:rgba(255,255,255,.07); color:var(--text); font-size:.72rem; font-weight:800; cursor:pointer; }
+  /* ── CARD BASE (giả kính bằng gradient + viền, không dùng backdrop-filter để nhẹ GPU) ── */
+  .card {
+    background: linear-gradient(135deg, rgba(255,255,255,0.09), rgba(255,255,255,0.03));
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 28px 24px;
+    width: 100%; max-width: 480px;
+  }
+  /* ── SCREEN MANAGEMENT ── */
+  .screen { display: none; flex-direction: column; align-items: center; width: 100%; max-width: 480px; gap: 16px; }
+  .screen.active { display: flex; animation: screenIn 0.4s cubic-bezier(0.34,1.56,0.64,1); }
+  /* Màn reveal chỉ còn phần đáp án: đặt trọng tâm vào giữa màn hình để dễ đọc trên điện thoại. */
+  #screen-result.active { flex:1; min-height:calc(100vh - 132px); justify-content:center; }
+  #screen-result .result-card { min-height:300px; display:flex; align-items:center; justify-content:center; }
+  @keyframes screenIn {
+    from { opacity:0; transform:translateY(24px) scale(0.97); }
+    to   { opacity:1; transform:translateY(0) scale(1); }
+  }
+  /* ── INPUTS ── */
+  .field-label {
+    font-size: 0.7rem; font-weight: 700; letter-spacing: 0.18em;
+    text-transform: uppercase; color: var(--muted); margin-bottom: 8px;
+  }
+  .field-input {
+    width: 100%; padding: 16px 20px;
+    background: rgba(255,255,255,0.07);
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius);
+    color: var(--text); font-size: 1.1rem; font-weight: 600;
+    outline: none; transition: border-color 0.2s, box-shadow 0.2s;
+    -webkit-appearance: none;
+  }
+  .field-input:focus {
+    border-color: var(--cyan);
+    box-shadow: 0 0 0 3px rgba(0,245,212,0.15);
+  }
+  .field-input::placeholder { color: var(--muted); font-weight: 400; }
+  /* ── ROOM CODE INPUT ── */
+  .room-input {
+    letter-spacing: 0.3em; text-align: center; font-size: 1.5rem;
+    text-transform: uppercase;
+  }
+  /* ── BUTTONS ── */
+  .btn {
+    width: 100%; padding: 18px;
+    border: none; border-radius: var(--radius);
+    font-size: 1rem; font-weight: 800;
+    cursor: pointer; transition: all 0.18s;
+    letter-spacing: 0.05em;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+  .btn:active { transform: scale(0.96); }
+  .btn-primary {
+    background: linear-gradient(135deg, var(--pink), #d4006d);
+    color: white;
+    box-shadow: 0 8px 24px rgba(255,45,120,0.4);
+  }
+  .btn-primary:hover { filter: brightness(1.1); box-shadow: 0 10px 30px rgba(255,45,120,0.55); }
+  .btn-ghost {
+    background: var(--card);
+    border: 1.5px solid var(--border);
+    color: var(--text);
+  }
+  .btn-ghost:hover { border-color: var(--purple); }
+  /* ── ANSWER BUTTONS ── */
+  .answer-grid {
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 12px; width: 100%;
+  }
+  .answer-grid.single-col { grid-template-columns: 1fr; }
+  .btn-answer {
+    padding: 22px 16px;
+    border: 2px solid var(--border);
+    border-radius: var(--radius);
+    background: rgba(255,255,255,0.05);
+    color: var(--text);
+    font-size: 0.95rem; font-weight: 700;
+    cursor: pointer; transition: all 0.2s;
+    text-align: center; line-height: 1.4;
+    -webkit-tap-highlight-color: transparent;
+    position: relative; overflow: hidden;
+  }
+  .btn-answer .option-label {
+    display: block; font-size: 0.65rem; letter-spacing: 0.2em;
+    color: var(--muted); margin-bottom: 6px; text-transform: uppercase;
+  }
+  .btn-answer:not(:disabled):hover, .btn-answer:not(:disabled):active {
+    border-color: var(--pink); background: rgba(255,45,120,0.15);
+    transform: scale(1.02);
+    box-shadow: 0 6px 20px rgba(255,45,120,0.3);
+  }
+  .btn-answer.selected-a {
+    border-color: var(--cyan); background: rgba(0,245,212,0.15);
+    box-shadow: 0 0 24px rgba(0,245,212,0.3);
+  }
+  .btn-answer.selected-b {
+    border-color: var(--pink); background: rgba(255,45,120,0.15);
+    box-shadow: 0 0 24px rgba(255,45,120,0.3);
+  }
+  .btn-answer:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+  /* ── QUESTION DISPLAY ── */
+  .question-card {
+    text-align: center; padding: 32px 24px;
+    position: relative; overflow: hidden;
+  }
+  .question-card::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: linear-gradient(135deg, rgba(155,93,229,0.1), rgba(255,45,120,0.05));
+    pointer-events: none;
+  }
+  .q-round-badge {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: rgba(255,214,10,0.15); border: 1px solid rgba(255,214,10,0.3);
+    border-radius: 99px; padding: 4px 14px;
+    font-size: 0.7rem; font-weight: 800; color: var(--gold);
+    letter-spacing: 0.15em; text-transform: uppercase;
+    margin-bottom: 18px;
+  }
+  .q-special-badge {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: rgba(255,45,120,0.2); border: 1px solid rgba(255,45,120,0.4);
+    border-radius: 99px; padding: 4px 14px;
+    font-size: 0.7rem; font-weight: 800; color: var(--pink);
+    letter-spacing: 0.12em;
+    margin-bottom: 10px;
+  }
+  .q-text {
+    font-size: 1.35rem; font-weight: 800; line-height: 1.45;
+    color: var(--text);
+  }
+  .q-text.animate-in {
+    animation: questionIn 0.5s cubic-bezier(0.34,1.4,0.64,1);
+  }
+  @keyframes questionIn {
+    from { opacity:0; transform:scale(0.9) translateY(10px); }
+    to   { opacity:1; transform:scale(1) translateY(0); }
+  }
+  /* ── WAITING STATE ── */
+  .waiting-pulse {
+    display: flex; flex-direction: column; align-items: center; gap: 16px;
+    padding: 20px 0;
+  }
+  .pulse-ring {
+    width: 64px; height: 64px; border-radius: 50%;
+    border: 3px solid var(--purple);
+    animation: pulseRing 1.5s ease-in-out infinite;
+    overflow:hidden; display:grid; place-items:center;
+  }
+  .pulse-ring .avatar-thumb { width:100%; height:100%; border:0; object-fit:cover; }
+  @keyframes pulseRing {
+    0%,100% { transform:scale(1); opacity:1; box-shadow:0 0 0 0 rgba(155,93,229,0.4); }
+    50%      { transform:scale(1.08); opacity:0.8; box-shadow:0 0 0 16px rgba(155,93,229,0); }
+  }
+  .waiting-text { color: var(--muted); font-size: 0.9rem; font-weight: 600; }
+  /* ── AVATAR ── */
+  .avatar-thumb {
+    border-radius: 50%; object-fit: cover; flex-shrink: 0;
+    border: 2px solid rgba(255,255,255,0.25);
+  }
+  .my-avatar-row {
+    display: flex; align-items: center; justify-content: center; gap: 10px;
+    margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--border);
+  }
+  .my-avatar-row span { font-size: 0.85rem; font-weight: 700; color: var(--muted); }
+  .my-avatar-row b { color: var(--text); }
+  /* ── STATUS CHOSEN ── */
+  .status-chosen {
+    text-align: center; padding: 24px;
+  }
+  .chosen-emoji { font-size: 2.5rem; margin-bottom: 8px; display: block; }
+  .chosen-label {
+    font-size: 0.7rem; letter-spacing: 0.2em; color: var(--muted);
+    text-transform: uppercase; margin-bottom: 4px;
+  }
+  .chosen-answer {
+    font-size: 1.3rem; font-weight: 900; color: var(--cyan);
+  }
+  .chosen-sub { font-size: 0.85rem; color: var(--muted); margin-top: 6px; }
+  /* ── RESULT CARD ── */
+  .result-card {
+    text-align: center; padding: 28px 24px;
+  }
+  .result-reveal-intro { display:none; text-align:center; padding:20px 12px; color:var(--cyan); font-size:0.78rem; font-weight:900; letter-spacing:0.16em; animation:resultRevealPulse 0.7s ease-in-out infinite alternate; }
+  .result-reveal-intro.show { display:block; }
+  @keyframes resultRevealPulse { to { text-shadow:0 0 20px rgba(0,245,212,0.8); transform:scale(1.03); } }
+  .result-details { display:block; }
+  .result-details.hidden { display:none; }
+  .result-match {
+    font-size: 2rem; margin-bottom: 6px;
+  }
+  .result-title {
+    font-size: 1.3rem; font-weight: 900; margin-bottom: 12px;
+  }
+  .result-title.win  { color: var(--gold); }
+  .result-title.lose { color: var(--muted); }
+  .result-answers {
+    display: flex; gap: 12px; justify-content: center;
+    margin: 16px 0;
+  }
+  .result-ans-box {
+    flex: 1; max-width: 140px;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid var(--border);
+    border-radius: 14px; padding: 12px;
+  }
+  .result-ans-box .rab-label {
+    font-size: 0.65rem; letter-spacing: 0.15em; color: var(--muted);
+    text-transform: uppercase; margin-bottom: 4px;
+  }
+  .result-ans-box .rab-val {
+    font-size: 1rem; font-weight: 800; color: var(--text);
+  }
+  .result-points {
+    display: inline-block;
+    background: linear-gradient(135deg, rgba(255,214,10,0.2), rgba(255,214,10,0.05));
+    border: 1px solid rgba(255,214,10,0.35);
+    border-radius: 99px; padding: 6px 20px;
+    font-size: 0.9rem; font-weight: 800; color: var(--gold);
+  }
+  .result-wait { font-size: 0.8rem; color: var(--muted); margin-top: 12px; }
+  /* ── FLOATING SCORE (transform + opacity, will-change ép GPU compositing cho mượt) ── */
+  .float-score {
+    position: fixed; pointer-events: none; z-index: 9999;
+    font-size: 2rem; font-weight: 900; color: var(--gold);
+    text-shadow: 0 0 24px rgba(255,214,10,0.8);
+    animation: floatUp 1.2s ease forwards;
+    will-change: transform, opacity;
+  }
+  @keyframes floatUp {
+    from { opacity:1; transform:translateY(0) scale(1); }
+    to   { opacity:0; transform:translateY(-100px) scale(1.4); }
+  }
+  /* ── COUNTDOWN OVERLAY ── */
+  #countdown-overlay {
+    display: none; position: fixed; inset: 0; z-index: 8000;
+    background: rgba(10,0,21,0.92);
+    align-items: center; justify-content: center; flex-direction: column;
+  }
+  #countdown-overlay.show { display: flex; }
+  .countdown-num {
+    font-size: 8rem; font-weight: 900; line-height: 1;
+    background: linear-gradient(135deg, var(--cyan), var(--purple));
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    background-clip: text;
+    animation: countPop 0.6s cubic-bezier(0.34,1.6,0.64,1);
+  }
+  @keyframes countPop {
+    from { transform: scale(2.5); opacity:0; }
+    to   { transform: scale(1);   opacity:1; }
+  }
+  .countdown-label { font-size: 0.8rem; letter-spacing: 0.3em; color: var(--muted); margin-top: 12px; text-transform: uppercase; }
+  /* ── LEVEL TRANSITION ── */
+  #player-level-transition { display:none; position:fixed; inset:0; z-index:8100; align-items:center; justify-content:center; padding:20px; background:radial-gradient(circle at 50% 22%,#5b1c78 0%,#210536 42%,#0a0015 76%); text-align:center; }
+  #player-level-transition.show { display:flex; animation:playerLevelIn .45s cubic-bezier(.2,1.35,.4,1); }
+  .player-level-card { width:min(100%,440px); padding:34px 24px; border-radius:28px; border:1px solid rgba(255,214,10,.75); background:linear-gradient(145deg,#6e164e,#321160); box-shadow:0 0 50px rgba(155,93,229,.5); }
+  .player-level-kicker { color:var(--gold); font-size:.72rem; font-weight:950; letter-spacing:.2em; }.player-level-title { margin:10px 0 14px; font-size:2rem; font-weight:950; }.player-level-rule { line-height:1.5; color:var(--text); font-size:1rem; }.player-level-score { display:inline-block; margin:18px 0 12px; padding:9px 14px; border-radius:99px; color:var(--cyan); background:rgba(0,245,212,.12); border:1px solid rgba(0,245,212,.4); font-size:.9rem; font-weight:950; }.player-level-wait { color:var(--muted); font-size:.76rem; font-weight:800; } @keyframes playerLevelIn { from{opacity:0;transform:scale(.9)}to{opacity:1;transform:scale(1)} }
+  /* Sau chung kết: điện thoại nhường spotlight cho màn hình lớn trước khi host mở quà. */
+  #final-wait-screen { display:none; position:fixed; inset:0; z-index:9001; align-items:center; justify-content:center; padding:28px; text-align:center; background:radial-gradient(circle at 50% 22%,#5b1c78 0%,#210536 42%,#0a0015 76%); }
+  #final-wait-screen.show { display:flex; animation:screenIn .45s ease both; }
+  .final-wait-card { width:min(100%,420px); padding:36px 26px; border:1px solid rgba(255,214,10,.7); border-radius:28px; background:linear-gradient(145deg,#6e164e,#321160); box-shadow:0 0 50px rgba(155,93,229,.5); }
+  .final-wait-icon { display:block; font-size:4rem; margin-bottom:14px; animation:crownBounce 1.7s ease-in-out infinite; }.final-wait-title { font-size:1.8rem; font-weight:950; line-height:1.22; }.final-wait-copy { margin:14px 0 0; color:var(--text); font-size:1rem; font-weight:700; line-height:1.5; }.final-wait-note { margin-top:18px; color:var(--cyan); font-size:.85rem; font-weight:900; }
+  /* ── WINNER SCREEN ── */
+  #winner-screen {
+    display: none; position: fixed; inset: 0; z-index: 10001;
+    background: radial-gradient(ellipse at center, #1a0038 0%, #0a0015 100%);
+    flex-direction: column; align-items: center; justify-content: center;
+    text-align: center; padding: 40px 24px;
+  }
+  #winner-screen.show { display: flex; animation: screenIn 0.5s ease; }
+  /* Hiệu ứng quà luôn phủ trọn viewport, kể cả khi bài thơ được cuộn dài trên điện thoại. */
+  #confetti-canvas { position: fixed; inset: 0; z-index:2; width:100vw; height:100vh; pointer-events: none; }
+  .ws-content { position: relative; z-index: 1; }
+  .ws-label { font-size: 0.7rem; letter-spacing: 0.3em; color: var(--muted); text-transform: uppercase; margin-bottom: 12px; }
+  .ws-crown { font-size: 5rem; animation: crownBounce 1.5s ease-in-out infinite; display: block; margin-bottom: 8px; }
+  @keyframes crownBounce { 50% { transform: translateY(-10px) scale(1.1); } }
+  .ws-name { font-size: 2.8rem; font-weight: 900; color: var(--gold); line-height: 1.1; margin: 8px 0; text-shadow: 0 0 40px rgba(255,214,10,0.6); }
+  .ws-score { font-size: 1.4rem; font-weight: 900; color: var(--cyan); margin-bottom: 6px; }
+  .ws-sub { font-size: 0.75rem; letter-spacing: 0.2em; color: var(--purple); text-transform: uppercase; margin-bottom: 28px; }
+  .ws-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 28px; width: 100%; max-width: 360px; }
+  .award-list { display:flex; flex-wrap:wrap; justify-content:center; gap:8px; max-width:420px; margin:0 auto 20px; }
+  .award-chip { padding:7px 11px; border-radius:99px; border:1px solid rgba(0,245,212,.32); background:rgba(0,245,212,.1); color:var(--text); font-size:.74rem; font-weight:800; }
+  .ws-journey { width:100%; max-width:360px; margin:0 auto 16px; padding:10px 12px; border-radius:13px; background:rgba(255,255,255,.07); border:1px solid var(--border); color:var(--muted); font-size:.76rem; font-weight:800; line-height:1.55; }.ws-journey b { color:var(--cyan); }
+  .rank-shift { display:inline-block; margin-left:6px; font-size:.72rem; font-weight:900; animation:rankPop .55s cubic-bezier(.34,1.5,.64,1) both; } @keyframes rankPop { from{opacity:0;transform:scale(.3) translateY(8px)} to{opacity:1;transform:scale(1) translateY(0)} } .rank-shift.up{color:var(--cyan)} .rank-shift.down{color:#fca5a5}
+  .ws-row {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 10px 16px; border-radius: 12px;
+    background: rgba(255,255,255,0.05); border: 1px solid var(--border);
+  }
+  .ws-row.my-team { border-color: var(--gold); background: rgba(255,214,10,0.08); }
+  .ws-rank { width: 24px; font-size: 1.1rem; }
+  .ws-team-name { flex: 1; text-align: left; padding: 0 10px; font-size: 0.85rem; font-weight: 700; }
+  .ws-pts { font-weight: 900; color: var(--gold); }
+  /* ── QUÀ 20/10: phần kết thúc riêng của người chơi ── */
+  #winner-screen { overflow-y:auto; justify-content:flex-start; padding:clamp(26px,7vh,56px) 20px 42px; background:radial-gradient(ellipse at 50% 12%,rgba(255,45,120,.28),transparent 36%),radial-gradient(ellipse at center,#26024a 0%,#0a0015 76%); }
+  .gift-content { width:min(100%,440px); min-height:calc(100vh - 68px); display:flex; flex-direction:column; align-items:center; justify-content:center; position:relative; z-index:1; text-align:center; }
+  .gift-kicker { margin-bottom:10px; color:#ffe39c; font-size:.74rem; font-weight:950; letter-spacing:.13em; text-transform:uppercase; }
+  .gift-title { max-width:330px; margin:0; color:var(--text); font-size:clamp(1.5rem,7vw,2.1rem); line-height:1.22; font-weight:950; }
+  .gift-subtitle { max-width:320px; margin:12px auto 24px; color:var(--muted); font-size:.9rem; line-height:1.45; }
+  .gift-box-button { position:relative; width:150px; height:142px; margin:4px 0 18px; border:0; background:transparent; cursor:pointer; -webkit-tap-highlight-color:transparent; filter:drop-shadow(0 12px 18px rgba(255,45,120,.34)); animation:giftFloat 2.2s ease-in-out infinite; }
+  .gift-box-button:focus-visible { outline:3px solid var(--cyan); outline-offset:8px; border-radius:20px; }
+  .gift-box-button:active { transform:scale(.94); }
+  .gift-box-lid { position:absolute; z-index:2; left:4px; top:18px; width:142px; height:34px; border-radius:10px; background:linear-gradient(180deg,#ff6fa4,#d91765); border:2px solid rgba(255,226,239,.7); box-shadow:0 5px 0 rgba(120,0,48,.34); }
+  .gift-box-base { position:absolute; left:10px; top:47px; width:130px; height:82px; overflow:hidden; border-radius:8px 8px 16px 16px; background:linear-gradient(135deg,#ed2c78,#a90050); border:2px solid rgba(255,226,239,.68); }
+  .gift-box-ribbon-v { position:absolute; z-index:3; left:65px; top:16px; width:21px; height:114px; background:linear-gradient(90deg,#ffe66d,#ffb703,#ffe66d); box-shadow:0 0 12px rgba(255,214,10,.55); }
+  .gift-box-ribbon-h { position:absolute; z-index:4; left:5px; top:25px; width:140px; height:17px; background:linear-gradient(180deg,#ffe66d,#ffb703); }
+  .gift-bow { position:absolute; z-index:5; left:50%; top:0; width:64px; height:43px; transform:translateX(-50%); }
+  .gift-bow::before,.gift-bow::after { content:''; position:absolute; top:7px; width:31px; height:27px; border:8px solid #ffd60a; background:rgba(255,214,10,.2); }
+  .gift-bow::before { left:0; border-radius:70% 36% 65% 38%; transform:rotate(18deg); }.gift-bow::after { right:0; border-radius:36% 70% 38% 65%; transform:rotate(-18deg); }
+  .gift-bow span { position:absolute; z-index:2; left:25px; top:13px; width:17px; height:17px; border-radius:50%; background:#ffd60a; }
+  .gift-open-hint { color:var(--cyan); font-size:.86rem; font-weight:900; animation:giftHintPulse 1.45s ease-in-out infinite; }
+  @keyframes giftFloat { 0%,100%{transform:translateY(0) rotate(-1.5deg)} 50%{transform:translateY(-8px) rotate(1.5deg)} }
+  @keyframes giftHintPulse { 50%{opacity:.45;transform:scale(.97)} }
+  #winner-screen.poem-open { padding:14px 14px 32px; background:radial-gradient(ellipse at 50% 0%,rgba(255,216,228,.72),transparent 42%),#fff9f2; }
+  .poem-card { display:none; width:100%; margin:0; padding:clamp(22px,6vw,34px) clamp(16px,6vw,30px); border:1px solid rgba(124,72,91,.2); border-radius:22px; background:radial-gradient(ellipse at 50% 0%,rgba(255,220,230,.42),transparent 34%),linear-gradient(135deg,#fffdf9 0%,#f9f0e5 100%); box-shadow:0 14px 34px rgba(104,56,77,.16),inset 0 0 0 1px rgba(255,255,255,.76); animation:poemReveal .6s cubic-bezier(.2,1.35,.4,1) both; }
+  .gift-content.open .gift-intro { display:none; }.gift-content.open .poem-card { display:block; }
+  .gift-content.open { min-height:auto; justify-content:flex-start; padding-top:0; }
+  @keyframes poemReveal { from{opacity:0;transform:translateY(20px) scale(.94)} to{opacity:1;transform:none} }
+  .poem-title { color:#21191b; font-family:'Dancing Script','Segoe Script',cursive; font-size:clamp(1.7rem,8vw,2.4rem); font-weight:700; line-height:1.15; }
+  .poem-divider { width:92px; height:1px; margin:13px auto 17px; background:#111; opacity:.42; }
+  .poem-body { font-family:'Dancing Script','Segoe Script',cursive; color:#21191b; font-size:clamp(.96rem,4.35vw,1.14rem); font-weight:600; line-height:1.62; text-align:center; }
+  .poem-body strong { color:#21191b; font-size:1.08em; font-weight:800; -webkit-text-stroke:.22px #21191b; text-shadow:0 0 .35px #21191b; }
+  .poem-stanza + .poem-stanza { margin-top:13px; }
+  .poem-line { display:block; white-space:nowrap; }.poem-line.indent { transform:translateX(clamp(10px,3vw,18px)); }
+  .poem-signature { margin-top:23px; padding-top:16px; border-top:1px solid rgba(33,25,27,.28); color:#21191b; font-family:'Dancing Script','Segoe Script',cursive; font-size:clamp(1.15rem,5.5vw,1.5rem); font-weight:700; }
+  .gift-card-action { margin:24px auto 2px; min-height:48px; padding:12px 20px; border:0; border-radius:999px; color:#fff; background:linear-gradient(135deg,#e82b74,#8d195d); box-shadow:0 9px 18px rgba(127,18,70,.28); font:800 .9rem/1.2 Arial,'Segoe UI',sans-serif; cursor:pointer; -webkit-tap-highlight-color:transparent; }
+  .gift-card-action:active { transform:scale(.97); }
+  .gift-history-action { margin-top:10px; min-height:46px; padding:11px 18px; border:1px solid rgba(124,72,91,.32); border-radius:999px; color:#4a2031; background:rgba(255,255,255,.72); font:800 .86rem/1.2 Arial,'Segoe UI',sans-serif; cursor:pointer; -webkit-tap-highlight-color:transparent; }
+  .gift-history-action:active { transform:scale(.97); }
+  #personal-card-modal { display:none; position:fixed; inset:0; z-index:10010; overflow:auto; padding:max(20px,env(safe-area-inset-top)) 16px max(24px,env(safe-area-inset-bottom)); background:rgba(13,2,23,.9); }
+  #personal-card-modal.show { display:flex; align-items:flex-start; justify-content:center; }
+  .personal-card-dialog { width:min(100%,390px); margin:auto; padding:16px; border-radius:24px; background:#fff8f0; box-shadow:0 24px 72px rgba(0,0,0,.52); text-align:center; }
+  .personal-card-dialog h2 { margin:3px 36px 12px; color:#2b1429; font-size:1.12rem; line-height:1.3; }
+  .personal-card-close { float:right; width:34px; height:34px; border:0; border-radius:50%; color:#fff; background:#6c2357; font-size:1.25rem; cursor:pointer; }
+  #personal-card-preview { display:block; width:100%; border-radius:14px; box-shadow:0 9px 22px rgba(70,25,52,.22); }
+  .personal-card-save { width:100%; margin-top:14px; padding:13px 18px; border:0; border-radius:14px; color:#fff; background:linear-gradient(135deg,#e82b74,#9b1d66); font-weight:900; font-size:.95rem; cursor:pointer; }
+  .personal-card-hint { margin:10px 5px 2px; color:#76556d; font-size:.75rem; line-height:1.4; }
+  #match-history-modal { display:none; position:fixed; inset:0; z-index:10020; overflow:auto; padding:max(16px,env(safe-area-inset-top)) 14px max(20px,env(safe-area-inset-bottom)); background:rgba(13,2,23,.92); }
+  #match-history-modal.show { display:block; }
+  .history-dialog { width:min(100%,510px); margin:0 auto; padding:20px 15px 26px; border-radius:24px; color:#281425; background:linear-gradient(145deg,#fffdf9,#f8e9e0); box-shadow:0 24px 72px rgba(0,0,0,.55); }
+  .history-head { display:flex; align-items:flex-start; justify-content:space-between; gap:12px; padding:2px 5px 15px; border-bottom:1px solid rgba(98,50,72,.16); }
+  .history-title { margin:0; font-size:1.35rem; line-height:1.18; font-weight:950; }.history-subtitle { margin:5px 0 0; color:#7c485f; font-size:.82rem; font-weight:750; }
+  .history-close { flex:0 0 auto; width:36px; height:36px; border:0; border-radius:50%; color:#fff; background:#8d195d; font-size:1.55rem; line-height:1; cursor:pointer; }
+  .history-list { display:flex; flex-direction:column; gap:12px; margin-top:15px; }
+  .history-round { overflow:hidden; border:1px solid rgba(124,72,91,.2); border-radius:18px; background:rgba(255,255,255,.76); box-shadow:0 5px 15px rgba(91,42,58,.08); }
+  .history-round-head { display:flex; align-items:center; justify-content:space-between; gap:10px; padding:11px 13px 8px; color:#7d294f; font-size:.72rem; font-weight:950; letter-spacing:.06em; text-transform:uppercase; }
+  .history-question { padding:0 13px 11px; font-size:.97rem; font-weight:850; line-height:1.38; }
+  .history-answers { display:grid; grid-template-columns:1fr 1fr; gap:8px; padding:11px 13px; border-top:1px solid rgba(124,72,91,.13); background:rgba(255,245,247,.7); }
+  .history-answer { min-width:0; padding:9px; border-radius:12px; background:#fff; }.history-answer-name { display:block; overflow:hidden; color:#956278; font-size:.68rem; font-weight:900; text-overflow:ellipsis; white-space:nowrap; }.history-answer-value { display:block; margin-top:4px; color:#331727; font-size:.85rem; font-weight:850; line-height:1.34; overflow-wrap:anywhere; }
+  .history-result { display:flex; align-items:center; justify-content:space-between; gap:9px; padding:10px 13px 12px; font-size:.82rem; font-weight:900; }.history-result.match { color:#087a55; }.history-result.miss { color:#9d3455; }.history-points { flex:0 0 auto; padding:5px 9px; border-radius:99px; color:#5b2841; background:#ffe3b4; }.history-empty { padding:28px 15px; color:#765565; text-align:center; font-size:.92rem; font-weight:750; line-height:1.5; }
+  /* ── CONFETTI ── */
+  /* (drawn via canvas) */
+  /* ── TOAST ── */
+  #toast-container {
+    position: fixed; top: 16px; left: 50%; transform: translateX(-50%);
+    z-index: 9999; display: flex; flex-direction: column; align-items: center; gap: 8px;
+    pointer-events: none; width: 90%; max-width: 420px;
+  }
+  .connection-banner { position:fixed; top:12px; left:50%; z-index:10000; transform:translate(-50%,-130%); transition:transform .3s ease; width:min(92vw,420px); padding:10px 14px; border-radius:12px; text-align:center; font-size:.8rem; font-weight:800; background:rgba(30,10,60,.97); border:1px solid var(--border); box-shadow:0 8px 24px rgba(0,0,0,.35); }
+  .connection-banner.show { transform:translate(-50%,0); }
+  .connection-banner.offline { color:#fca5a5; border-color:rgba(239,68,68,.55); background:rgba(70,8,30,.97); }
+  .connection-banner.online { color:var(--cyan); border-color:rgba(0,245,212,.45); }
+  #app-loading { display:none; position:fixed; inset:0; z-index:8500; align-items:center; justify-content:center; background:rgba(10,0,21,.86); text-align:center; padding:24px; }
+  #app-loading.show { display:flex; }
+  .loading-box { display:flex; flex-direction:column; gap:14px; align-items:center; color:var(--text); font-weight:800; }
+  .loading-spinner { width:42px; height:42px; border:4px solid rgba(255,255,255,.18); border-top-color:var(--cyan); border-radius:50%; animation:loadingSpin .8s linear infinite; }
+  @keyframes loadingSpin { to { transform:rotate(360deg); } }
+  .toast {
+    background: rgba(30,10,60,0.95);
+    border: 1px solid rgba(255,255,255,0.15); border-radius: 14px;
+    padding: 12px 20px; font-size: 0.88rem; font-weight: 700;
+    color: var(--text); text-align: center;
+    box-shadow: 0 8px 28px rgba(0,0,0,0.5);
+    animation: toastIn 0.35s cubic-bezier(0.34,1.4,0.64,1);
+  }
+  .toast.out { animation: toastOut 0.3s ease forwards; }
+  @keyframes toastIn  { from{opacity:0;transform:translateY(-16px)}to{opacity:1;transform:translateY(0)} }
+  @keyframes toastOut { from{opacity:1}to{opacity:0;transform:translateY(-10px)} }
+  /* ── TEAM NAME EDITOR ── */
+  .team-name-card {
+    display: flex; flex-direction: column; gap: 10px;
+  }
+  .team-name-display {
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 10px;
+  }
+  .team-name-val {
+    font-size: 1.05rem; font-weight: 900; color: var(--gold);
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+  .btn-edit-name {
+    flex-shrink: 0;
+    background: rgba(255,255,255,0.08); border: 1px solid var(--border);
+    color: var(--text); border-radius: 10px; padding: 7px 12px;
+    font-size: 0.78rem; font-weight: 700; cursor: pointer;
+    -webkit-tap-highlight-color: transparent; transition: border-color 0.2s;
+  }
+  .btn-edit-name:hover { border-color: var(--cyan); }
+  .team-name-edit-row { display: none; gap: 8px; }
+  .team-name-edit-row.show { display: flex; }
+  .team-name-edit-row input {
+    flex: 1; padding: 12px 14px;
+    background: rgba(255,255,255,0.07); border: 1.5px solid var(--border);
+    border-radius: 12px; color: var(--text); font-size: 0.95rem; font-weight: 700;
+    outline: none;
+  }
+  .team-name-edit-row input:focus { border-color: var(--cyan); }
+  .btn-save-name {
+    flex-shrink: 0; background: linear-gradient(135deg, var(--cyan), #00c4aa);
+    color: #0a0015; border: none; border-radius: 12px; padding: 0 16px;
+    font-size: 0.85rem; font-weight: 800; cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+  }
+  /* ── HOW-TO-PLAY GUIDE CARD (giả kính bằng gradient, không blur để nhẹ GPU) ── */
+  .howto-card {
+    width: 100%; max-width: 480px;
+    background: linear-gradient(160deg, rgba(255,255,255,0.10), rgba(255,255,255,0.025));
+    border: 1px solid rgba(255,255,255,0.16);
+    border-radius: var(--radius-lg);
+    padding: 20px 18px 18px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.25), inset 0 1px 0 rgba(255,255,255,0.08);
+  }
+  .howto-title {
+    text-align: center; font-size: 1.15rem; font-weight: 900;
+    letter-spacing: 0.02em; margin-bottom: 14px;
+    background: linear-gradient(135deg, var(--gold), var(--pink), var(--cyan));
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    background-clip: text;
+    background-size: 200% auto;
+    animation: howtoShine 4s linear infinite;
+    text-shadow: 0 0 18px rgba(255,214,10,0.25);
+  }
+  @keyframes howtoShine {
+    0% { background-position: 0% center; }
+    100% { background-position: 200% center; }
+  }
+  .howto-tabs {
+    display: grid; grid-template-columns: 1fr 1fr 1fr;
+    gap: 6px; margin-bottom: 14px;
+  }
+  .howto-tab-btn {
+    padding: 9px 4px; border-radius: 10px;
+    background: rgba(255,255,255,0.06); border: 1px solid var(--border);
+    color: var(--muted); font-size: 0.72rem; font-weight: 800;
+    cursor: pointer; text-align: center; transition: all 0.2s;
+    -webkit-tap-highlight-color: transparent; line-height: 1.3;
+  }
+  .howto-tab-btn.active {
+    color: var(--text); border-color: var(--purple);
+    background: rgba(155,93,229,0.18);
+    box-shadow: 0 0 16px rgba(155,93,229,0.25);
+  }
+  .howto-scroll {
+    max-height: 270px; overflow-y: auto; -webkit-overflow-scrolling: touch;
+    padding-right: 4px; scrollbar-width: thin;
+  }
+  .howto-panel { display: none; flex-direction: column; gap: 12px; }
+  .howto-panel.active { display: flex; animation: screenIn 0.3s ease; }
+  .howto-rule-box {
+    background: rgba(255,255,255,0.04); border: 1px solid var(--border);
+    border-radius: 14px; padding: 12px 14px;
+    font-size: 0.82rem; line-height: 1.55; color: var(--text);
+  }
+  .howto-rule-box b { color: var(--gold); }
+  .howto-pts { font-weight: 800; }
+  .howto-pts.good { color: var(--cyan); }
+  .howto-pts.great { color: var(--gold); }
+  .howto-pts.zero { color: var(--muted); }
+  .howto-demo-label {
+    font-size: 0.68rem; letter-spacing: 0.15em; color: var(--muted);
+    text-transform: uppercase; font-weight: 800; margin-top: 2px;
+  }
+  .howto-demo-q {
+    font-size: 0.9rem; font-weight: 700; color: var(--text); margin-bottom: 4px;
+  }
+  .howto-demo-grid {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 8px;
+  }
+  .howto-demo-btn {
+    padding: 13px 10px; border-radius: 12px;
+    border: 1.5px solid var(--border);
+    background: rgba(255,255,255,0.05); color: var(--text);
+    font-size: 0.82rem; font-weight: 700; cursor: pointer;
+    transition: all 0.18s; -webkit-tap-highlight-color: transparent;
+  }
+  .howto-demo-btn:hover { border-color: var(--pink); background: rgba(255,45,120,0.12); transform: scale(1.02); }
+  .howto-demo-btn.picked { border-color: var(--cyan); background: rgba(0,245,212,0.15); }
+  .howto-demo-input-row { display: flex; gap: 8px; }
+  .howto-demo-input-row input {
+    flex: 1; padding: 12px 14px;
+    background: rgba(255,255,255,0.07); border: 1.5px solid var(--border);
+    border-radius: 12px; color: var(--text); font-size: 0.88rem; font-weight: 600;
+    outline: none;
+  }
+  .howto-demo-input-row input:focus { border-color: var(--cyan); }
+  .howto-demo-send {
+    flex-shrink: 0; background: linear-gradient(135deg, var(--pink), #d4006d);
+    color: white; border: none; border-radius: 12px; padding: 0 16px;
+    font-size: 0.85rem; font-weight: 800; cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+  }
+  #howto-card-wrap { display: flex; justify-content: center; width: 100%; }
+  .quick-rules-card { width:100%; max-width:480px; padding:18px; border-radius:var(--radius-lg); background:linear-gradient(135deg,rgba(155,93,229,.16),rgba(255,45,120,.07)); border:1px solid rgba(155,93,229,.35); }
+  .quick-rules-title { font-size:.72rem; font-weight:900; letter-spacing:.16em; color:var(--gold); text-transform:uppercase; margin-bottom:12px; text-align:center; }
+  .quick-rules-row { display:flex; align-items:center; gap:10px; padding:8px 0; font-size:.84rem; color:var(--muted); }
+  .quick-rules-row + .quick-rules-row { border-top:1px solid rgba(255,255,255,.08); }
+  .quick-rules-row span { width:23px; height:23px; flex:0 0 23px; display:flex; align-items:center; justify-content:center; border-radius:50%; background:rgba(0,245,212,.15); color:var(--cyan); font-size:.72rem; font-weight:900; }
+  .quick-rules-row p { margin:0; }
+  .quick-rules-row b { color:var(--text); }
+  /* ── PARTNER TAG ── */
+  .partner-tag {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 16px;
+    background: rgba(155,93,229,0.12); border: 1px solid rgba(155,93,229,0.3);
+    border-radius: 12px;
+  }
+  .partner-avatar { font-size: 1.4rem; }
+  .partner-info { text-align: left; }
+  .partner-lbl { font-size: 0.62rem; letter-spacing: 0.15em; color: var(--muted); text-transform: uppercase; }
+  .partner-name { font-size: 0.95rem; font-weight: 800; color: var(--purple); }
+  /* ── ROOM JOIN SCREEN ── */
+  .join-hero { padding: 10px 0 4px; text-align: center; }
+  .join-heart { font-size: 3rem; animation: heartbeat 1.4s ease-in-out infinite; display: block; }
+  @keyframes heartbeat {
+    0%,100%{transform:scale(1)} 14%{transform:scale(1.3)} 28%{transform:scale(1)} 42%{transform:scale(1.15)} 56%{transform:scale(1)}
+  }
+  .join-tagline { font-size: 0.75rem; letter-spacing: 0.18em; color: var(--muted); text-transform: uppercase; margin-top: 6px; }
+  /* ── MISC ── */
+  .divider { height: 1px; background: var(--border); margin: 4px 0; }
+  .text-center { text-align: center; }
+  .text-muted { color: var(--muted); font-size: 0.82rem; }
+  /* ── TIMER ── */
+  .timer-wrap { display: flex; align-items: center; justify-content: center; gap: 8px; }
+  .timer-circle {
+    width: 56px; height: 56px; border-radius: 50%;
+    border: 3px solid var(--pink);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.3rem; font-weight: 900; color: var(--pink);
+    background: rgba(255,45,120,0.1);
+    transition: color 0.3s, border-color 0.3s;
+  }
+  .timer-circle.urgent { border-color: var(--gold); color: var(--gold); animation: urgentPulse 0.5s ease-in-out infinite; }
+  .timer-circle.warning { border-color:#ff9f1c; color:#ffcf55; animation:warningPulse 1s ease-in-out infinite; }.timer-circle.critical { border-color:#ff3d71; color:#fff; background:rgba(255,45,120,.28); transform:scale(1.08); } @keyframes warningPulse { 50% { box-shadow:0 0 18px rgba(255,159,28,.45); } }
+  @keyframes urgentPulse { 50% { box-shadow: 0 0 20px rgba(255,214,10,0.6); } }
+  /* ── PARTNER ANSWER STATUS ── */
+  .partner-status-pill {
+    width: 100%; max-width: 480px; text-align: center;
+    padding: 9px 14px; border-radius: 99px;
+    font-size: 0.78rem; font-weight: 700;
+    background: rgba(255,255,255,0.05); border: 1px solid var(--border);
+    color: var(--muted);
+    transition: background 0.25s, border-color 0.25s, color 0.25s;
+  }
+  .partner-status-pill.answered {
+    background: rgba(0,245,212,0.12); border-color: rgba(0,245,212,0.4); color: var(--cyan);
+  }
+  .who-choice-hint { font-size:.8rem; color:var(--muted); line-height:1.45; text-align:center; }
+  .who-choice-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+  .btn-who-choice { min-height:74px; padding:12px; border:1.5px solid var(--border); border-radius:16px; background:rgba(255,255,255,.05); color:var(--text); font-weight:800; cursor:pointer; transition:all .18s; }
+  .btn-who-choice .who-role { display:block; color:var(--muted); text-transform:uppercase; letter-spacing:.13em; font-size:.62rem; margin-bottom:5px; }
+  .btn-who-choice.selected { border-color:var(--cyan); background:rgba(0,245,212,.14); box-shadow:0 0 20px rgba(0,245,212,.22); }
+  /* ── MOBILE: màn chơi ưu tiên timer, câu hỏi và đáp án ──
+     Header/âm thanh là thông tin phụ trên điện thoại; màn lớn vẫn giữ đầy đủ. */
+  @media (max-width: 700px) {
+    .game-header { display:none; }
+    #app { padding:10px 14px 34px; }
+    #screen-question { gap:12px; }
+    #screen-question > div:first-child { padding:0 2px!important; }
+    .q-round-badge { margin-bottom:0; padding:5px 13px; font-size:.68rem; }
+    .question-card { padding:22px 18px; }
+    .q-text { font-size:clamp(1.2rem,5.8vw,1.6rem); line-height:1.38; }
+    .answer-grid { gap:10px; }
+    .btn-answer { min-height:116px; padding:16px 10px; font-size:clamp(.92rem,4.4vw,1.08rem); }
+    .btn-answer .option-label { margin-bottom:5px; }
+    #btn-submit-choice { padding:16px; }
+    .partner-status-pill { padding:8px 12px; }
+  }
+  /* RESPONSIVE */
+  @media (max-width: 360px) {
+    .logo-text { font-size: 2.2rem; }
+    .q-text { font-size: 1.15rem; }
+    .btn-answer { padding: 18px 12px; font-size: 0.88rem; }
+  }
+</style>
+
+<style>
+.preview-toolbar{position:sticky;top:0;z-index:99999;background:#160b2b;padding:12px 20px;display:flex;gap:8px;align-items:center;flex-wrap:wrap;border-bottom:1px solid #654586;font:13px Arial;color:#fff}
+.preview-toolbar strong{margin-right:auto}.preview-toolbar button{background:#302044;color:white;border:1px solid #785994;border-radius:8px;padding:9px 12px;cursor:pointer}.preview-toolbar button.active{background:#b52775;border-color:#ff89c4}
+.preview-note{text-align:center;color:#c1aacc;font-size:12px;padding:8px}body{overflow-x:hidden}
+body.phone #app{width:390px;max-width:100%;margin:auto;padding:12px 14px 30px;border:1px solid #604376;border-radius:24px}body.phone .game-header{display:none}
+@media(min-width:850px){
+body:not(.phone) #app{padding:0 40px 32px;max-width:1200px;margin:auto;min-height:calc(100vh - 100px)}
+body:not(.phone) .game-header{max-width:1080px;text-align:left;padding:24px 0}.game-header .sound-toggle{right:0}
+body:not(.phone) .screen{max-width:1080px}
+body:not(.phone) #screen-lobby.active{display:grid;grid-template-columns:340px minmax(0,1fr);gap:18px;align-items:start}
+body:not(.phone) #screen-lobby>.card{max-width:none;grid-column:1}
+body:not(.phone) #howto-card-wrap{grid-column:2;grid-row:1 / span 3;width:100%;align-self:stretch}
+body:not(.phone) .howto-card{height:100%;padding:28px;max-height:none}body:not(.phone) .howto-scroll{max-height:none}
+body:not(.phone) #screen-question.active{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(320px,1fr);gap:20px;align-items:stretch}
+body:not(.phone) #screen-question>div:first-child{grid-column:1/-1;max-width:none!important}
+body:not(.phone) #partner-status-pill{grid-column:2;grid-row:2;justify-self:stretch;text-align:center}
+body:not(.phone) #special-badge-wrap{grid-column:1;grid-row:2;max-width:none!important}
+body:not(.phone) .question-card{grid-column:1;grid-row:3 / span 2;max-width:none;min-height:300px;display:flex;align-items:center;padding:40px}
+body:not(.phone) .q-text{font-size:clamp(24px,2.5vw,34px);line-height:1.4;text-align:left}
+body:not(.phone) #answer-grid,body:not(.phone) #who-answer-wrap,body:not(.phone) #answer-text-wrap,body:not(.phone) #status-chosen{grid-column:2;grid-row:3;max-width:none;width:100%;align-self:stretch}
+body:not(.phone) #answer-grid{grid-template-columns:1fr;gap:14px}body:not(.phone) .btn-answer{min-height:116px;font-size:20px;text-align:left;padding:24px}
+body:not(.phone) #btn-submit-choice{grid-column:2;grid-row:4;width:100%;max-width:none;align-self:end}
+body:not(.phone) .btn-who-choice{min-height:150px;font-size:22px}
+body:not(.phone) #screen-result.active{min-height:450px}body:not(.phone) .result-card{max-width:900px;min-height:380px;padding:40px}body:not(.phone) .result-details{width:100%}body:not(.phone) .result-answers{gap:24px}body:not(.phone) .result-ans-box{max-width:320px;padding:24px}body:not(.phone) .rab-val{font-size:24px}
+}
+</style></head>
+<body><nav class="preview-toolbar"><strong>Ăn Ý · Test Demo</strong><button data-view="lobby">Phòng chờ</button><button data-view="choice">Level 1</button><button data-view="who">Level 2</button><button data-view="text">Level 3</button><button data-view="result">Kết quả</button><button id="preview-phone">Xem điện thoại</button></nav><p class="preview-note">Dữ liệu minh họa · Không gửi đáp án vào phòng thật · Chọn màn bất kỳ để duyệt giao diện</p>
+<!-- Animated gradient background -->
+<div class="gradient-bg"></div>
+<!-- Stars bg -->
+<div class="stars" id="stars"></div>
+<!-- Footer credit -->
+<div class="made-by-footer">Made By Nams Thần Sales With <span>♥</span></div>
+<!-- Toast -->
+<div id="toast-container"></div>
+<div class="connection-banner" id="connection-banner" role="status" aria-live="polite"></div>
+<div id="app-loading" role="status" aria-live="polite"><div class="loading-box"><div class="loading-spinner"></div><div id="app-loading-text">Đang kết nối...</div></div></div>
+<!-- Countdown overlay -->
+<div id="countdown-overlay">
+  <span class="countdown-num" id="count-num">3</span>
+  <span class="countdown-label" id="count-label">Chuẩn bị!</span>
+</div>
+<div id="player-level-transition" aria-live="assertive"><section class="player-level-card"><div class="player-level-kicker" id="player-level-kicker">LEVEL UP</div><div class="player-level-title" id="player-level-title">—</div><p class="player-level-rule" id="player-level-rule"></p><div class="player-level-score" id="player-level-score"></div><p class="player-level-wait">Ghi nhớ luật mới · chờ host mở câu tiếp theo</p></section></div>
+<section id="final-wait-screen" aria-live="assertive"><div class="final-wait-card"><span class="final-wait-icon">🏆</span><h1 class="final-wait-title">Mời bạn hướng lên<br>màn hình lớn</h1><p class="final-wait-copy">Cùng vinh danh các đội và chờ khoảnh khắc chung cuộc nhé!</p><p class="final-wait-note">🎁 Một món quà nhỏ sẽ được mở sau phần vinh danh. Đừng vội tắt trình duyệt nhé!</p></div></section>
+<!-- Winner Screen -->
+<div id="winner-screen">
+  <canvas id="confetti-canvas"></canvas>
+  <div class="gift-content" id="gift-content">
+    <div class="gift-intro">
+      <div class="gift-kicker">20 · 10 · 2026</div>
+      <h1 class="gift-title">🎁 Một món quà 20/10 dành cho bạn</h1>
+      <p class="gift-subtitle">Cam on vi da den</p>
+      <button class="gift-box-button" id="btn-open-gift" type="button" aria-label="Mở món quà 20 tháng 10">
+        <span class="gift-bow"><span></span></span><span class="gift-box-lid"></span><span class="gift-box-base"></span><span class="gift-box-ribbon-v"></span><span class="gift-box-ribbon-h"></span>
+      </button>
+      <p class="gift-open-hint">Chạm để mở quà ✨</p>
+    </div>
+    <article class="poem-card" aria-live="polite">
+      <h2 class="poem-title">🌸 Chúc mừng 20.10.26</h2>
+      <div class="poem-divider"></div>
+      <div class="poem-body">
+        <p class="poem-stanza"><span class="poem-line indent">Chúc em <strong>Nhung</strong> gấm lụa là,</span><span class="poem-line">Tiền vào như <strong>Thủy</strong> sông Đà cuộn xoay.</span><span class="poem-line indent">Một đời bình <strong>An</strong> đắm say,</span><span class="poem-line"><strong>Thoan</strong> thả hạnh phúc, đong đầy yêu thương.</span></p>
+        <p class="poem-stanza"><span class="poem-line indent">Chúc em như hè có <strong>Phượng</strong>,</span><span class="poem-line"><strong>Ánh</strong> dương khoe sắc, ngát hương nắng vàng.</span><span class="poem-line indent">Vượt qua muôn dặm trường <strong>Giang</strong>,</span><span class="poem-line">Bến bờ <strong>Hạnh</strong> phúc, giàu sang đợi chờ.</span></p>
+        <p class="poem-stanza"><span class="poem-line indent">Chúc em diễm <strong>Lệ</strong> chẳng mờ,</span><span class="poem-line"><strong>Mai</strong> vàng đón lộc, <strong>Anh</strong> thơ đón nàng.</span><span class="poem-line indent">Thông minh <strong>Linh</strong> mẫn trăm ngàn,</span><span class="poem-line">Thỏa bao ước nguyện, vẹn toàn <strong>Hằng</strong> mong.</span></p>
+        <p class="poem-stanza"><span class="poem-line indent">Chúc em như <strong>Hoa</strong> thắm hồng,</span><span class="poem-line">Dung nhan <strong>Trang</strong> nhã, mặn nồng thanh tao.</span><span class="poem-line indent">Như <strong>Trúc</strong> xanh vươn đến trời cao,</span><span class="poem-line"><strong>Liên</strong> miên tài lộc, dạt dào chẳng vơi.</span></p>
+        <p class="poem-stanza"><span class="poem-line indent">Hai mươi tháng Mười đẹp tươi,</span><span class="poem-line">Chúc cho phái đẹp nụ cười nở hoa.</span><span class="poem-line indent">Trẻ trung, hạnh phúc, kiêu sa,</span><span class="poem-line">Tiền tài, may mắn, nhà nhà ấm êm!</span></p>
+      </div>
+      <p class="poem-signature">From Nams Thần Sales With Lốp</p>
+      <button class="gift-card-action" id="btn-create-personal-card" type="button">💌 Xem thiệp của bạn</button>
+      <button class="gift-history-action" id="btn-open-match-history" type="button">📖 Xem lại ván đấu của đội</button>
+    </article>
+  </div>
+</div>
+<div id="personal-card-modal" role="dialog" aria-modal="true" aria-label="Thiệp 20/10 cá nhân">
+  <section class="personal-card-dialog">
+    <button class="personal-card-close" id="btn-close-personal-card" type="button" aria-label="Đóng thiệp">×</button>
+    <img id="personal-card-preview" alt="Thiệp 20/10 cá nhân">
+    <button class="personal-card-save" id="btn-save-personal-card" type="button">📥 Lưu thiệp về máy</button>
+    <p class="personal-card-hint">Trên iPhone, bạn có thể chọn Chia sẻ → Lưu hình ảnh.</p>
+  </section>
+</div>
+<div id="match-history-modal" role="dialog" aria-modal="true" aria-label="Lịch sử ván đấu">
+  <section class="history-dialog">
+    <div class="history-head">
+      <div><h2 class="history-title">📖 Lịch sử Ăn Ý</h2><p class="history-subtitle" id="history-team-label">Đáp án của đội bạn</p></div>
+      <button class="history-close" id="btn-close-match-history" type="button" aria-label="Đóng lịch sử">×</button>
+    </div>
+    <div class="history-list" id="match-history-list"></div>
+  </section>
+</div>
+<!-- MAIN APP -->
+<div id="app">
+  <!-- HEADER -->
+  <div class="game-header">
+    <button class="sound-toggle" id="sound-toggle" type="button">🔊 Âm thanh</button>
+    <div class="logo-text">❤️ Ăn Ý</div>
+    <div class="logo-sub">Bạn hiểu đồng đội đến đâu?</div>
+  </div>
+  <!-- ── SCREEN: JOIN ── -->
+  <div class="screen active" id="screen-join">
+    <div class="card">
+      <div class="join-hero">
+        <span class="join-heart">🫵</span>
+        <div class="join-tagline">Nhập thông tin để vào phòng</div>
+      </div>
+    </div>
+    <div class="card" style="display:flex;flex-direction:column;gap:16px;">
+      <div>
+        <div class="field-label">Tên của bạn</div>
+        <input class="field-input" id="inp-name" placeholder="Nhập tên bạn..." maxlength="20" autocomplete="off">
+      </div>
+      <div>
+        <div class="field-label">Mã phòng</div>
+        <input class="field-input room-input" id="inp-room" placeholder="XXXXX" maxlength="5" autocomplete="off" autocapitalize="characters">
+      </div>
+      <button class="btn btn-primary" id="btn-join">Vào phòng 🚀</button>
+    </div>
+  </div>
+  <!-- ── SCREEN: LOBBY ── -->
+  <div class="screen" id="screen-lobby">
+    <div class="card text-center">
+      <div class="waiting-pulse">
+        <div class="pulse-ring"><img id="lobby-avatar-img" class="avatar-thumb" src="" alt="Ảnh đại diện của bạn"></div>
+        <div>
+          <div style="font-weight:800;font-size:1.1rem;margin-bottom:4px;">Đã vào phòng! 🎉</div>
+          <div class="waiting-text">Chờ host bắt đầu game...</div>
+        </div>
+      </div>
+      <div class="my-avatar-row" id="my-avatar-row" style="display:none;">
+        <span>Bạn là: <b id="my-avatar-name">—</b></span>
+      </div>
+    </div>
+    <div id="partner-display" class="card" style="display:none;">
+      <div class="field-label" style="margin-bottom:12px;">Đồng đội của bạn</div>
+      <div class="partner-tag">
+        <img id="partner-avatar-img" class="avatar-thumb" style="width:38px;height:38px;display:none;" src="" alt="avatar">
+        <span class="partner-avatar" id="partner-avatar-fallback">💞</span>
+        <div class="partner-info">
+          <div class="partner-lbl">Partner</div>
+          <div class="partner-name" id="partner-name-text">Chưa ghép cặp</div>
+        </div>
+      </div>
+    </div>
+    <!-- TEAM NAME EDITOR -->
+    <div id="team-name-card" class="card team-name-card" style="display:none;">
+      <div class="field-label" style="margin-bottom:2px;">Tên đội của bạn</div>
+      <div class="team-name-display" id="team-name-display-row">
+        <div class="team-name-val" id="team-name-val">Đội 1</div>
+        <button class="btn-edit-name" id="btn-edit-team-name">✏️ Đổi tên</button>
+      </div>
+      <div class="team-name-edit-row" id="team-name-edit-row">
+        <input id="inp-team-name" placeholder="VD: Ahihi cố lên" maxlength="24" autocomplete="off">
+        <button class="btn-save-name" id="btn-save-team-name">Lưu</button>
+      </div>
+    </div>
+    <!-- HOW TO PLAY / DEMO GUIDE -->
+    <div id="howto-card-wrap">
+    <div class="howto-card" id="howto-card">
+      <div class="howto-title">🎮 HƯỚNG DẪN CHƠI NHANH</div>
+      <div class="howto-tabs">
+        <button class="howto-tab-btn active" data-tab="1" onclick="switchHowtoTab(1)">Level 1<br>Thấu Hiểu Nông</button>
+        <button class="howto-tab-btn" data-tab="2" onclick="switchHowtoTab(2)">Level 2<br>Thấu Hiểu Trung</button>
+        <button class="howto-tab-btn" data-tab="3" onclick="switchHowtoTab(3)">Level 3<br>Thấu Hiểu Sâu</button>
+      </div>
+      <div class="howto-scroll">
+        <div class="howto-panel active" id="howto-panel-1">
+          <div class="howto-rule-box">
+            <b>Luật chơi:</b> Trả lời câu hỏi có 2 lựa chọn <b>A hoặc B</b>.<br>
+            Nếu <b>CẢ HAI</b> thành viên cùng chọn đáp án giống nhau → <span class="howto-pts good">+1 điểm</span>.<br>
+            Chọn khác nhau → <span class="howto-pts zero">0 điểm</span>.
+          </div>
+          <div>
+            <div class="howto-demo-label">Thử ngay</div>
+            <div class="howto-demo-q">Nếu mẹ và người yêu cùng rơi xuống nước, bạn sẽ cứu?</div>
+            <div class="howto-demo-grid">
+              <button class="howto-demo-btn" id="demo-l1-a" onclick="demoPickL1('a')">👩 Cứu Mẹ</button>
+              <button class="howto-demo-btn" id="demo-l1-b" onclick="demoPickL1('b')">💑 Cứu Người Yêu</button>
+            </div>
+          </div>
+        </div>
+        <div class="howto-panel" id="howto-panel-2">
+          <div class="howto-rule-box">
+            <b>Luật chơi:</b> Bí mật chọn <b>bạn hoặc đồng đội</b> cho câu hỏi BTC đưa ra.<br>
+            Nếu <b>TRÙNG KHỚP</b> (cùng chọn một người) → <span class="howto-pts good">+2 điểm</span>.<br>
+            Khác nhau → <span class="howto-pts zero">0 điểm</span>.
+          </div>
+          <div>
+            <div class="howto-demo-label">Thử ngay</div>
+            <div class="howto-demo-q">Ai là người hay bắt chuyện trước hơn?</div>
+            <div class="howto-demo-grid">
+              <button class="howto-demo-btn" id="demo-l2-self" onclick="demoPickL2('self')">🙋 Bạn</button>
+              <button class="howto-demo-btn" id="demo-l2-partner" onclick="demoPickL2('partner')">💞 Đồng đội</button>
+            </div>
+          </div>
+        </div>
+        <div class="howto-panel" id="howto-panel-3">
+          <div class="howto-rule-box">
+            <b>Luật chơi:</b> Câu hỏi tự điền đáp án bạn nghĩ ra.<br>
+            Điền khác với đồng đội → <span class="howto-pts zero">0 điểm</span>.<br>
+            Điền trùng câu trả lời với đồng đội → <span class="howto-pts good">+1 điểm</span>.<br>
+            Điền trùng + là đáp án <b>DUY NHẤT</b> (không đội nào khác trùng) → <span class="howto-pts great">+3 điểm 🌟</span>.
+          </div>
+          <div>
+            <div class="howto-demo-label">Thử ngay</div>
+            <div class="howto-demo-q">Hãy điền tên 1 ứng dụng mạng xã hội?</div>
+            <div class="howto-demo-input-row">
+              <input id="demo-l3-input" placeholder="Gõ thử đáp án..." maxlength="30">
+              <button class="howto-demo-send" onclick="demoSendL3()">Gửi thử</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    </div>
+    <!-- /HOW TO PLAY -->
+  </div>
+  <!-- ── SCREEN: QUESTION ── -->
+  <div class="screen" id="screen-question">
+    <div style="width:100%;max-width:480px;display:flex;justify-content:space-between;align-items:center;padding:0 4px;">
+      <div id="round-badge" class="q-round-badge">Câu 1 / 19</div>
+      <div class="timer-wrap"><div class="timer-circle" id="timer-circle">—</div></div>
+    </div>
+    <div class="partner-status-pill" id="partner-status-pill">
+      <span id="partner-status-text">⏳ Đồng đội chưa trả lời...</span>
+    </div>
+    <div id="special-badge-wrap" style="display:none;width:100%;max-width:480px;">
+      <div class="q-special-badge" id="special-badge-text">🌟 Câu ăn điểm đặc biệt · +3 điểm</div>
+    </div>
+    <div class="card question-card">
+      <div class="q-text" id="q-text">...</div>
+    </div>
+    <div class="answer-grid" id="answer-grid">
+      <button class="btn-answer" id="btn-a" onclick="selectChoice('A')">
+        <span class="option-label">Lựa chọn A</span>
+        <span id="opt-a-text">—</span>
+      </button>
+      <button class="btn-answer" id="btn-b" onclick="selectChoice('B')">
+        <span class="option-label">Lựa chọn B</span>
+        <span id="opt-b-text">—</span>
+      </button>
+    </div>
+    <button class="btn btn-primary" id="btn-submit-choice" disabled>Gửi đáp án 📨</button>
+    <div class="card" id="who-answer-wrap" style="display:none;flex-direction:column;gap:12px;">
+      <p class="who-choice-hint">Chọn bí mật người bạn nghĩ phù hợp nhất. Cùng chọn một người là <b>+2 điểm</b>.</p>
+      <div class="who-choice-grid">
+        <button class="btn-who-choice" id="btn-who-self" type="button"><span class="who-role">Bạn</span><span id="who-self-name">—</span></button>
+        <button class="btn-who-choice" id="btn-who-partner" type="button"><span class="who-role">Đồng đội</span><span id="who-partner-name">—</span></button>
+      </div>
+      <button class="btn btn-primary" id="btn-submit-who" disabled>Chốt lựa chọn 🕵️</button>
+    </div>
+    <div class="card" id="answer-text-wrap" style="display:none;flex-direction:column;gap:12px;">
+      <input class="field-input" id="inp-free-answer" placeholder="Nhập đáp án của bạn..." maxlength="60" autocomplete="off">
+      <button class="btn btn-primary" id="btn-submit-free">Gửi đáp án 📨</button>
+    </div>
+    <div class="card status-chosen" id="status-chosen" style="display:none;">
+      <span class="chosen-emoji" id="chosen-emoji">✅</span>
+      <div class="chosen-label" id="chosen-label">Bạn đã chọn</div>
+      <div class="chosen-answer" id="chosen-display">—</div>
+      <div class="chosen-sub" id="chosen-sub">Đang chờ đồng đội trả lời...</div>
+    </div>
+  </div>
+  <!-- ── SCREEN: RESULT ── -->
+  <div class="screen" id="screen-result">
+    <div class="card result-card" id="result-card">
+      <div class="result-reveal-intro" id="result-reveal-intro">🔒 ĐÁP ÁN ĐÃ KHÓA<br>ĐANG MỞ KẾT QUẢ...</div>
+      <div class="result-details" id="result-details">
+        <div class="result-match" id="result-match">—</div>
+        <div class="result-title" id="result-title">—</div>
+        <div class="result-answers" id="result-answers"></div>
+        <div id="result-points-wrap"></div>
+        <p class="result-wait">Chờ host chuyển câu tiếp...</p>
+      </div>
+    </div>
+  </div>
+</div><!-- /app -->
+<!-- Firebase -->
+
+
+
+
+
+
+<script>
+const $=id=>document.getElementById(id);let view='choice';let chosen='Tham gia cùng';
+window.switchHowtoTab=n=>{document.querySelectorAll('.howto-panel').forEach(e=>e.classList.remove('active'));$('howto-panel-'+n).classList.add('active');document.querySelectorAll('.howto-tab-btn').forEach(e=>e.classList.toggle('active',e.dataset.tab==n));};
+window.selectChoice=c=>{chosen=c==='A'?'Tham gia cùng':'Bỏ qua';['a','b'].forEach(x=>$('btn-'+x).classList.toggle('selected',x===c.toLowerCase()));$('btn-submit-choice').disabled=false;};
+function show(v){view=v;$('btn-submit-choice').disabled=true;$('btn-submit-who').disabled=true;['btn-a','btn-b','btn-who-self','btn-who-partner'].forEach(id=>$(id).classList.remove('selected'));document.querySelectorAll('.screen').forEach(e=>e.classList.remove('active'));document.querySelectorAll('[data-view]').forEach(e=>e.classList.toggle('active',e.dataset.view===v));$('screen-'+(v==='lobby'?'lobby':v==='result'?'result':'question')).classList.add('active');
+$('answer-grid').style.display=v==='choice'?'grid':'none';$('btn-submit-choice').style.display=v==='choice'?'block':'none';$('who-answer-wrap').style.display=v==='who'?'flex':'none';$('answer-text-wrap').style.display=v==='text'?'flex':'none';$('status-chosen').style.display='none';$('special-badge-wrap').style.display=v==='choice'?'none':'block';$('special-badge-text').textContent=v==='who'?'🕵️ Cùng chọn một người +2 điểm':'✍️ Trùng ý +1 · Trùng và độc nhất +3';$('timer-circle').textContent='30';$('round-badge').textContent=v==='who'?'Level 2 · Câu 9 / 19':v==='text'?'Level 3 · Câu 19 / 19':'Level 1 · Câu 5 / 19';$('q-text').textContent=v==='who'?'Trong 2 bạn, ai là người khen đồng đội xinh nhưng vẫn thấy mình xinh hơn?':v==='text'?'Kể tên một nam phòng sales (tính cả người cũ, chỉ cần ghi tên, không cần ghi anh/chị/em)':'Có một nhóm đang nấu xói người khác, vừa hay lại là người bạn không thích. Bạn sẽ:';
+$('opt-a-text').textContent='Tham gia cùng';$('opt-b-text').textContent='Bỏ qua';}
+$('lobby-avatar-img').src='assets/avatars/players/nhung.webp';$('my-avatar-row').style.display='flex';$('my-avatar-name').textContent='Nhung';$('partner-display').style.display='block';$('partner-name-text').textContent='Thủy';$('partner-avatar-img').src='assets/avatars/players/thuy.webp';$('partner-avatar-img').style.display='block';$('partner-avatar-fallback').style.display='none';$('team-name-card').style.display='block';$('team-name-val').textContent='Chị em cùng sóng';$('who-self-name').textContent='Nhung';$('who-partner-name').textContent='Thủy';$('partner-status-text').textContent='⏳ Thủy đang chọn đáp án…';$('result-reveal-intro').style.display='none';$('result-details').classList.remove('hidden');$('result-match').textContent='💞';$('result-title').textContent='Ăn ý quá đi!';$('result-answers').innerHTML='<div class="result-ans-box"><div class="rab-label">Nhung</div><div class="rab-val">Tham gia cùng</div></div><div class="result-ans-box"><div class="rab-label">Thủy</div><div class="rab-val">Tham gia cùng</div></div>';$('result-points-wrap').innerHTML='<div class="result-points">+1 điểm cho đội</div>';
+document.querySelectorAll('[data-view]').forEach(b=>b.onclick=()=>show(b.dataset.view));$('preview-phone').onclick=()=>{document.body.classList.toggle('phone');$('preview-phone').textContent=document.body.classList.contains('phone')?'Xem máy tính':'Xem điện thoại';};
+['btn-who-self','btn-who-partner'].forEach(id=>$(id).onclick=()=>{chosen=id==='btn-who-self'?'Nhung':'Thủy';['btn-who-self','btn-who-partner'].forEach(x=>$(x).classList.toggle('selected',x===id));$('btn-submit-who').disabled=false;});['btn-submit-choice','btn-submit-who','btn-submit-free'].forEach(id=>$(id).onclick=()=>{if(id==='btn-submit-free'&&!$('inp-free-answer').value.trim())return;const answer=id==='btn-submit-free'?$('inp-free-answer').value.trim():chosen;const points=id==='btn-submit-who'?2:id==='btn-submit-free'?3:1;show('result');document.querySelectorAll('.rab-val').forEach(e=>e.textContent=answer);$('result-points-wrap').textContent='+'+points+' điểm cho đội · Kết quả minh họa';});
+$('btn-edit-team-name').onclick=()=>{const name=prompt('Tên đội minh họa', $('team-name-val').textContent);if(name&&name.trim())$('team-name-val').textContent=name.trim();};$('sound-toggle').style.display='none';document.querySelectorAll('[onclick^="demo"]').forEach(b=>{b.removeAttribute('onclick');b.disabled=true;b.title='Dùng các nút Level phía trên để thử trả lời';});show('choice');
+
+const previewQuestions = [
+  // ── LEVEL 1: Thấu Hiểu Nông (A/B) ──
+  { level:1, text:"Khóc trên ô tô hay Cười trên xe máy:", a:"Khóc trên ô tô", b:"Cười trên xe máy", special:false },
+  { level:1, text:"Được chọn một, bạn chọn:", a:"Đẹp nhất phòng", b:"Giàu nhất phòng", special:false },
+  { level:1, text:"Đâu là từ đúng theo cách hiểu của bạn:", a:"Menu", b:"Melu", special:false },
+  { level:1, text:"Ai đó nói “Có chuyện này nhưng đừng kể ai”. Bạn sẽ:", a:"Giữ đúng lời hứa", b:"Kể một người cũng dặn vậy", special:false },
+  { level:1, text:"Có một nhóm đang nấu xói người khác, vừa hay lại là người bạn không thích. Bạn sẽ:", a:"Tham gia cùng", b:"Bỏ qua", special:false },
+  { level:1, text:"Biết mình sai nhưng đang cãi rất hăng. Bạn sẽ:", a:"Nhận sai", b:"Tiếp tục cãi", special:false },
+  { level:1, text:"Đang hóng chuyện đến đoạn hay thì tới giờ về. Bạn chọn:", a:"Về đúng giờ", b:"Ở lại vì trách nhiệm", special:false },
+  { level:1, text:"Lựa chọn A là đáp án đúng. Hãy chọn:", a:"Lựa chọn B", b:"Lựa chọn A", special:false },
+  // ── LEVEL 2: Thấu Hiểu Trung (Ai là ai?) ──
+  { level:2, text:"Trong 2 bạn, ai là người cục súc, sẵn sàng chan người khác, không ngán bố con ai?", type:"who_is" },
+  { level:2, text:"Trong 2 bạn, ai là người khen đồng đội xinh nhưng vẫn thấy mình xinh hơn?", type:"who_is" },
+  { level:2, text:"Trong 2 bạn, ai là người hay nấu xói người khác?", type:"who_is" },
+  { level:2, text:"Trong 2 bạn, ai là người hám zai hơn (yêu cái đẹp)?", type:"who_is" },
+  { level:2, text:"Trong 2 bạn, ai là nhà sáng tạo nội dung, suy diễn một tin nhắn thành cả bộ phim?", type:"who_is" },
+  { level:2, text:"Trong 2 bạn, ai là người miệng nói “kệ/bỏ đi” nhưng trong lòng lại để bụng?", type:"who_is" },
+  // ── LEVEL 3: Thấu Hiểu Sâu (Ăn Điểm Cao) ──
+  { level:3, text:"Kể tên một thứ người ta hay “liếm” (ghi trực tiếp, không cần “Cái…..”)", type:"text", special:true },
+  { level:3, text:"Một con vật hay được dùng để chỉ tính cách con người", type:"text", special:true },
+  { level:3, text:"Kể tên một Trợ lý Nhà Máy", type:"text", special:true },
+  { level:3, text:"Kể tên một Giám Đốc Nhà Máy", type:"text", special:true },
+  { level:3, text:"Kể tên một nam phòng sales (tính cả người cũ, chỉ cần ghi tên, không cần ghi anh/chị/em)", type:"text", special:true }
+];
+// Chỉ dành cho bản xem trước, không kết nối dữ liệu phòng chơi.
+(() => {
+  const style = document.createElement('style');
+  style.textContent = `
+    #winner-screen.show { position:relative; inset:auto; min-height:calc(100vh - 100px); z-index:2; }
+    #personal-card-modal.show { position:relative; inset:auto; z-index:3; min-height:calc(100vh - 100px); }
+    #match-history-modal.show { position:relative; inset:auto; z-index:3; min-height:calc(100vh - 100px); }
+    body.phone #match-history-modal { max-width:390px; margin:auto; }
+    body.preview-finale #app { display:none; }
+    body.phone #winner-screen, body.phone #personal-card-modal { max-width:390px; margin:auto; }
+    body.phone .poem-body { font-size:15px; }
+    .preview-card-picker { display:block; text-align:left; color:#61294b; font:700 14px Arial; margin:8px 0 16px; }
+    .preview-card-picker select { display:block; width:100%; margin-top:8px; padding:10px; border:1px solid #c9a6bb; border-radius:10px; background:white; color:#41223b; }
+    #preview-gift-next { margin-top:24px; }
+    @media(min-width:850px) {
+      body:not(.phone) .gift-content { width:min(100%,1040px); }
+      body:not(.phone) .gift-intro { padding:38px 60px; border:1px solid #875077; border-radius:32px; background:rgba(255,255,255,.04); }
+      body:not(.phone) .gift-title { max-width:650px; font-size:38px; }
+      body:not(.phone) .gift-subtitle { max-width:600px; font-size:18px; }
+      body:not(.phone) .poem-card { padding:32px 48px; }
+      body:not(.phone) .gift-content.open { width:min(100%,720px); }
+      body:not(.phone) .poem-body { display:block; font-size:23px; line-height:1.7; }
+      body:not(.phone) .poem-stanza + .poem-stanza { margin-top:24px; }
+      body:not(.phone) .history-dialog { width:min(100%,960px); padding:32px; }
+      body:not(.phone) .history-question { font-size:18px; }
+      body:not(.phone) .history-answer-value { font-size:17px; }
+      body:not(.phone) .poem-title { font-size:40px; }
+      body:not(.phone) .personal-card-dialog { width:min(100%,850px); display:grid; grid-template-columns:minmax(0,420px) minmax(220px,1fr); gap:16px 28px; padding:28px; align-items:start; }
+      body:not(.phone) #personal-card-preview { grid-column:1; grid-row:1 / span 5; max-height:76vh; width:100%; object-fit:contain; box-shadow:none; }
+      body:not(.phone) .personal-card-close { grid-column:2; justify-self:end; }
+      body:not(.phone) .preview-card-picker,body:not(.phone) .personal-card-save,body:not(.phone) .personal-card-hint { grid-column:2; }
+    }
+  `;
+  document.head.appendChild(style);
+  const toolbar = document.querySelector('.preview-toolbar');
+  const normalButtons = [...toolbar.querySelectorAll('[data-view]')];
+  function clearFinale() {
+    document.body.classList.remove('preview-finale');
+    $('winner-screen').classList.remove('show','poem-open');
+    $('personal-card-modal').classList.remove('show');
+    $('match-history-modal').classList.remove('show');
+    $('gift-content').classList.remove('open');
+    toolbar.querySelectorAll('[data-finale]').forEach(b=>b.classList.remove('active'));
+  }
+  function finale(mode) {
+    clearFinale();
+    normalButtons.forEach(b=>b.classList.remove('active'));
+    document.body.classList.add('preview-finale');
+    toolbar.querySelector('[data-finale="'+mode+'"]').classList.add('active');
+    if(mode==='history') {
+      $('match-history-modal').classList.add('show');
+    } else if(mode==='card') {
+      $('personal-card-modal').classList.add('show');
+    } else {
+      $('winner-screen').classList.add('show');
+      if(mode==='poem') {
+        $('winner-screen').classList.add('poem-open');
+        $('gift-content').classList.add('open');
+      }
+    }
+    window.scrollTo(0,0);
+  }
+  [['gift','Mở quà'],['poem','Lời chúc'],['card','Thiệp cá nhân'],['history','Lịch sử']].forEach(([mode,label])=>{
+    const b=document.createElement('button'); b.dataset.finale=mode;b.textContent=label;
+    b.onclick=()=>finale(mode); toolbar.insertBefore(b,$('preview-phone'));
+  });
+  normalButtons.forEach(b=>b.addEventListener('click',clearFinale));
+  const next=document.createElement('button');next.id='preview-gift-next';next.className='gift-card-action';next.textContent='Tiếp tục · Mở quà 20/10 🎁';next.onclick=()=>finale('gift');$('result-details').appendChild(next);
+  document.querySelector('.gift-subtitle').textContent='Cảm ơn vì đã đến';
+  $('btn-open-gift').onclick=()=>finale('poem');
+  $('btn-create-personal-card').onclick=()=>finale('card');
+  $('btn-close-personal-card').onclick=()=>finale('poem');
+  $('btn-open-match-history').onclick=()=>finale('history');
+  $('btn-close-match-history').onclick=()=>finale('poem');
+  const historyButton=document.createElement('button');historyButton.className='gift-history-action';historyButton.textContent='📖 Xem lịch sử minh họa';historyButton.onclick=()=>finale('history');$('result-details').appendChild(historyButton);
+  const escapeHtml=value=>String(value).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const textPairs=[['Kem','Kem'],['Mèo','Cáo'],['Tên minh họa A','Tên minh họa A'],['Tên minh họa B','Tên minh họa C'],['Tuấn','Tuấn']];
+  let total=0;
+  $('match-history-list').innerHTML=previewQuestions.map((q,i)=>{
+    let first,second,points;
+    if(q.level===1){first=q.a;second=i%3===0?q.b:q.a;points=first===second?1:0;}
+    else if(q.level===2){first='Nhung';second=i%3===0?'Thủy':'Nhung';points=first===second?2:0;}
+    else{[first,second]=textPairs[i-14];points=first===second?(i===18?3:1):0;}
+    total+=points;
+    return '<article class="history-round"><div class="history-round-head">Level '+q.level+' · Câu '+(i+1)+'/19</div><div class="history-question">'+escapeHtml(q.text)+'</div><div class="history-answers"><div class="history-answer"><span class="history-answer-name">Nhung</span><span class="history-answer-value">'+escapeHtml(first)+'</span></div><div class="history-answer"><span class="history-answer-name">Thủy</span><span class="history-answer-value">'+escapeHtml(second)+'</span></div></div><div class="history-result '+(points?'match':'miss')+'"><span>'+(points===3?'🌟 Trùng và độc nhất':points?'💞 Ăn ý':'Chưa trùng ý')+'</span><span class="history-points">+'+points+' điểm</span></div></article>';
+  }).join('');
+  $('history-team-label').textContent='Chị em cùng sóng · '+total+' điểm · 19 câu · Đáp án giả lập để xem bố cục, không phải lịch sử của lượt bấm thử.';
+  const people=[['nhung','Nhung'],['thuy','Thủy'],['an','An'],['thoan','Thoan'],['phuong','Phượng'],['anh','Ánh'],['giang','Giang'],['hanh','Hạnh'],['le','Lệ'],['maianh','Mai Anh'],['linh','Linh'],['hang','Hằng'],['hoa','Hoa'],['trang','Trang'],['truc','Trúc'],['lien','Liên']];
+  const label=document.createElement('label');label.className='preview-card-picker';label.textContent='Xem thử thiệp của';
+  const select=document.createElement('select');select.id='preview-card-person';
+  people.forEach(([key,name])=>{const option=document.createElement('option');option.value=key;option.textContent=name;select.appendChild(option);});label.appendChild(select);
+  $('personal-card-preview').after(label);
+  const updateCard=()=>{$('personal-card-preview').src='assets/cards/personal/'+select.value+'.png';$('personal-card-preview').alt='Thiệp 20/10 dành cho '+select.selectedOptions[0].textContent;};
+  select.onchange=updateCard;updateCard();
+  $('btn-save-personal-card').onclick=()=>{const link=document.createElement('a');link.href=$('personal-card-preview').src;link.download='thiep-20-10-'+select.value+'.png';document.body.appendChild(link);link.click();link.remove();};
+  document.querySelector('.personal-card-hint').textContent='Thiệp thiết kế sẵn của dự án. Chọn tên để xem đủ 16 thiệp, hoặc lưu ảnh về máy.';
+})();
+
+// Offline-only controls. No Firebase initialization, reads or writes.
+(() => {
+  const toolbar=document.querySelector('.preview-toolbar');
+  const extra=document.createElement('div');extra.className='preview-toolbar';extra.style.position='relative';
+  extra.innerHTML='<label>Trạng thái <select id="demo-state"><option value="question">Đang trả lời</option><option value="join">Vào phòng</option><option value="waiting">Đã gửi · chờ đồng đội</option><option value="locked">Khóa đáp án</option><option value="match">Ăn ý · +1</option><option value="who">Cùng chọn người · +2</option><option value="unique">Độc nhất · +3</option><option value="miss">Lệch sóng · 0</option><option value="timeout">Hết giờ · thiếu đáp án</option><option value="level2">Chuyển Level 2</option><option value="level3">Chuyển Level 3</option><option value="final">Chờ vinh danh</option></select></label> <label>Câu hỏi <select id="demo-question"></select></label> <a href="test-demo-display.html" style="color:#ffc5e9">Công bố điểm 8 đội / Bảng xếp hạng →</a>';
+  toolbar.after(extra);
+  const style=document.createElement('style');style.textContent='.preview-toolbar select{max-width:300px;padding:8px;border-radius:8px} #player-level-transition.show,#final-wait-screen.show{position:relative;inset:auto;min-height:65vh;z-index:2}body.phone #player-level-transition,body.phone #final-wait-screen{max-width:390px;margin:auto}';document.head.append(style);
+  const reset=()=>{['player-level-transition','final-wait-screen'].forEach(id=>$(id).classList.remove('show'));$('result-reveal-intro').style.display='none';$('result-details').classList.remove('hidden');};
+  toolbar.addEventListener('click',event=>{if(event.target.closest('[data-view],[data-finale]'))reset();},true);
+  const picker=$('demo-question');previewQuestions.forEach((q,i)=>{const o=document.createElement('option');o.value=i;o.textContent=(i+1)+'. '+q.text;picker.append(o);});
+  function question(){
+    reset();const selected=picker.value;const q=previewQuestions[Number(selected)];
+    toolbar.querySelector('[data-view="'+(q.level===1?'choice':q.level===2?'who':'text')+'"]').click();
+    picker.value=selected;
+    $('q-text').textContent=q.text;$('round-badge').textContent='Level '+q.level+' · Câu '+(Number(picker.value)+1)+' / 19';
+    if(q.level===1){$('opt-a-text').textContent=q.a;$('opt-b-text').textContent=q.b;}
+    $('demo-state').value='question';
+  }
+  window.selectChoice=c=>{chosen=c==='A'?$('opt-a-text').textContent:$('opt-b-text').textContent;['a','b'].forEach(x=>$('btn-'+x).classList.toggle('selected',x===c.toLowerCase()));$('btn-submit-choice').disabled=false;};
+  picker.value='4';
+  picker.onchange=question;
+  toolbar.querySelectorAll('[data-view]').forEach(b=>b.addEventListener('click',()=>{
+    const defaults={choice:4,who:9,text:18};
+    if(defaults[b.dataset.view]!==undefined){picker.value=String(defaults[b.dataset.view]);$('round-badge').textContent='Level '+previewQuestions[Number(picker.value)].level+' · Câu '+(Number(picker.value)+1)+' / 19';}
+    $('demo-state').value=b.dataset.view==='result'?'match':'question';
+  }));
+  $('btn-join').onclick=()=>toolbar.querySelector('[data-view="lobby"]').click();
+  $('demo-state').onchange=()=>{
+    const mode=$('demo-state').value;question();$('demo-state').value=mode;
+    if(mode==='question')return;
+    if(mode==='join'){document.querySelectorAll('.screen').forEach(e=>e.classList.remove('active'));$('screen-join').classList.add('active');return;}
+    if(mode==='waiting'){['answer-grid','btn-submit-choice','who-answer-wrap','answer-text-wrap'].forEach(id=>$(id).style.display='none');$('status-chosen').style.display='block';$('chosen-display').textContent=previewQuestions[Number(picker.value)].a||'Nhung';return;}
+    if(mode==='level2'||mode==='level3'||mode==='final'){
+      document.querySelectorAll('.screen').forEach(e=>e.classList.remove('active'));
+      if(mode==='final'){$('final-wait-screen').classList.add('show');return;}
+      const level=mode==='level2'?2:3;$('player-level-transition').classList.add('show');$('player-level-kicker').textContent='LEVEL '+level;$('player-level-title').textContent=level===2?'Thấu Hiểu Trung':'Thấu Hiểu Sâu';$('player-level-rule').textContent=level===2?'Cùng chọn một người: +2 điểm':'Trùng ý: +1 điểm · Trùng và độc nhất: +3 điểm';$('player-level-score').textContent='Điểm minh họa của đội: 12';return;
+    }
+    show('result');$('result-reveal-intro').style.display=mode==='locked'?'block':'none';$('result-details').classList.toggle('hidden',mode==='locked');
+    const points={match:1,who:2,unique:3,miss:0,timeout:0}[mode]||0;
+    $('result-match').textContent=points?'💞':'😅';$('result-title').textContent=mode==='unique'?'Ăn ý và độc nhất!':points?'Ăn ý quá đi!':'Lệch sóng mất rồi!';
+    const answers=mode==='who'?['Nhung','Nhung']:mode==='unique'?['Kem','Kem']:mode==='timeout'?['Tham gia cùng','—']:['Tham gia cùng',points?'Tham gia cùng':'Bỏ qua'];
+    document.querySelectorAll('.rab-val').forEach((el,i)=>el.textContent=answers[i]);$('result-points-wrap').innerHTML='<div class="result-points">+'+points+' điểm cho đội</div><p>Dữ liệu minh họa</p>';
+  };
+})();
+</script></body>
+</html>
