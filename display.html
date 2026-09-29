@@ -364,6 +364,7 @@
   }
 </style>
 <link rel="stylesheet" href="team-tags.css">
+<link rel="stylesheet" href="game-presentation.css">
 </head>
 <body>
 <!-- Nhạc nền theo từng khoảnh khắc trên màn hình lớn. -->
@@ -375,7 +376,7 @@
 <div class="made-by-footer">Made By Nams Thần Sales With <span>♥</span></div>
 <aside class="commentator-bubble" id="commentator-bubble" aria-live="polite"><span id="commentator-text"></span></aside>
 <div id="d-start-countdown" aria-live="assertive"><div class="start-count-label" id="d-start-count-label">Cả đội sẵn sàng?</div><div class="start-count-num" id="d-start-count-num">3</div><div class="start-count-label">Chuẩn bị ăn ý!</div></div>
-<div class="level-transition-overlay" id="d-level-transition" aria-live="assertive"><section class="level-transition-card"><div class="level-transition-kicker" id="d-level-kicker">LEVEL UP</div><div class="level-transition-title" id="d-level-title">—</div><p class="level-transition-rule" id="d-level-rule"></p><div class="level-transition-score" id="d-level-score"></div><p class="level-transition-wait">Cùng ghi nhớ luật mới · chờ host mở câu tiếp theo</p></section></div>
+<div class="level-transition-overlay" id="d-level-transition" aria-live="assertive"><section class="level-transition-card"><div class="level-transition-kicker" id="d-level-kicker">LEVEL UP</div><div class="level-transition-title" id="d-level-title">—</div><p class="level-transition-rule" id="d-level-rule"></p><div class="level-transition-score" id="d-level-score"></div><p class="level-transition-wait">chờ BTC mở câu tiếp theo</p></section></div>
 <div id="top-bar">
   <div class="brand">❤️ Ăn Ý — Màn hình lớn</div>
   <div class="room-pill"><span>Mã phòng</span><strong id="top-room-code">—</strong></div>
@@ -459,6 +460,7 @@
 <script src="avatar-config.js"></script>
 <script src="game-logic.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script src="game-presentation.js"></script>
 <script>
 // ─────────────────────────────────────────
 // STARS (trang trí nhẹ)
@@ -783,8 +785,8 @@ const REVEAL_STEP_MS = 850;
 const REVEAL_READ_MS = 3500;
 const LEVEL_TRANSITION_DELAY_MS = 4500;
 const levelTransitionInfo = {
-  2: { kicker:'LEVEL 2 · THẤU HIỂU TRUNG', title:'🕵️ AI LÀ AI?', rule:'Với mỗi câu, bí mật chọn bạn hoặc đồng đội — người mà bạn thấy phù hợp hơn.', score:'Cùng chọn một người · +2 điểm' },
-  3: { kicker:'LEVEL 3 · THẤU HIỂU SÂU', title:'🌟 ĂN ĐIỂM CAO', rule:'Hai người được trao đổi. Một người chốt một tag chung cho đội; lần chốt đầu tiên được giữ lại.', score:'Trùng đội khác · +1 điểm &nbsp;·&nbsp; Độc nhất · +3 điểm' }
+  2: { kicker:'LEVEL 2 · THẤU HIỂU TRUNG', title:'🕵️ AI LÀ AI?', rule:'Với mỗi câu, bí mật chọn bạn hoặc đồng đội — người mà bạn thấy phù hợp hơn.', score:'Cùng chọn một người · +1 điểm' },
+  3: { kicker:'LEVEL 3 · THẤU HIỂU SÂU', title:'Thấu Hiểu Sâu', rule:'Trao đổi, chốt một đáp án chung · Trùng đội khác +1 · Không trùng đội nào +3', score:'Trùng đội khác · +1 điểm &nbsp;·&nbsp; Độc nhất · +3 điểm' }
 };
 function hideDisplayLevelTransition() { document.getElementById('d-level-transition').classList.remove('show'); }
 function showDisplayLevelTransition(nextLevel) {
@@ -792,7 +794,7 @@ function showDisplayLevelTransition(nextLevel) {
   document.getElementById('d-level-kicker').textContent = info.kicker;
   document.getElementById('d-level-title').textContent = info.title;
   document.getElementById('d-level-rule').textContent = info.rule;
-  document.getElementById('d-level-score').innerHTML = info.score;
+  document.getElementById('d-level-score').textContent = '';
   document.getElementById('d-level-transition').classList.add('show');
   displayTone(nextLevel === 3 ? 784 : 659, .35, .26);
 }
@@ -1077,7 +1079,7 @@ function renderQuestionDisplay(g) {
   const specialEl = document.getElementById('d-special-badge');
   if (qType === 'who_is') {
     specialEl.style.display = 'inline-flex';
-    specialEl.textContent = '🕵️ Ai là ai? · Cùng chọn người +2 điểm';
+    specialEl.textContent = '🕵️ Ai là ai? · Cùng chọn người +1 điểm';
   } else if ((qType === 'text' || qType === 'team_tags')) {
     specialEl.style.display = 'inline-flex';
     specialEl.textContent = '🏷️ Trao đổi trong đội · Trùng đội khác +1 — Độc nhất +3';
@@ -1241,32 +1243,13 @@ function renderCompactRoundLeaderboard(targetId, sorted) {
   target.innerHTML = `<div class="round-compact"><div class="round-compact-head"><span class="round-compact-title">📊 Bảng điểm vừa cập nhật</span><span class="round-compact-sub">${sorted.length} đội</span></div><div class="round-compact-list">${rows}</div></div>`;
 }
 function renderRoundLeaderboard(game) {
-  const withIdx = Object.values(teamsCache).map((t, i) => ({ ...t, _idx: i }));
-  const sorted = withIdx.sort((a, b) => (b.score || 0) - (a.score || 0));
-  // Podium lớn chỉ xuất hiện ở mốc chuyển Level; các round khác dùng bảng gọn
-  // để người chơi nhanh chóng quay lại câu tiếp theo.
-  if (game && game.levelBreak) renderPodiumLeaderboard('d-round-leaderboard', sorted, 'round');
-  else renderCompactRoundLeaderboard('d-round-leaderboard', sorted);
-  const spotlight = document.getElementById('d-leader-spotlight');
-  if (sorted.length > 1 && sorted.every(team => (team.score || 0) === 0)) {
-    spotlight.classList.remove('show');
-    return;
-  }
-  const leader = sorted[0];
-  const comeback = [...withIdx].sort((a,b) => (((b.lastRankChange && b.lastRankChange.delta) || 0) - ((a.lastRankChange && a.lastRankChange.delta) || 0)))[0];
-  const streak = [...withIdx].sort((a,b) => (((b.stats && b.stats.currentStreak) || 0) - ((a.stats && a.stats.currentStreak) || 0)))[0];
-  if (comeback && comeback.lastRankChange && comeback.lastRankChange.delta >= 2) {
-    spotlight.textContent = `🚀 LẬT KÈO: ${teamLabel(comeback)} tăng ${comeback.lastRankChange.delta} hạng!`;
-    spotlight.classList.add('show');
-  } else if (streak && streak.stats && streak.stats.currentStreak >= 2) {
-    spotlight.textContent = `🔥 CHUỖI ĂN Ý: ${teamLabel(streak)} vừa có ${streak.stats.currentStreak} câu trùng ý liên tiếp!`;
-    spotlight.classList.add('show');
-  } else if (leader) {
-    const teamLabel = t => t.teamName || ('Đội ' + (t._idx + 1));
-    spotlight.textContent = `✨ SPOTLIGHT: ${teamLabel(leader)} đang dẫn đầu với ${leader.score || 0} điểm!`;
-    spotlight.classList.add('show');
-  } else spotlight.classList.remove('show');
+  // Cumulative scores and rankings stay private until the final ceremony.
+  document.getElementById('d-round-leaderboard').replaceChildren();
+  document.getElementById('d-round-leaderboard').style.display='none';
+  document.getElementById('d-leader-spotlight').classList.remove('show');
+  document.getElementById('d-leader-spotlight').textContent='';
 }
+
 function rankShiftHtml(team) {
   const change = team.lastRankChange;
   if (!change || !change.delta) return '';
@@ -1289,7 +1272,7 @@ function getAwards(teams) {
   const comeback = by(team => (team.stats && team.stats.bestComeback) || 0);
   return [
     `🏆 Quán quân: ${label(champion)}`,
-    `💞 Ăn ý nhất: ${label(mostMatch)} · ${(mostMatch.stats && mostMatch.stats.matches) || 0} lần`,
+    `b-) Ăn ý nhất: ${label(mostMatch)} · ${(mostMatch.stats && mostMatch.stats.matches) || 0} lần`,
     `🌟 Bậc thầy Level 3: ${label(mostUnique)} · ${(mostUnique.stats && mostUnique.stats.unique) || 0} lần độc nhất`,
     `🚀 Vua lật kèo: ${label(comeback)} · tăng ${(comeback.stats && comeback.stats.bestComeback) || 0} hạng`
   ];
@@ -1298,7 +1281,7 @@ function getTeamJourney(teams) {
   return [...teams].sort((a,b) => (b.score || 0) - (a.score || 0)).map((team, index) => {
     const stats = team.stats || {};
     const label = team.teamName || `Đội ${team._idx + 1}`;
-    return `<div class="journey-card"><b>${index + 1}. ${label}</b><br><span>💞 ${stats.matches || 0} lần · 🔥 chuỗi ${stats.bestStreak || 0} · 🚀 +${stats.bestComeback || 0}</span></div>`;
+    return `<div class="journey-card"><b>${index + 1}. ${label}</b><br><span>b-) ${stats.matches || 0} lần · 🔥 chuỗi ${stats.bestStreak || 0} · 🚀 +${stats.bestComeback || 0}</span></div>`;
   }).join('');
 }
 // ─────────────────────────────────────────
@@ -1360,21 +1343,21 @@ function renderRevealBoard(g, opts={}) {
   if (qType === 'who_is') {
     Object.entries(teams).forEach(([key, team], i) => {
       const r = results[key];
-      rows.push(revealRowHtml(teamLabel(team,i), team.player1, r.a1, team.player2, r.a2, r.match, r.match ? '🕵️ +2' : '😅 0'));
+      rows.push(revealRowHtml(teamLabel(team,i), team.player1, r.a1, team.player2, r.a2, r.match, r.match ? 'b-) +1' : ';xx 0'));
     });
   } else if ((qType === 'text' || qType === 'team_tags')) {
     Object.entries(teams).forEach(([key, team], i) => {
       const r = results[key];
-      let label = '😅 0';
+      let label = ';xx 0';
       if (r.match) {
-        label = r.isUnique ? '🌟 +3 (độc nhất)' : '💞 +1 (trùng đội khác)';
+        label = r.isUnique ? '🌟 +3 (độc nhất)' : 'b-) +1 (trùng đội khác)';
       }
       rows.push(qType === 'team_tags' ? '<div class="reveal-row '+(r.match?'match':'nomatch')+'"><div class="rr-team">'+avatarImg(team.player1,24)+avatarImg(team.player2,24)+teamLabel(team,i)+'</div><div class="rr-ans">Đội chọn: <b>'+(r.a1||'Chưa chốt')+'</b></div><div class="rr-result '+(r.match?'win':'lose')+'">'+label+'</div></div>' : revealRowHtml(teamLabel(team,i), team.player1, r.a1, team.player2, r.a2, r.match, label));
     });
   } else {
     Object.entries(teams).forEach(([key, team], i) => {
       const r = results[key];
-      const label = r.match ? (g.special ? '🌟 +3' : '💞 +1') : '😅 0';
+      const label = r.match ? (g.special ? '🌟 +3' : 'b-) +1') : ';xx 0';
       rows.push(revealRowHtml(teamLabel(team,i), team.player1, resolveChoiceText(r.a1, g), team.player2, resolveChoiceText(r.a2, g), r.match, label));
     });
   }

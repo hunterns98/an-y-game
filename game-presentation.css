@@ -1,0 +1,12 @@
+.zalo-emote{display:inline-block;width:1.4em;height:1.4em;vertical-align:-.28em;background-image:url('assets/emotes/zalo-emoji-md.png');background-size:5100% 4100%;background-repeat:no-repeat;flex-shrink:0}
+.rule-no{color:#ff5c73;font-weight:900}.rule-yes{color:#39dc97;font-weight:900}
+body:has(#screen-lobby.active) .game-header{display:none}
+.matchmaking-card{text-align:center;padding:26px 20px!important;line-height:1.65;color:var(--muted)}
+.matchmaking-card strong{display:block;font-size:1.05rem;color:var(--text);margin-bottom:8px}
+.matchmaking-orbit{font-size:2rem;margin-bottom:12px;animation:matchmakingPulse 2s ease-in-out infinite}
+@keyframes matchmakingPulse{50%{opacity:.5;transform:scale(.94)}}
+#player-level-score,#d-level-score,#d-round-leaderboard,#d-leader-spotlight{display:none!important}
+.result-details.is-match:not(.hidden){display:flex;flex-direction:column;align-items:center}
+.result-details.is-match .result-title{order:-1}
+.result-title{line-height:1.4;text-wrap:balance}
+.final-wait-copy del{text-decoration-thickness:2px}

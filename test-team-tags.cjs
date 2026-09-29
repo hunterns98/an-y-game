@@ -5,8 +5,8 @@ require('./game-logic.js');
 const G=global.GameLogic;
 const questions=Function('return '+fs.readFileSync('admin.html','utf8').match(/const questions = (\[[\s\S]*?\n\]);/)[1])();
 assert.equal(questions.length,19);
-assert.deepEqual(questions.slice(14).map(q=>q.tags.length),[5,6,6,5,5]);
-const original={game:{status:'playing',phase:'answering',type:'team_tags',round:14,level:3,question:questions[14].text,tags:questions[14].tags,answerStartsAt:1000},teams:{},history:{rounds:{0:{preserve:true}}}};
+assert.deepEqual(questions.slice(14).map(q=>q.tags.length),[5,5,6,6,5]);
+const original={game:{status:'playing',phase:'answering',type:'team_tags',round:14,level:3,question:questions[15].text,tags:questions[15].tags,answerStartsAt:1000},teams:{},history:{rounds:{0:{preserve:true}}}};
 for(let i=0;i<8;i++)original.teams['t'+i]={player1:'a'+i,player2:'b'+i,score:10};
 const originalJSON=JSON.stringify(original);
 const req={teamKey:'t0',player:'a0',round:14,answer:'Phúc'};
@@ -33,7 +33,7 @@ assert.equal(G.finalizeTeamTagRound(room,15,5000),null,'No stale reveal');
 const stale={...room.answers,a2:{...room.answers.a2,round:13}};
 assert.equal(G.computeRoundResults(room.game,room.teams,stale).t2.pts,0);
 assert.deepEqual(G.computeChoiceResult('A','A',false),{match:true,pts:1});
-assert.deepEqual(G.computeWhoIsResult('Nhung','nhung'),{match:true,pts:2});
+assert.deepEqual(G.computeWhoIsResult('Nhung','nhung'),{match:true,pts:1});
 for(const file of ['index.html','admin.html','display.html','test-demo.html','test-demo-display.html']){
   for(const m of fs.readFileSync(file,'utf8').matchAll(/<script\b([^>]*)>([\s\S]*?)<\/script>/g))if(!m[1].includes('src='))new Function(m[2]);
 }

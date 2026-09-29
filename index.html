@@ -751,6 +751,7 @@ body #screen-result.active{min-height:450px}body .result-card{max-width:900px;mi
     }
 </style>
 <link rel="stylesheet" href="team-tags.css">
+<link rel="stylesheet" href="game-presentation.css">
 </head>
 <body>
 <!-- Animated gradient background -->
@@ -768,8 +769,8 @@ body #screen-result.active{min-height:450px}body .result-card{max-width:900px;mi
   <span class="countdown-num" id="count-num">3</span>
   <span class="countdown-label" id="count-label">Chuẩn bị!</span>
 </div>
-<div id="player-level-transition" aria-live="assertive"><section class="player-level-card"><div class="player-level-kicker" id="player-level-kicker">LEVEL UP</div><div class="player-level-title" id="player-level-title">—</div><p class="player-level-rule" id="player-level-rule"></p><div class="player-level-score" id="player-level-score"></div><p class="player-level-wait">Ghi nhớ luật mới · chờ host mở câu tiếp theo</p></section></div>
-<section id="final-wait-screen" aria-live="assertive"><div class="final-wait-card"><span class="final-wait-icon">🏆</span><h1 class="final-wait-title">Mời bạn hướng lên<br>màn hình lớn</h1><p class="final-wait-copy">Cùng vinh danh các đội và chờ khoảnh khắc chung cuộc nhé!</p><p class="final-wait-note">🎁 Một món quà nhỏ sẽ được mở sau phần vinh danh. Đừng vội tắt trình duyệt nhé!</p></div></section>
+<div id="player-level-transition" aria-live="assertive"><section class="player-level-card"><div class="player-level-kicker" id="player-level-kicker">LEVEL UP</div><div class="player-level-title" id="player-level-title">—</div><p class="player-level-rule" id="player-level-rule"></p><div class="player-level-score" id="player-level-score"></div><p class="player-level-wait">chờ BTC mở câu tiếp theo</p></section></div>
+<section id="final-wait-screen" aria-live="assertive"><div class="final-wait-card"><span class="final-wait-icon">🏆</span><h1 class="final-wait-title">Mời ce hướng lên màn hình lớn</h1><p class="final-wait-copy">Mình <del>cầm băng đóng</del>... cùng nhau đóng băng khoảnh khắc vinh danh nhé .....!</p><p class="final-wait-note">🎁 Một món quà nhỏ sẽ được mở sau phần vinh danh. Đừng vội tắt trình duyệt ;-x</p></div></section>
 <!-- Winner Screen -->
 <div id="winner-screen">
   <canvas id="confetti-canvas"></canvas>
@@ -820,7 +821,6 @@ body #screen-result.active{min-height:450px}body .result-card{max-width:900px;mi
 <div id="app">
   <!-- HEADER -->
   <div class="game-header">
-    <button class="sound-toggle" id="sound-toggle" type="button">🔊 Âm thanh</button>
     <div class="logo-text">❤️ Ăn Ý</div>
     <div class="logo-sub">Bạn hiểu đồng đội đến đâu?</div>
   </div>
@@ -850,14 +850,15 @@ body #screen-result.active{min-height:450px}body .result-card{max-width:900px;mi
       <div class="waiting-pulse">
         <div class="pulse-ring"><img id="lobby-avatar-img" class="avatar-thumb" src="" alt="Ảnh đại diện của bạn"></div>
         <div>
-          <div style="font-weight:800;font-size:1.1rem;margin-bottom:4px;">Đã vào phòng! 🎉</div>
-          <div class="waiting-text">Chờ host bắt đầu game...</div>
+          <div style="font-weight:800;font-size:1.1rem;margin-bottom:4px;">Đã vào phòng! ;p</div>
+          <div class="waiting-text">Chờ BTC bắt đầu game...</div>
         </div>
       </div>
       <div class="my-avatar-row" id="my-avatar-row" style="display:none;">
         <span>Bạn là: <b id="my-avatar-name">—</b></span>
       </div>
     </div>
+    <div id="matchmaking-card" class="card matchmaking-card"><div class="matchmaking-orbit">🔎</div><strong>BTC đang tìm người phù hợp cho bạn</strong>Chờ một chút nhé, đồng đội của bạn sắp xuất hiện rồi!</div>
     <div id="partner-display" class="card" style="display:none;">
       <div class="field-label" style="margin-bottom:12px;">Đồng đội của bạn</div>
       <div class="partner-tag">
@@ -893,7 +894,7 @@ body #screen-result.active{min-height:450px}body .result-card{max-width:900px;mi
       <div class="howto-scroll">
         <div class="howto-panel active" id="howto-panel-1">
           <div class="howto-rule-box">
-            <b>Luật chơi:</b> Trả lời câu hỏi có 2 lựa chọn <b>A hoặc B</b>.<br>
+            <b>Luật chơi:</b> <strong class="rule-no">KHÔNG ĐƯỢC</strong> trao đổi với đồng đội, chọn đáp án <b>A hoặc B</b>.<br>
             Nếu <b>CẢ HAI</b> thành viên cùng chọn đáp án giống nhau → <span class="howto-pts good">+1 điểm</span>.<br>
             Chọn khác nhau → <span class="howto-pts zero">0 điểm</span>.
           </div>
@@ -908,13 +909,13 @@ body #screen-result.active{min-height:450px}body .result-card{max-width:900px;mi
         </div>
         <div class="howto-panel" id="howto-panel-2">
           <div class="howto-rule-box">
-            <b>Luật chơi:</b> Bí mật chọn <b>bạn hoặc đồng đội</b> cho câu hỏi BTC đưa ra.<br>
-            Nếu <b>TRÙNG KHỚP</b> (cùng chọn một người) → <span class="howto-pts good">+2 điểm</span>.<br>
-            Khác nhau → <span class="howto-pts zero">0 điểm</span>.
+            <b>Luật chơi:</b> <strong class="rule-no">KHÔNG ĐƯỢC</strong> trao đổi với đồng đội, chọn <b>bạn hoặc đồng đội</b> cho câu hỏi BTC đưa ra.<br>
+            Nếu <b>CẢ HAI</b> thành viên cùng chọn đáp án giống nhau → <span class="howto-pts good">+1 điểm</span>.<br>
+            Chọn khác nhau → <span class="howto-pts zero">0 điểm</span>.
           </div>
           <div>
             <div class="howto-demo-label">Thử ngay</div>
-            <div class="howto-demo-q">Ai là người hay bắt chuyện trước hơn?</div>
+            <div class="howto-demo-q">Ai là người hay dỗi hơn?</div>
             <div class="howto-demo-grid">
               <button class="howto-demo-btn" id="demo-l2-self" onclick="demoPickL2('self')">🙋 Bạn</button>
               <button class="howto-demo-btn" id="demo-l2-partner" onclick="demoPickL2('partner')">💞 Đồng đội</button>
@@ -923,12 +924,12 @@ body #screen-result.active{min-height:450px}body .result-card{max-width:900px;mi
         </div>
         <div class="howto-panel" id="howto-panel-3">
           <div class="howto-rule-box">
-            <b>Luật chơi:</b> Hai người được trao đổi và chọn một tag chung cho đội.<br>
-            Một người chốt; lần chốt đầu tiên được giữ lại.<br>
+            <b>Luật chơi:</b> Hai người <strong class="rule-yes">ĐƯỢC</strong> trao đổi và chọn một đáp án chung cho đội.<br>
+            Chỉ một người chốt, lần chốt đầu tiên được giữ lại.<br>
             Trùng đội khác → <span class="howto-pts good">+1 điểm</span>.<br>
-            Không đội nào khác chọn → <span class="howto-pts great">+3 điểm 🌟</span>.<br>
+            Không trùng với đội khác → <span class="howto-pts great">+3 điểm</span>. b-)<br>
             Không chốt trước khi hết giờ → <span class="howto-pts zero">0 điểm</span>.
-          </div><div class="howto-demo-q">💬 Đoán xem cả phòng chọn gì để né trùng! Các lựa chọn được giữ kín đến lúc công bố.</div>
+          </div><div class="howto-demo-q">💬 Đoán xem cả phòng chọn gì để tránh chọn đáp án trùng! Bật mí là bạn có thể tương tác và lừa đội khác để ghi điểm cao.</div>
         </div>
       </div>
     </div>
@@ -962,7 +963,7 @@ body #screen-result.active{min-height:450px}body .result-card{max-width:900px;mi
     </div>
     <button class="btn btn-primary" id="btn-submit-choice" disabled>Gửi đáp án 📨</button>
     <div class="card" id="who-answer-wrap" style="display:none;flex-direction:column;gap:12px;">
-      <p class="who-choice-hint">Chọn bí mật người bạn nghĩ phù hợp nhất. Cùng chọn một người là <b>+2 điểm</b>.</p>
+      <p class="who-choice-hint">Chọn bí mật người bạn nghĩ phù hợp nhất. Cùng chọn một người là <b>+1 điểm</b>.</p>
       <div class="who-choice-grid">
         <button class="btn-who-choice" id="btn-who-self" type="button"><span class="who-role">Bạn</span><span id="who-self-name">—</span></button>
         <button class="btn-who-choice" id="btn-who-partner" type="button"><span class="who-role">Đồng đội</span><span id="who-partner-name">—</span></button>
@@ -973,7 +974,7 @@ body #screen-result.active{min-height:450px}body .result-card{max-width:900px;mi
       <input class="field-input" id="inp-free-answer" placeholder="Nhập đáp án của bạn..." maxlength="60" autocomplete="off">
       <button class="btn btn-primary" id="btn-submit-free">Gửi đáp án 📨</button>
     </div>
-    <div id="team-tags-wrap" class="team-tags-wrap"><p class="team-tags-help">Trao đổi với đồng đội rồi chọn một tag. Một người chốt cho cả đội; không đổi sau khi chốt.</p><div id="team-tags-grid" class="team-tags-grid"></div><button id="btn-submit-team-tag" class="btn btn-primary" disabled>Chốt đáp án cho cả đội</button></div>
+    <div id="team-tags-wrap" class="team-tags-wrap"><p class="team-tags-help">Trao đổi với đồng đội rồi chọn một đáp án. Một người chốt cho cả đội; không đổi sau khi chốt.</p><div id="team-tags-grid" class="team-tags-grid"></div><button id="btn-submit-team-tag" class="btn btn-primary" disabled>Chốt đáp án cho cả đội</button></div>
     <div class="card status-chosen" id="status-chosen" style="display:none;">
       <span class="chosen-emoji" id="chosen-emoji">✅</span>
       <div class="chosen-label" id="chosen-label">Bạn đã chọn</div>
@@ -990,7 +991,7 @@ body #screen-result.active{min-height:450px}body .result-card{max-width:900px;mi
         <div class="result-title" id="result-title">—</div>
         <div class="result-answers" id="result-answers"></div>
         <div id="result-points-wrap"></div>
-        <p class="result-wait">Chờ host chuyển câu tiếp...</p>
+        <p class="result-wait">Chờ BTC chuyển câu tiếp...</p>
       </div>
     </div>
   </div>
@@ -1002,6 +1003,7 @@ body #screen-result.active{min-height:450px}body .result-card{max-width:900px;mi
 <script src="avatar-config.js"></script>
 <script src="game-logic.js"></script>
 <script src="team-tags-player.js"></script>
+<script src="game-presentation.js"></script>
 <script>
 // ─────────────────────────────────────────
 // STARS
@@ -1027,7 +1029,7 @@ body #screen-result.active{min-height:450px}body .result-card{max-width:900px;mi
 // ─────────────────────────────────────────
 const AC = window.AudioContext || window.webkitAudioContext;
 let ac;
-let sfxEnabled = (() => { try { return localStorage.getItem('anygame_sfx') !== 'off'; } catch(e) { return true; } })();
+const sfxEnabled = false; // Player devices stay silent; display owns all shared sound.
 function getAC() {
   if (!ac) ac = new AC();
   if (ac.state === 'suspended') ac.resume();
@@ -1045,17 +1047,7 @@ function playTone(freq, type, dur, vol=0.3) {
     osc.start(); osc.stop(a.currentTime + dur);
   } catch(e){}
 }
-function updateSoundToggle() {
-  const btn = document.getElementById('sound-toggle');
-  btn.textContent = sfxEnabled ? '🔊 Âm thanh' : '🔇 Đã tắt tiếng';
-}
-document.getElementById('sound-toggle').addEventListener('click', () => {
-  sfxEnabled = !sfxEnabled;
-  try { localStorage.setItem('anygame_sfx', sfxEnabled ? 'on' : 'off'); } catch(e) {}
-  if (sfxEnabled) sfxClick();
-  updateSoundToggle();
-});
-updateSoundToggle();
+
 function sfxClick()   { playTone(440, 'sine', 0.12, 0.25); }
 function sfxSuccess() {
   [523, 659, 784, 1047].forEach((f, i) => setTimeout(() => playTone(f,'triangle',0.3,0.35), i*90));
@@ -1238,8 +1230,8 @@ let gameStartCountdownTimer = null;
 const PLAYER_REVEAL_INTRO_MS=700, PLAYER_REVEAL_STEP_MS=850;
 const PLAYER_REVEAL_READ_MS=3500, PLAYER_LEVEL_TRANSITION_DELAY_MS=4500;
 const playerLevelTransitionInfo = {
-  2: { kicker:'LEVEL 2 · THẤU HIỂU TRUNG', title:'🕵️ AI LÀ AI?', rule:'Bí mật chọn bạn hoặc đồng đội — người mà bạn thấy phù hợp hơn.', score:'Cùng chọn một người · +2 điểm' },
-  3: { kicker:'LEVEL 3 · THẤU HIỂU SÂU', title:'🌟 ĂN ĐIỂM CAO', rule:'Hai người được trao đổi. Một người chốt một tag chung cho đội; lần chốt đầu tiên được giữ lại.', score:'Trùng đội khác · +1 điểm · Độc nhất · +3 điểm' }
+  2: { kicker:'LEVEL 2 · THẤU HIỂU TRUNG', title:'🕵️ AI LÀ AI?', rule:'KHÔNG ĐƯỢC trao đổi với đồng đội, chọn bạn hoặc đồng đội cho câu hỏi BTC đưa ra.', score:'Cùng chọn một người · +1 điểm' },
+  3: { kicker:'LEVEL 3 · THẤU HIỂU SÂU', title:'Thấu Hiểu Sâu', rule:'Trao đổi, chốt một đáp án chung · Trùng đội khác +1 · Không trùng đội nào +3', score:'Trùng đội khác · +1 điểm · Độc nhất · +3 điểm' }
 };
 function hidePlayerLevelTransition() { document.getElementById('player-level-transition').classList.remove('show'); }
 function showPlayerLevelTransition(nextLevel) {
@@ -1247,7 +1239,7 @@ function showPlayerLevelTransition(nextLevel) {
   document.getElementById('player-level-kicker').textContent = info.kicker;
   document.getElementById('player-level-title').textContent = info.title;
   document.getElementById('player-level-rule').textContent = info.rule;
-  document.getElementById('player-level-score').textContent = info.score;
+  document.getElementById('player-level-score').textContent = '';
   document.getElementById('player-level-transition').classList.add('show');
 }
 let partnerStatusRef=null, partnerStatusName='', partnerAnswerCache=null;
@@ -1416,7 +1408,7 @@ function joinRoom() {
     const room = snap.val() || {};
     if (room.game && (room.game.status === 'playing' || room.game.status === 'ended')) {
       toast(room.game.status === 'ended'
-        ? '🏁 Ván này đã kết thúc. Hãy chờ host tạo phòng mới nhé.'
+        ? '🏁 Ván này đã kết thúc. Hãy chờ BTC tạo phòng mới nhé.'
         : '🔒 Game đã bắt đầu; phòng hiện không nhận người chơi mới.');
       resetBtn();
       return;
@@ -1462,11 +1454,15 @@ function joinRoom() {
 // ─────────────────────────────────────────
 function findMyTeam() {
   db.ref('rooms/' + myRoom + '/teams').on('value', snap => {
-    const teams = snap.val();
-    if (!teams) return;
+    const teams = snap.val() || {};
+    const paired=Object.values(teams).some(t=>(t.player1===myName||t.player2===myName)&&t.player1&&t.player2);
+    document.getElementById('matchmaking-card').style.display=paired?'none':'block';
+    document.getElementById('partner-display').style.display=paired?'block':'none';
+    document.getElementById('team-name-card').style.display=paired?'block':'none';
+    if(!paired){myTeam=null;myTeamKey=null;}
     teamsCache = teams;
     Object.entries(teams).forEach(([key, team]) => {
-      if (team.player1 === myName || team.player2 === myName) {
+      if ((team.player1 === myName || team.player2 === myName) && team.player1 && team.player2) {
         myTeamKey = key;
         myTeam = team;
         const partner = team.player1 === myName ? team.player2 : team.player1;
@@ -1688,7 +1684,7 @@ function renderQuestion(game, startTimer = true) {
   // Special / free-text badge
   if (qType === 'who_is') {
     document.getElementById('special-badge-wrap').style.display = 'block';
-    document.getElementById('special-badge-text').textContent = '🕵️ Ai là ai? · Cùng chọn người +2 điểm';
+    document.getElementById('special-badge-text').textContent = '🕵️ Ai là ai? · Cùng chọn người +1 điểm';
   } else if ((qType === 'text' || qType === 'team_tags')) {
     document.getElementById('special-badge-wrap').style.display = 'block';
     document.getElementById('special-badge-text').textContent = '🏷️ Trao đổi trong đội · Trùng đội khác +1 — Độc nhất +3';
@@ -1982,19 +1978,10 @@ function showResultForPlayer(game, leaderboardDelay=0) {
       const displayMyAns = qType === 'choice' ? resolveChoiceText(myAns, game) : myAns;
       const displayPAns  = qType === 'choice' ? resolveChoiceText(pAns, game)  : pAns;
 
-      document.getElementById('result-match').textContent = match ? '💞' : '😅';
-      let title;
-      if (match) {
-        if (qType === 'who_is') {
-          title = '🕵️ Trùng khớp! +2 điểm';
-        } else if ((qType === 'text' || qType === 'team_tags')) {
-          title = isUnique ? '🌟 Ăn ý độc nhất!' : '💞 Ăn ý rồi!';
-        } else {
-          title = game.special ? '🌟 Ăn ý đặc biệt!' : '💞 Ăn ý rồi!';
-        }
-      } else {
-        title = 'Chưa ăn ý lần này...';
-      }
+      const copy=GamePresentation.resultCopy({match,isUnique,a1:myAns,a2:pAns});
+      document.getElementById('result-match').textContent=copy.icon;
+      document.getElementById('result-details').classList.toggle('is-match',match && !isUnique);
+      const title=copy.title;
       document.getElementById('result-title').textContent = title;
       document.getElementById('result-title').className = 'result-title ' + (match?'win':'lose');
       document.getElementById('result-answers').innerHTML = `
@@ -2007,7 +1994,6 @@ function showResultForPlayer(game, leaderboardDelay=0) {
           <div class="rab-val">${displayPAns||'—'}</div>
         </div>`;
       if(qType === 'team_tags') {
-        document.getElementById('result-title').textContent=match?(isUnique?'🌟 Đội chọn độc nhất!':'💞 Có đội khác cùng chọn!'):'Đội chưa chốt đáp án';
         document.getElementById('result-answers').innerHTML='<div class="result-ans-box"><div class="rab-label">Đáp án chung của đội</div><div class="rab-val"></div></div>';
         document.querySelector('#result-answers .rab-val').textContent=displayMyAns||'—';
       }
@@ -2045,7 +2031,7 @@ function getPlayerAwards(teams) {
   const comeback = by(team => (team.stats && team.stats.bestComeback) || 0);
   return [
     `🏆 Quán quân: ${label(champion)}`,
-    `💞 Ăn ý nhất: ${label(mostMatch)} · ${(mostMatch.stats && mostMatch.stats.matches) || 0} lần`,
+    `b-) Ăn ý nhất: ${label(mostMatch)} · ${(mostMatch.stats && mostMatch.stats.matches) || 0} lần`,
     `🌟 Bậc thầy Level 3: ${label(mostUnique)} · ${(mostUnique.stats && mostUnique.stats.unique) || 0} lần độc nhất`,
     `🚀 Vua lật kèo: ${label(comeback)} · tăng ${(comeback.stats && comeback.stats.bestComeback) || 0} hạng`
   ];
@@ -2099,13 +2085,13 @@ function renderMatchHistory(rounds) {
     const a1 = escapeHistoryHtml(historyAnswerLabel(team.answer1, item));
     const a2 = escapeHistoryHtml(historyAnswerLabel(team.answer2, item));
     return `<article class="history-round">
-      <div class="history-round-head"><span>${escapeHistoryHtml(historyQuestionLabel(item))}</span><span>${item.type === 'team_tags' ? (matched ? '🏷️ Đã chốt' : '⌛ Chưa chốt') : (matched ? '💞 Ăn ý' : '🤔 Chưa trùng')}</span></div>
+      <div class="history-round-head"><span>${escapeHistoryHtml(historyQuestionLabel(item))}</span><span>${item.type === 'team_tags' ? (matched ? '🏷️ Đã chốt' : '⌛ Chưa chốt') : (matched ? 'b-) Ăn ý' : '🤔 Chưa trùng')}</span></div>
       <p class="history-question">${escapeHistoryHtml(item.question || 'Câu hỏi')}</p>
       <div class="history-answers ${item.type === 'team_tags' ? 'shared-answer' : ''}">
         <div class="history-answer"><span class="history-answer-name">${item.type === 'team_tags' ? 'Đáp án chung của đội' : escapeHistoryHtml(team.player1 || 'Bạn 1')}</span><span class="history-answer-value">${a1}</span></div>
         <div class="history-answer" style="${item.type === 'team_tags' ? 'display:none' : ''}"><span class="history-answer-name">${escapeHistoryHtml(team.player2 || 'Bạn 2')}</span><span class="history-answer-value">${a2}</span></div>
       </div>
-      <div class="history-result ${matched ? 'match' : 'miss'}"><span>${item.type === 'team_tags' ? (matched ? (team.unique ? '🌟 Độc nhất trong phòng!' : '💞 Có đội khác cùng chọn') : 'Đội không chốt đáp án') : (matched ? (team.unique ? '🌟 Trùng độc nhất!' : '💞 Hai bạn đã chọn giống nhau') : 'Hai bạn đã chọn khác nhau')}</span><span class="history-points">+${Number(team.points || 0)} điểm</span></div>
+      <div class="history-result ${matched ? 'match' : 'miss'}"><span>${item.type === 'team_tags' ? (matched ? (team.unique ? '🌟 Độc nhất trong phòng!' : 'b-) Có đội khác cùng chọn') : 'Đội không chốt đáp án') : (matched ? (team.unique ? '🌟 Trùng độc nhất!' : 'b-) Hai bạn đã chọn giống nhau') : 'Hai bạn đã chọn khác nhau')}</span><span class="history-points">+${Number(team.points || 0)} điểm</span></div>
     </article>`;
   }).join('');
 }
@@ -2322,8 +2308,6 @@ function miniConfetti() {
   }
   draw();
 }
-document.addEventListener('touchstart', () => { try{ getAC(); }catch(e){} }, { once:true });
-document.addEventListener('click', () => { try{ getAC(); }catch(e){} }, { once:true });
 </script>
 </body>
 </html>

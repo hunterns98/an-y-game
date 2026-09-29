@@ -358,30 +358,30 @@
   }
 
 body{overflow:auto}nav{position:sticky;top:0;z-index:99999;background:#210b37;padding:16px;display:flex;gap:16px;flex-wrap:wrap;align-items:center}nav a{color:#ffc4e4}select{padding:10px;border-radius:8px}main{max-width:1200px;margin:auto;padding:24px}#d-reveal-board{display:block}#board{margin-top:24px}
-</style></head><body><nav><a href="test-demo.html">← Test Demo người chơi</a><strong>Màn hình lớn · Dữ liệu minh họa</strong><select id="mode" aria-label="Màn hình"><option value="round">Công bố điểm sau câu</option><option value="level">Bảng xếp hạng chuyển level</option><option value="final">Vinh danh chung cuộc</option></select><select id="type" aria-label="Loại câu"><option value="choice">Level 1 · A/B</option><option value="who_is">Level 2 · Ai là ai</option><option value="team_tags">Level 3 · Tag chung</option></select><select id="question" aria-label="Câu Level 3" style="max-width:400px"></select></nav><main><h2 id="question-title"></h2><div id="d-reveal-board"></div><div id="board"></div></main><script>
+</style><link rel="stylesheet" href="game-presentation.css"></head><body><nav><a href="test-demo.html">← Test Demo người chơi</a><strong>Màn hình lớn · Dữ liệu minh họa</strong><select id="mode" aria-label="Màn hình"><option value="round">Công bố điểm sau câu</option><option value="level">Luật chuyển Level 3</option><option value="final">Vinh danh chung cuộc</option></select><select id="type" aria-label="Loại câu"><option value="choice">Level 1 · A/B</option><option value="who_is">Level 2 · Ai là ai</option><option value="team_tags">Level 3 · Tag chung</option></select><select id="question" aria-label="Câu Level 3" style="max-width:400px"></select></nav><main><h2 id="question-title"></h2><div id="d-reveal-board"></div><div id="board"></div></main><script src="game-presentation.js"></script><script>
 const questions=[
   // ── LEVEL 1: Thấu Hiểu Nông (A/B) ──
   { level:1, text:"Khóc trên ô tô hay Cười trên xe máy:", a:"Khóc trên ô tô", b:"Cười trên xe máy", special:false },
-  { level:1, text:"Được chọn một, bạn chọn:", a:"Đẹp nhất phòng", b:"Giàu nhất phòng", special:false },
+  { level:1, text:"Được chọn một, bạn sẽ chọn:", a:"Đẹp nhất phòng", b:"Giàu nhất phòng", special:false },
   { level:1, text:"Đâu là từ đúng theo cách hiểu của bạn:", a:"Menu", b:"Melu", special:false },
-  { level:1, text:"Ai đó nói “Có chuyện này nhưng đừng kể ai”. Bạn sẽ:", a:"Giữ đúng lời hứa", b:"Kể một người cũng dặn vậy", special:false },
+  { level:1, text:"Ai đó nói “T kể chuyện này nhưng m đừng kể ai nhé”. Bạn sẽ:", a:"Giữ đúng lời hứa", b:"Kể một người và cũng dặn thế", special:false },
   { level:1, text:"Có một nhóm đang nấu xói người khác, vừa hay lại là người bạn không thích. Bạn sẽ:", a:"Tham gia cùng", b:"Bỏ qua", special:false },
   { level:1, text:"Biết mình sai nhưng đang cãi rất hăng. Bạn sẽ:", a:"Nhận sai", b:"Tiếp tục cãi", special:false },
   { level:1, text:"Đang hóng chuyện đến đoạn hay thì tới giờ về. Bạn chọn:", a:"Về đúng giờ", b:"Ở lại vì trách nhiệm", special:false },
-  { level:1, text:"Lựa chọn A là đáp án đúng. Hãy chọn:", a:"Lựa chọn B", b:"Lựa chọn A", special:false },
+  { level:1, text:"LỰA CHỌN A là đáp án đúng. Hãy chọn:", a:"LỰA CHỌN B", b:"LỰA CHỌN A", special:false },
   // ── LEVEL 2: Thấu Hiểu Trung (Ai là ai?) ──
-  { level:2, text:"Trong 2 bạn, ai là người cục súc, sẵn sàng chan người khác, không ngán bố con ai?", type:"who_is" },
+  { level:2, text:"Trong 2 bạn, ai là người hát karaoke hay hơn?", type:"who_is" },
+  { level:2, text:'Trong 2 bạn, ai là người ~~hám zai~~ có "gu thẩm mỹ cao" hơn?', type:"who_is" },
+  { level:2, text:'Trong 2 bạn, ai là "chúa hóng", luôn biết tin nóng hổi trong phòng?', type:"who_is" },
+  { level:2, text:"Trong 2 bạn, ai là người miệng nói “kệ/bỏ đi” nhưng tối về nằm nghĩ lại từng câu?", type:"who_is" },
+  { level:2, text:'Trong 2 bạn, ai là "chiến thần bảo kê", động vào đồng đội bạn là bạn chan người đó, không ngại giúp người đó tìm bố?', type:"who_is" },
   { level:2, text:"Trong 2 bạn, ai là người khen đồng đội xinh nhưng vẫn thấy mình xinh hơn?", type:"who_is" },
-  { level:2, text:"Trong 2 bạn, ai là người hay nấu xói người khác?", type:"who_is" },
-  { level:2, text:"Trong 2 bạn, ai là người hám zai hơn (yêu cái đẹp)?", type:"who_is" },
-  { level:2, text:"Trong 2 bạn, ai là nhà sáng tạo nội dung, suy diễn một tin nhắn thành cả bộ phim?", type:"who_is" },
-  { level:2, text:"Trong 2 bạn, ai là người miệng nói “kệ/bỏ đi” nhưng trong lòng lại để bụng?", type:"who_is" },
   // ── LEVEL 3: Thấu Hiểu Sâu (Ăn Điểm Cao) ──
-  {"level":3,"text":"Say lắm rồi, không uống nổi nữa… 🤢 Đồng nghiệp đang cầu cứu, không được cứu là gặp chị Huê ngay! Bạn chọn cứu ai?","type":"team_tags","tags":["Phúc","Thắng","Nam","Tuấn","Long"]},
-  {"level":3,"text":"Ôi không, đơn hàng của bạn đang căng quá! Các anh dưới đây đều xin giãn hạn giao. Bạn chọn “du di” cho ai?","type":"team_tags","tags":["Cảnh","Đô","Hồng","Huy","Khoát","Đức Anh"]},
-  {"level":3,"text":"Nay liên hoan vui quá! Bạn quyết định mời một anh uống ly rượu giao bôi. Người được chọn là…","type":"team_tags","tags":["Kim Dương","Xuân Bách","Văn Hiệu","Đức Thăng","Tú Tài Tử","Xuân Cờ"]},
-  {"level":3,"text":"Vòng hồi sinh đã đến! Bạn có một suất đưa một nam đồng nghiệp từng làm phòng Sales trở lại. Bạn chọn ai?","type":"team_tags","tags":["Jack Sơn","Charlie Chính","Quinn Quân","Harry Nam","Năng Khiên"]},
-  {"level":3,"text":"Cả phòng giao cho đội bạn quyết định địa điểm du lịch. Kinh phí không phải nghĩ! Bạn chọn đi đâu?","type":"team_tags","tags":["Hà Nội","Đà Nẵng","Ninh Bình","Nha Trang","Phú Quốc"]}
+  {"level":3,"text":"Bạn được bầu cử để lựa chọn địa điểm đi du lịch của phòng, chi phí không phải lăn tăn (chị Rít không nói thế). Bạn sẽ chọn:","type":"team_tags","tags":["Hà Nội","Đà Nẵng","Ninh Bình","Nha Trang","Phú Quốc"]},
+  {"level":3,"text":"1 ly nữa thôi là liverphun. Người dưới đây cũng như bạn. Dù đau lòng nhưng bạn vẫn đành phải chọn để họ gánh hộ (sau này người đó sẽ hiểu mọi điều bạn làm đều là vì bạn):","type":"team_tags","tags":["Phúc","Tuấn","Nam","Thắng","Long"]},
+  {"level":3,"text":"Ôi không, đơn hàng của bạn đang căng quá! Các anh dưới đây đều xin giãn hạn giao. Bạn chọn “hỗ trợ xin” cho ai?:","type":"team_tags","tags":["Cảnh","Đô","Hồng","Huy","Khoát","Đức Anh"]},
+  {"level":3,"text":"Nay liên hoan vui quá, bạn quyết định mời một anh uống ly rượu giao bôi. Người được chọn là anh…:","type":"team_tags","tags":["Xuân Cờ","Kim Dương","Xuân Bách","Văn Hiệu","Đức Thăng","Tú Tài Tử"]},
+  {"level":3,"text":"Vòng hồi sinh đã đến! Bạn có một suất đưa một nam đồng nghiệp từng làm phòng Sales trở lại (chị Rít không nói thế). Bạn chọn ai?:","type":"team_tags","tags":["Jack Sơn","Charlie Chính","Quinn Quân","Harry Nam","Năng Khiên"]}
 ].filter(q=>q.type==='team_tags');
 questions.forEach((q,i)=>{const o=document.createElement('option');o.value=i;o.textContent='Câu '+(i+15)+': '+q.text;document.getElementById('question').append(o);});
 window.normalizeAnswer =  function(str) {
@@ -448,7 +448,7 @@ window.normalizeAnswer =  function(str) {
     var n1 = normalizeAnswer(a1);
     var n2 = normalizeAnswer(a2);
     var match = !!(n1 && n2 && n1 === n2);
-    var pts = match ? 2 : 0;
+    var pts = match ? 1 : 0;
     return { match: match, pts: pts };
   }
 
@@ -705,21 +705,21 @@ function renderRevealBoard(g, opts={}) {
   if (qType === 'who_is') {
     Object.entries(teams).forEach(([key, team], i) => {
       const r = results[key];
-      rows.push(revealRowHtml(teamLabel(team,i), team.player1, r.a1, team.player2, r.a2, r.match, r.match ? '🕵️ +2' : '😅 0'));
+      rows.push(revealRowHtml(teamLabel(team,i), team.player1, r.a1, team.player2, r.a2, r.match, r.match ? 'b-) +1' : ';xx 0'));
     });
   } else if ((qType === 'text' || qType === 'team_tags')) {
     Object.entries(teams).forEach(([key, team], i) => {
       const r = results[key];
-      let label = '😅 0';
+      let label = ';xx 0';
       if (r.match) {
-        label = r.isUnique ? '🌟 +3 (độc nhất)' : '💞 +1 (trùng đội khác)';
+        label = r.isUnique ? '🌟 +3 (độc nhất)' : 'b-) +1 (trùng đội khác)';
       }
       rows.push(qType === 'team_tags' ? '<div class="reveal-row '+(r.match?'match':'nomatch')+'"><div class="rr-team">'+avatarImg(team.player1,24)+avatarImg(team.player2,24)+teamLabel(team,i)+'</div><div class="rr-ans">Đội chọn: <b>'+(r.a1||'Chưa chốt')+'</b></div><div class="rr-result '+(r.match?'win':'lose')+'">'+label+'</div></div>' : revealRowHtml(teamLabel(team,i), team.player1, r.a1, team.player2, r.a2, r.match, label));
     });
   } else {
     Object.entries(teams).forEach(([key, team], i) => {
       const r = results[key];
-      const label = r.match ? (g.special ? '🌟 +3' : '💞 +1') : '😅 0';
+      const label = r.match ? (g.special ? '🌟 +3' : 'b-) +1') : ';xx 0';
       rows.push(revealRowHtml(teamLabel(team,i), team.player1, resolveChoiceText(r.a1, g), team.player2, resolveChoiceText(r.a2, g), r.match, label));
     });
   }
@@ -748,7 +748,8 @@ function draw(){
  document.getElementById('d-reveal-board').style.display=mode==='round'?'block':'none';
  const results=GameLogic.computeRoundResults(game,teamsCache,answersCache);
  const sorted=Object.entries(teamsCache).map(([key,t])=>({...t,score:t.score+results[key].pts})).sort((a,b)=>b.score-a.score);
- if(mode==='round'){renderRevealBoard(game);renderCompactRoundLeaderboard('board',sorted);}
+ if(mode==='round'){renderRevealBoard(game);document.getElementById('board').replaceChildren();}
+ else if(mode==='level'){document.getElementById('board').innerHTML='<section class="level-transition-card"><h2>Thấu Hiểu Sâu</h2><p>Trao đổi, chốt một đáp án chung · Trùng đội khác +1 · Không trùng đội nào +3</p><p>chờ BTC mở câu tiếp theo</p></section>';}
  else {renderPodiumLeaderboard('board',sorted,mode==='final'?'final':'round');document.querySelectorAll('.podium-card,.lb-rest-row').forEach(el=>el.classList.add('is-revealed','is-name-revealed','is-score-grown'));}
 }
 document.querySelectorAll('select').forEach(el=>el.onchange=draw);draw();

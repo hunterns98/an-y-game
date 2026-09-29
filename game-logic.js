@@ -50,7 +50,7 @@
     var n1 = normalizeAnswer(a1);
     var n2 = normalizeAnswer(a2);
     var match = !!(n1 && n2 && n1 === n2);
-    var pts = match ? 2 : 0;
+    var pts = match ? 1 : 0;
     return { match: match, pts: pts };
   }
 
