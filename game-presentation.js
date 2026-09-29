@@ -7,7 +7,15 @@
     if(isUnique) return {title:'Không biết ai dạy, nhưng hai bà học cùng lớp /-ok',icon:'b-)'};
     return {title:'Chuẩn luôn. Đúng chị em guột ;p',icon:'💞'};
   };
-  global.GamePresentation={resultCopy};
+  const nameParts=value=>Array.from(new Intl.Segmenter('vi',{granularity:'grapheme'}).segment(value),part=>part.segment);
+  const teamNameLength=value=>nameParts(value).length;
+  function updateTeamNameInput(){
+    const input=document.getElementById('inp-team-name');
+    if(!input)return;
+    input.value=nameParts(input.value).slice(0,20).join('');
+    document.getElementById('team-name-count').textContent=teamNameLength(input.value)+'/20 ký tự';
+  }
+  global.GamePresentation={resultCopy,teamNameLength,updateTeamNameInput};
   const pattern=/~~hám zai~~|b-\)|;xx|;p|\/-ok|;-x/g;
   function render(root){
     const walker=document.createTreeWalker(root,NodeFilter.SHOW_TEXT);
@@ -32,6 +40,12 @@
     }
   }
   if(typeof document==='undefined')return;
+  const nameInput=document.getElementById('inp-team-name');
+  if(nameInput){
+    nameInput.addEventListener('input',event=>{if(!event.isComposing)updateTeamNameInput()});
+    nameInput.addEventListener('compositionend',updateTeamNameInput);
+    updateTeamNameInput();
+  }
   const observer=new MutationObserver(records=>{
     observer.disconnect();
     const roots=new Set();

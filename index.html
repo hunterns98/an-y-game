@@ -878,8 +878,9 @@ body #screen-result.active{min-height:450px}body .result-card{max-width:900px;mi
         <button class="btn-edit-name" id="btn-edit-team-name">✏️ Đổi tên</button>
       </div>
       <div class="team-name-edit-row" id="team-name-edit-row">
-        <input id="inp-team-name" placeholder="VD: Ahihi cố lên" maxlength="24" autocomplete="off">
+        <input id="inp-team-name" placeholder="VD: Ahihi cố lên" aria-label="Tên đội" aria-describedby="team-name-count" autocomplete="off">
         <button class="btn-save-name" id="btn-save-team-name">Lưu</button>
+        <small id="team-name-count" aria-live="polite">0/20 ký tự</small>
       </div>
     </div>
     <!-- HOW TO PLAY / DEMO GUIDE -->
@@ -2203,6 +2204,7 @@ document.getElementById('btn-edit-team-name').addEventListener('click', () => {
   document.getElementById('inp-team-name').value =
     (document.getElementById('team-name-val').textContent || '').trim();
   document.getElementById('team-name-edit-row').classList.add('show');
+  GamePresentation.updateTeamNameInput();
   document.getElementById('inp-team-name').focus();
 });
 document.getElementById('btn-save-team-name').addEventListener('click', saveTeamName);
@@ -2210,6 +2212,7 @@ document.getElementById('inp-team-name').addEventListener('keypress', e => { if 
 function saveTeamName() {
   const val = document.getElementById('inp-team-name').value.trim();
   if (!val) { toast('⚠️ Nhập tên đội trước đã!'); return; }
+  if (GamePresentation.teamNameLength(val)>20) { toast('⚠️ Tên đội tối đa 20 ký tự.'); return; }
   if (!myTeamKey) return;
   const newKey = normalizeAnswer(val);
   if (!newKey) { toast('⚠️ Tên đội không hợp lệ, thử tên khác!'); return; }
