@@ -1217,9 +1217,12 @@ async function revealTeamTagAnswers() {
   const button=document.getElementById('btn-reveal'); button.disabled=true;
   const round=gameCache.round, ref=db.ref('rooms/'+roomCode);
   try {
-    await ref.once('value');
-    const result=await ref.transaction(room=>GameLogic.finalizeTeamTagRound(room,round,serverNow()) || undefined,undefined,false);
-    if(!result.committed) throw Error('Câu đã công bố hoặc host đã chuyển câu.');
+    const result=await GameLogic.transactRoom(ref,room=>GameLogic.finalizeTeamTagRound(room,round,serverNow()) || undefined);
+    if(!result.committed) {
+      const latest=result.snapshot.val();
+      if(latest && latest.game && latest.game.round===round && latest.game.revealed) { toast('✅ Câu này đã được công bố.'); return; }
+      throw Error(latest && latest.game && latest.game.round!==round ? 'BTC đã chuyển sang câu khác.' : 'Chưa thể công bố. Hãy kiểm tra kết nối và thử lại.');
+    }
     toast('✅ Đã chốt điểm chung và lịch sử của các đội!');
   } catch(error) { toast('❌ '+error.message); }
   finally { if(gameCache && !gameCache.revealed) button.disabled=false; }

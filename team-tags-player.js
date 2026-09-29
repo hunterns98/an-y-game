@@ -41,9 +41,7 @@ document.getElementById('btn-submit-team-tag').onclick = async () => {
   document.querySelectorAll('#team-tags-wrap button').forEach(b=>b.disabled=true);
   document.getElementById('btn-submit-team-tag').textContent='⏳ Đang chốt...';
   try {
-    // Seed the complete transaction location before the first update callback.
-    await ref.once('value');
-    const result = await ref.transaction(room=>GameLogic.commitTeamTagAnswer(room,request,serverNow()) || undefined, undefined, false);
+    const result = await GameLogic.transactRoom(ref,room=>GameLogic.commitTeamTagAnswer(room,request,serverNow()) || undefined);
     const room = result.snapshot.val();
     const saved = room && room.answers && room.answers[myName];
     if (saved && saved.round === request.round && currentRound === request.round) {

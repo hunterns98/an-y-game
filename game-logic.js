@@ -196,7 +196,23 @@
     return {...room,game,teams,history:{...room.history,rounds:{...(room.history && room.history.rounds),[round]:historyRound}}};
   }
 
+  // Keep the full room cached throughout the transaction. A one-shot read can
+  // be evicted before its update callback when only child listeners remain.
+  async function transactRoom(ref, update) {
+    let listener;
+    try {
+      await new Promise((resolve, reject) => {
+        listener = snapshot => resolve(snapshot);
+        ref.on('value', listener, reject);
+      });
+      return await ref.transaction(update, undefined, false);
+    } finally {
+      if (listener) ref.off('value', listener);
+    }
+  }
+
   global.GameLogic = {
+    transactRoom: transactRoom,
     commitTeamTagAnswer: commitTeamTagAnswer,
     finalizeTeamTagRound: finalizeTeamTagRound,
     computeChoiceResult: computeChoiceResult,
