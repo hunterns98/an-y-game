@@ -1,0 +1,10 @@
+.team-tags-wrap{display:none;flex-direction:column;gap:14px;width:100%;max-width:480px}
+.team-tags-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.btn-team-tag{padding:16px 12px;min-height:68px;border:2px solid #765184;border-radius:16px;background:#291639;color:#fff;font-family:inherit;font-weight:700;font-size:17px;cursor:pointer;overflow-wrap:anywhere}
+.btn-team-tag.selected{border-color:#ff80ba;background:#792551;box-shadow:0 0 0 2px #ff80ba55}
+.btn-team-tag:disabled{cursor:default;opacity:.65}
+.team-tags-help{margin:0;text-align:center;color:#edd3e7;font-size:14px;line-height:1.5}
+.display-team-tags{display:flex;flex-wrap:wrap;justify-content:center;gap:12px;margin-top:18px}
+.display-team-tags span{padding:12px 20px;background:#3e2058;border:1px solid #a674ba;border-radius:16px;color:white;font-weight:700}
+.shared-answer{grid-template-columns:1fr!important}
+@media(min-width:850px){body:not(.phone) .team-tags-wrap{grid-column:2;grid-row:3 / span 2;max-width:none;align-self:start}body:not(.phone) .btn-team-tag{min-height:84px;font-size:20px}}

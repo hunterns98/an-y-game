@@ -363,6 +363,7 @@
     .timer-circle { width: 76px; height: 76px; font-size: 1.6rem; }
   }
 </style>
+<link rel="stylesheet" href="team-tags.css">
 </head>
 <body>
 <!-- Nhạc nền theo từng khoảnh khắc trên màn hình lớn. -->
@@ -783,7 +784,7 @@ const REVEAL_READ_MS = 3500;
 const LEVEL_TRANSITION_DELAY_MS = 4500;
 const levelTransitionInfo = {
   2: { kicker:'LEVEL 2 · THẤU HIỂU TRUNG', title:'🕵️ AI LÀ AI?', rule:'Với mỗi câu, bí mật chọn bạn hoặc đồng đội — người mà bạn thấy phù hợp hơn.', score:'Cùng chọn một người · +2 điểm' },
-  3: { kicker:'LEVEL 3 · THẤU HIỂU SÂU', title:'🌟 ĂN ĐIỂM CAO', rule:'Tự nhập một đáp án ngắn theo ý bạn. Hãy hiểu nhau thật sâu để trả lời trùng khớp.', score:'Trùng ý · +1 điểm &nbsp;·&nbsp; Trùng ý duy nhất · +3 điểm' }
+  3: { kicker:'LEVEL 3 · THẤU HIỂU SÂU', title:'🌟 ĂN ĐIỂM CAO', rule:'Hai người được trao đổi. Một người chốt một tag chung cho đội; lần chốt đầu tiên được giữ lại.', score:'Trùng đội khác · +1 điểm &nbsp;·&nbsp; Độc nhất · +3 điểm' }
 };
 function hideDisplayLevelTransition() { document.getElementById('d-level-transition').classList.remove('show'); }
 function showDisplayLevelTransition(nextLevel) {
@@ -1077,9 +1078,9 @@ function renderQuestionDisplay(g) {
   if (qType === 'who_is') {
     specialEl.style.display = 'inline-flex';
     specialEl.textContent = '🕵️ Ai là ai? · Cùng chọn người +2 điểm';
-  } else if (qType === 'text') {
+  } else if ((qType === 'text' || qType === 'team_tags')) {
     specialEl.style.display = 'inline-flex';
-    specialEl.textContent = '✍️ Câu tự nhập · Trùng ý +1 — Trùng & độc nhất +3';
+    specialEl.textContent = '🏷️ Trao đổi trong đội · Trùng đội khác +1 — Độc nhất +3';
   } else if (g.special) {
     specialEl.style.display = 'inline-flex';
     specialEl.textContent = '🌟 Câu ăn điểm đặc biệt · +3 điểm';
@@ -1095,6 +1096,10 @@ function renderQuestionDisplay(g) {
   } else {
     optsRow.style.display = 'none';
   }
+  let tagsEl=document.getElementById('d-team-tags');
+  if(!tagsEl){tagsEl=document.createElement('div');tagsEl.id='d-team-tags';tagsEl.className='display-team-tags';optsRow.after(tagsEl);}
+  tagsEl.replaceChildren();
+  if(qType === 'team_tags') (g.tags || []).forEach(tag=>{const span=document.createElement('span');span.textContent=tag;tagsEl.append(span);});
   const remainingQuestions = Math.max(0, Number(g.totalRounds || 19) - Number(g.round || 0));
   const endingNotice = document.getElementById('d-game-ending-notice');
   if (remainingQuestions > 0 && remainingQuestions <= 2) {
@@ -1357,14 +1362,14 @@ function renderRevealBoard(g, opts={}) {
       const r = results[key];
       rows.push(revealRowHtml(teamLabel(team,i), team.player1, r.a1, team.player2, r.a2, r.match, r.match ? '🕵️ +2' : '😅 0'));
     });
-  } else if (qType === 'text') {
+  } else if ((qType === 'text' || qType === 'team_tags')) {
     Object.entries(teams).forEach(([key, team], i) => {
       const r = results[key];
       let label = '😅 0';
       if (r.match) {
         label = r.isUnique ? '🌟 +3 (độc nhất)' : '💞 +1 (trùng đội khác)';
       }
-      rows.push(revealRowHtml(teamLabel(team,i), team.player1, r.a1, team.player2, r.a2, r.match, label));
+      rows.push(qType === 'team_tags' ? '<div class="reveal-row '+(r.match?'match':'nomatch')+'"><div class="rr-team">'+avatarImg(team.player1,24)+avatarImg(team.player2,24)+teamLabel(team,i)+'</div><div class="rr-ans">Đội chọn: <b>'+(r.a1||'Chưa chốt')+'</b></div><div class="rr-result '+(r.match?'win':'lose')+'">'+label+'</div></div>' : revealRowHtml(teamLabel(team,i), team.player1, r.a1, team.player2, r.a2, r.match, label));
     });
   } else {
     Object.entries(teams).forEach(([key, team], i) => {

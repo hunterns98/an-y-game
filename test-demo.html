@@ -711,6 +711,7 @@
   }
 </style>
 
+<link rel="stylesheet" href="team-tags.css">
 <style>
 .preview-toolbar{position:sticky;top:0;z-index:99999;background:#160b2b;padding:12px 20px;display:flex;gap:8px;align-items:center;flex-wrap:wrap;border-bottom:1px solid #654586;font:13px Arial;color:#fff}
 .preview-toolbar strong{margin-right:auto}.preview-toolbar button{background:#302044;color:white;border:1px solid #785994;border-radius:8px;padding:9px 12px;cursor:pointer}.preview-toolbar button.active{background:#b52775;border-color:#ff89c4}
@@ -908,19 +909,12 @@ body:not(.phone) #screen-result.active{min-height:450px}body:not(.phone) .result
         </div>
         <div class="howto-panel" id="howto-panel-3">
           <div class="howto-rule-box">
-            <b>Luật chơi:</b> Câu hỏi tự điền đáp án bạn nghĩ ra.<br>
-            Điền khác với đồng đội → <span class="howto-pts zero">0 điểm</span>.<br>
-            Điền trùng câu trả lời với đồng đội → <span class="howto-pts good">+1 điểm</span>.<br>
-            Điền trùng + là đáp án <b>DUY NHẤT</b> (không đội nào khác trùng) → <span class="howto-pts great">+3 điểm 🌟</span>.
-          </div>
-          <div>
-            <div class="howto-demo-label">Thử ngay</div>
-            <div class="howto-demo-q">Hãy điền tên 1 ứng dụng mạng xã hội?</div>
-            <div class="howto-demo-input-row">
-              <input id="demo-l3-input" placeholder="Gõ thử đáp án..." maxlength="30">
-              <button class="howto-demo-send" onclick="demoSendL3()">Gửi thử</button>
-            </div>
-          </div>
+            <b>Luật chơi:</b> Hai người được trao đổi và chọn một tag chung cho đội.<br>
+            Một người chốt; lần chốt đầu tiên được giữ lại.<br>
+            Trùng đội khác → <span class="howto-pts good">+1 điểm</span>.<br>
+            Không đội nào khác chọn → <span class="howto-pts great">+3 điểm 🌟</span>.<br>
+            Không chốt trước khi hết giờ → <span class="howto-pts zero">0 điểm</span>.
+          </div><div class="howto-demo-q">💬 Đoán xem cả phòng chọn gì để né trùng! Các lựa chọn được giữ kín đến lúc công bố.</div>
         </div>
       </div>
     </div>
@@ -965,6 +959,7 @@ body:not(.phone) #screen-result.active{min-height:450px}body:not(.phone) .result
       <input class="field-input" id="inp-free-answer" placeholder="Nhập đáp án của bạn..." maxlength="60" autocomplete="off">
       <button class="btn btn-primary" id="btn-submit-free">Gửi đáp án 📨</button>
     </div>
+    <div id="team-tags-wrap" class="team-tags-wrap"><p class="team-tags-help">Trao đổi với đồng đội rồi chọn một tag. Một người chốt cho cả đội; không đổi sau khi chốt.</p><div id="team-tags-grid" class="team-tags-grid"></div><button id="btn-submit-team-tag" class="btn btn-primary" disabled>Chốt đáp án cho cả đội</button></div>
     <div class="card status-chosen" id="status-chosen" style="display:none;">
       <span class="chosen-emoji" id="chosen-emoji">✅</span>
       <div class="chosen-label" id="chosen-label">Bạn đã chọn</div>
@@ -987,6 +982,7 @@ body:not(.phone) #screen-result.active{min-height:450px}body:not(.phone) .result
   </div>
 </div><!-- /app -->
 <!-- Firebase -->
+
 
 
 
@@ -1023,11 +1019,11 @@ const previewQuestions = [
   { level:2, text:"Trong 2 bạn, ai là nhà sáng tạo nội dung, suy diễn một tin nhắn thành cả bộ phim?", type:"who_is" },
   { level:2, text:"Trong 2 bạn, ai là người miệng nói “kệ/bỏ đi” nhưng trong lòng lại để bụng?", type:"who_is" },
   // ── LEVEL 3: Thấu Hiểu Sâu (Ăn Điểm Cao) ──
-  { level:3, text:"Kể tên một thứ người ta hay “liếm” (ghi trực tiếp, không cần “Cái…..”)", type:"text", special:true },
-  { level:3, text:"Một con vật hay được dùng để chỉ tính cách con người", type:"text", special:true },
-  { level:3, text:"Kể tên một Trợ lý Nhà Máy", type:"text", special:true },
-  { level:3, text:"Kể tên một Giám Đốc Nhà Máy", type:"text", special:true },
-  { level:3, text:"Kể tên một nam phòng sales (tính cả người cũ, chỉ cần ghi tên, không cần ghi anh/chị/em)", type:"text", special:true }
+  {"level":3,"text":"Say lắm rồi, không uống nổi nữa… 🤢 Đồng nghiệp đang cầu cứu, không được cứu là gặp chị Huê ngay! Bạn chọn cứu ai?","type":"team_tags","tags":["Phúc","Thắng","Nam","Tuấn","Long"]},
+  {"level":3,"text":"Ôi không, đơn hàng của bạn đang căng quá! Các anh dưới đây đều xin giãn hạn giao. Bạn chọn “du di” cho ai?","type":"team_tags","tags":["Cảnh","Đô","Hồng","Huy","Khoát","Đức Anh"]},
+  {"level":3,"text":"Nay liên hoan vui quá! Bạn quyết định mời một anh uống ly rượu giao bôi. Người được chọn là…","type":"team_tags","tags":["Kim Dương","Xuân Bách","Văn Hiệu","Đức Thăng","Tú Tài Tử","Xuân Cờ"]},
+  {"level":3,"text":"Vòng hồi sinh đã đến! Bạn có một suất đưa một nam đồng nghiệp từng làm phòng Sales trở lại. Bạn chọn ai?","type":"team_tags","tags":["Jack Sơn","Charlie Chính","Quinn Quân","Harry Nam","Năng Khiên"]},
+  {"level":3,"text":"Cả phòng giao cho đội bạn quyết định địa điểm du lịch. Kinh phí không phải nghĩ! Bạn chọn đi đâu?","type":"team_tags","tags":["Hà Nội","Đà Nẵng","Ninh Bình","Nha Trang","Phú Quốc"]}
 ];
 // Chỉ dành cho bản xem trước, không kết nối dữ liệu phòng chơi.
 (() => {
@@ -1111,9 +1107,9 @@ const previewQuestions = [
     let first,second,points;
     if(q.level===1){first=q.a;second=i%3===0?q.b:q.a;points=first===second?1:0;}
     else if(q.level===2){first='Nhung';second=i%3===0?'Thủy':'Nhung';points=first===second?2:0;}
-    else{[first,second]=textPairs[i-14];points=first===second?(i===18?3:1):0;}
+    else{first=q.tags[0];second=first;points=i===18?3:1;}
     total+=points;
-    return '<article class="history-round"><div class="history-round-head">Level '+q.level+' · Câu '+(i+1)+'/19</div><div class="history-question">'+escapeHtml(q.text)+'</div><div class="history-answers"><div class="history-answer"><span class="history-answer-name">Nhung</span><span class="history-answer-value">'+escapeHtml(first)+'</span></div><div class="history-answer"><span class="history-answer-name">Thủy</span><span class="history-answer-value">'+escapeHtml(second)+'</span></div></div><div class="history-result '+(points?'match':'miss')+'"><span>'+(points===3?'🌟 Trùng và độc nhất':points?'💞 Ăn ý':'Chưa trùng ý')+'</span><span class="history-points">+'+points+' điểm</span></div></article>';
+    return '<article class="history-round"><div class="history-round-head">Level '+q.level+' · Câu '+(i+1)+'/19</div><div class="history-question">'+escapeHtml(q.text)+'</div><div class="history-answers"><div class="history-answer"><span class="history-answer-name">'+(q.level===3?'Đáp án chung của đội':'Nhung')+'</span><span class="history-answer-value">'+escapeHtml(first)+'</span></div><div class="history-answer" style="'+(q.level===3?'display:none':'')+'"><span class="history-answer-name">Thủy</span><span class="history-answer-value">'+escapeHtml(second)+'</span></div></div><div class="history-result '+(points?'match':'miss')+'"><span>'+(points===3?'🌟 Trùng và độc nhất':points?(q.level===3?'Có đội khác cùng chọn':'💞 Ăn ý'):'Chưa trùng ý')+'</span><span class="history-points">+'+points+' điểm</span></div></article>';
   }).join('');
   $('history-team-label').textContent='Chị em cùng sóng · '+total+' điểm · 19 câu · Đáp án giả lập để xem bố cục, không phải lịch sử của lượt bấm thử.';
   const people=[['nhung','Nhung'],['thuy','Thủy'],['an','An'],['thoan','Thoan'],['phuong','Phượng'],['anh','Ánh'],['giang','Giang'],['hanh','Hạnh'],['le','Lệ'],['maianh','Mai Anh'],['linh','Linh'],['hang','Hằng'],['hoa','Hoa'],['trang','Trang'],['truc','Trúc'],['lien','Liên']];
@@ -1137,38 +1133,60 @@ const previewQuestions = [
   const reset=()=>{['player-level-transition','final-wait-screen'].forEach(id=>$(id).classList.remove('show'));$('result-reveal-intro').style.display='none';$('result-details').classList.remove('hidden');};
   toolbar.addEventListener('click',event=>{if(event.target.closest('[data-view],[data-finale]'))reset();},true);
   const picker=$('demo-question');previewQuestions.forEach((q,i)=>{const o=document.createElement('option');o.value=i;o.textContent=(i+1)+'. '+q.text;picker.append(o);});
+  function demoTags(q) {
+    $('answer-text-wrap').style.display='none';$('team-tags-wrap').style.display='flex';
+    $('demo-state').querySelector('[value=match]').textContent='Trùng đội khác · +1';
+    $('demo-state').querySelector('[value=waiting]').textContent='Đội đã chốt · chờ công bố';
+    ['who','miss'].forEach(value=>$('demo-state').querySelector('[value='+value+']').disabled=true);
+    $('special-badge-text').textContent='🏷️ Được trao đổi · Trùng đội khác +1 — Độc nhất +3';
+    $('partner-status-text').textContent='💬 Một người chốt cho cả đội';
+    const grid=$('team-tags-grid');grid.replaceChildren();let selected=null;
+    const submit=$('btn-submit-team-tag');submit.disabled=true;submit.textContent='Chốt đáp án cho cả đội';
+    q.tags.forEach(tag=>{const b=document.createElement('button');b.className='btn-team-tag';b.textContent=tag;b.onclick=()=>{selected=tag;grid.querySelectorAll('button').forEach(x=>x.classList.toggle('selected',x===b));submit.disabled=false;};grid.append(b);});
+    submit.onclick=()=>{if(!selected)return;grid.querySelectorAll('button').forEach(b=>b.disabled=true);submit.disabled=true;$('team-tags-wrap').style.display='none';$('status-chosen').style.display='block';$('chosen-label').textContent='Đội đã chốt';$('chosen-display').textContent=selected;$('chosen-sub').textContent='Đáp án chung đã lưu · Chọn trạng thái công bố để xem điểm minh họa';};
+  }
   function question(){
     reset();const selected=picker.value;const q=previewQuestions[Number(selected)];
     toolbar.querySelector('[data-view="'+(q.level===1?'choice':q.level===2?'who':'text')+'"]').click();
     picker.value=selected;
     $('q-text').textContent=q.text;$('round-badge').textContent='Level '+q.level+' · Câu '+(Number(picker.value)+1)+' / 19';
     if(q.level===1){$('opt-a-text').textContent=q.a;$('opt-b-text').textContent=q.b;}
+    if(q.level===3)demoTags(q);
     $('demo-state').value='question';
   }
   window.selectChoice=c=>{chosen=c==='A'?$('opt-a-text').textContent:$('opt-b-text').textContent;['a','b'].forEach(x=>$('btn-'+x).classList.toggle('selected',x===c.toLowerCase()));$('btn-submit-choice').disabled=false;};
   picker.value='4';
   picker.onchange=question;
   toolbar.querySelectorAll('[data-view]').forEach(b=>b.addEventListener('click',()=>{
+    ['who','miss'].forEach(value=>$('demo-state').querySelector('[value='+value+']').disabled=false);
+    $('demo-state').querySelector('[value=match]').textContent='Ăn ý · +1';
+    $('demo-state').querySelector('[value=waiting]').textContent='Đã gửi · chờ đồng đội';
+    $('team-tags-wrap').style.display='none';$('partner-status-text').textContent='⏳ Thủy đang chọn đáp án…';
     const defaults={choice:4,who:9,text:18};
     if(defaults[b.dataset.view]!==undefined){picker.value=String(defaults[b.dataset.view]);$('round-badge').textContent='Level '+previewQuestions[Number(picker.value)].level+' · Câu '+(Number(picker.value)+1)+' / 19';}
     $('demo-state').value=b.dataset.view==='result'?'match':'question';
+    if(b.dataset.view==='text'){$('q-text').textContent=previewQuestions[18].text;demoTags(previewQuestions[18]);}
   }));
   $('btn-join').onclick=()=>toolbar.querySelector('[data-view="lobby"]').click();
   $('demo-state').onchange=()=>{
     const mode=$('demo-state').value;question();$('demo-state').value=mode;
     if(mode==='question')return;
     if(mode==='join'){document.querySelectorAll('.screen').forEach(e=>e.classList.remove('active'));$('screen-join').classList.add('active');return;}
-    if(mode==='waiting'){['answer-grid','btn-submit-choice','who-answer-wrap','answer-text-wrap'].forEach(id=>$(id).style.display='none');$('status-chosen').style.display='block';$('chosen-display').textContent=previewQuestions[Number(picker.value)].a||'Nhung';return;}
+    if(mode==='waiting'){['answer-grid','btn-submit-choice','who-answer-wrap','answer-text-wrap','team-tags-wrap'].forEach(id=>$(id).style.display='none');$('status-chosen').style.display='block';const q=previewQuestions[Number(picker.value)];$('chosen-display').textContent=q.tags?q.tags[0]:q.a||'Nhung';$('chosen-label').textContent=q.tags?'Đội đã chốt':'Bạn đã chọn';return;}
     if(mode==='level2'||mode==='level3'||mode==='final'){
       document.querySelectorAll('.screen').forEach(e=>e.classList.remove('active'));
       if(mode==='final'){$('final-wait-screen').classList.add('show');return;}
-      const level=mode==='level2'?2:3;$('player-level-transition').classList.add('show');$('player-level-kicker').textContent='LEVEL '+level;$('player-level-title').textContent=level===2?'Thấu Hiểu Trung':'Thấu Hiểu Sâu';$('player-level-rule').textContent=level===2?'Cùng chọn một người: +2 điểm':'Trùng ý: +1 điểm · Trùng và độc nhất: +3 điểm';$('player-level-score').textContent='Điểm minh họa của đội: 12';return;
+      const level=mode==='level2'?2:3;$('player-level-transition').classList.add('show');$('player-level-kicker').textContent='LEVEL '+level;$('player-level-title').textContent=level===2?'Thấu Hiểu Trung':'Thấu Hiểu Sâu';$('player-level-rule').textContent=level===2?'Cùng chọn một người: +2 điểm':'Trao đổi, chốt một tag chung · Trùng đội khác +1 · Độc nhất +3';$('player-level-score').textContent='Điểm minh họa của đội: 12';return;
     }
     show('result');$('result-reveal-intro').style.display=mode==='locked'?'block':'none';$('result-details').classList.toggle('hidden',mode==='locked');
     const points={match:1,who:2,unique:3,miss:0,timeout:0}[mode]||0;
     $('result-match').textContent=points?'💞':'😅';$('result-title').textContent=mode==='unique'?'Ăn ý và độc nhất!':points?'Ăn ý quá đi!':'Lệch sóng mất rồi!';
     const answers=mode==='who'?['Nhung','Nhung']:mode==='unique'?['Kem','Kem']:mode==='timeout'?['Tham gia cùng','—']:['Tham gia cùng',points?'Tham gia cùng':'Bỏ qua'];
     document.querySelectorAll('.rab-val').forEach((el,i)=>el.textContent=answers[i]);$('result-points-wrap').innerHTML='<div class="result-points">+'+points+' điểm cho đội</div><p>Dữ liệu minh họa</p>';
+    const q=previewQuestions[Number(picker.value)];
+    const boxes=document.querySelectorAll('#result-answers .result-ans-box');
+    boxes[1].style.display=q.tags?'none':'';boxes[0].querySelector('.rab-label').textContent=q.tags?'Đáp án chung của đội':'Nhung';
+    if(q.tags){boxes[0].querySelector('.rab-val').textContent=mode==='timeout'?'—':q.tags[0];const pts=mode==='unique'?3:mode==='timeout'?0:1;$('result-points-wrap').textContent='+'+pts+' điểm cho đội · Minh họa';$('result-title').textContent=pts===3?'🌟 Đội chọn độc nhất!':pts===1?'Có đội khác cùng chọn!':'Đội chưa chốt đáp án';}
   };
 })();
 </script></body>

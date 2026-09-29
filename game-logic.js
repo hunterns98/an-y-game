@@ -110,6 +110,18 @@
     answers = answers || {};
     var qType = game.type || 'choice';
 
+    if (qType === 'team_tags') {
+      const valid = {};
+      Object.entries(teams).forEach(([key, team]) => {
+        const a = answers[team.player1], b = answers[team.player2];
+        if (a && b && a.round === game.round && b.round === game.round &&
+            a.teamKey === key && b.teamKey === key && a.answer === b.answer &&
+            (game.tags || []).includes(a.answer)) {
+          valid[team.player1] = a; valid[team.player2] = b;
+        }
+      });
+      return computeTextResults(teams, valid);
+    }
     if (qType === 'text') {
       return computeTextResults(teams, answers);
     }
@@ -138,7 +150,55 @@
     return results;
   }
 
+  // A single room transaction mirrors the shared answer into both legacy player
+  // slots. Existing progress/history readers remain compatible; two clients
+  // cannot commit different answers, and reveal competes on the same location.
+  function commitTeamTagAnswer(room, request, now) {
+    if (!room || !room.game) return null;
+    const game = room.game, team = (room.teams || {})[request.teamKey];
+    const start = Number(game.answerStartsAt || game.startedAt);
+    if (game.type !== 'team_tags' || game.status !== 'playing' ||
+        game.round !== request.round || game.revealed || game.phase !== 'answering' ||
+        !Number.isFinite(start) || now < start || now >= start + 30000 ||
+        !team || !team.player1 || !team.player2 ||
+        ![team.player1, team.player2].includes(request.player) ||
+        !(game.tags || []).includes(request.answer)) return null;
+    const answers = room.answers || {};
+    if ([team.player1, team.player2].some(name => answers[name] && answers[name].round === game.round)) return null;
+    const answer = { answer:request.answer, round:game.round, teamKey:request.teamKey, submittedBy:request.player, timestamp:now };
+    return { ...room, answers:{ ...answers, [team.player1]:{...answer}, [team.player2]:{...answer} } };
+  }
+
+  function finalizeTeamTagRound(room, round, now) {
+    if (!room || !room.game || room.game.type !== 'team_tags' || room.game.status !== 'playing' ||
+        room.game.round !== round || room.game.revealed || room.game.phase !== 'answering') return null;
+    const game = {...room.game}, teams = JSON.parse(JSON.stringify(room.teams || {}));
+    const answers = Object.fromEntries(Object.entries(room.answers || {}).filter(([,a])=>a && a.round === round));
+    const results = computeRoundResults(game, teams, answers);
+    const ranks = () => Object.entries(teams).sort(([,a],[,b])=>(b.score||0)-(a.score||0));
+    const before = Object.fromEntries(ranks().map(([key],i)=>[key,i+1]));
+    const historyRound = { round, level:3, question:game.question, type:game.type, tags:game.tags, revealedAt:now, teams:{} };
+    Object.entries(teams).forEach(([key,team])=>{
+      const result = results[key];
+      team.stats = {matches:0,unique:0,currentStreak:0,bestStreak:0,bestComeback:0,...team.stats};
+      team.score = (team.score || 0) + result.pts;
+      if (result.match) {
+        team.stats.matches++; if(result.isUnique) team.stats.unique++;
+        team.stats.currentStreak++; team.stats.bestStreak=Math.max(team.stats.bestStreak,team.stats.currentStreak);
+      } else team.stats.currentStreak=0;
+      historyRound.teams[key]={teamName:team.teamName||'',player1:team.player1,player2:team.player2,answer1:result.a1||'',answer2:result.a2||'',match:result.match,points:result.pts,unique:result.isUnique};
+    });
+    ranks().forEach(([key,team],i)=>{
+      team.lastRankChange={from:before[key],to:i+1,delta:before[key]-i-1,round};
+      team.stats.bestComeback=Math.max(team.stats.bestComeback,team.lastRankChange.delta);
+    });
+    Object.assign(game,{phase:'results',revealed:true,revealedAt:now,finalAnswers:answers,levelTransitionAt:null});
+    return {...room,game,teams,history:{...room.history,rounds:{...(room.history && room.history.rounds),[round]:historyRound}}};
+  }
+
   global.GameLogic = {
+    commitTeamTagAnswer: commitTeamTagAnswer,
+    finalizeTeamTagRound: finalizeTeamTagRound,
     computeChoiceResult: computeChoiceResult,
     computeWhoIsResult: computeWhoIsResult,
     computeTextResults: computeTextResults,

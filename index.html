@@ -750,6 +750,7 @@ body #screen-result.active{min-height:450px}body .result-card{max-width:900px;mi
       body .preview-card-picker,body .personal-card-save,body .personal-card-hint { grid-column:2; }
     }
 </style>
+<link rel="stylesheet" href="team-tags.css">
 </head>
 <body>
 <!-- Animated gradient background -->
@@ -922,19 +923,12 @@ body #screen-result.active{min-height:450px}body .result-card{max-width:900px;mi
         </div>
         <div class="howto-panel" id="howto-panel-3">
           <div class="howto-rule-box">
-            <b>Luật chơi:</b> Câu hỏi tự điền đáp án bạn nghĩ ra.<br>
-            Điền khác với đồng đội → <span class="howto-pts zero">0 điểm</span>.<br>
-            Điền trùng câu trả lời với đồng đội → <span class="howto-pts good">+1 điểm</span>.<br>
-            Điền trùng + là đáp án <b>DUY NHẤT</b> (không đội nào khác trùng) → <span class="howto-pts great">+3 điểm 🌟</span>.
-          </div>
-          <div>
-            <div class="howto-demo-label">Thử ngay</div>
-            <div class="howto-demo-q">Hãy điền tên 1 ứng dụng mạng xã hội?</div>
-            <div class="howto-demo-input-row">
-              <input id="demo-l3-input" placeholder="Gõ thử đáp án..." maxlength="30">
-              <button class="howto-demo-send" onclick="demoSendL3()">Gửi thử</button>
-            </div>
-          </div>
+            <b>Luật chơi:</b> Hai người được trao đổi và chọn một tag chung cho đội.<br>
+            Một người chốt; lần chốt đầu tiên được giữ lại.<br>
+            Trùng đội khác → <span class="howto-pts good">+1 điểm</span>.<br>
+            Không đội nào khác chọn → <span class="howto-pts great">+3 điểm 🌟</span>.<br>
+            Không chốt trước khi hết giờ → <span class="howto-pts zero">0 điểm</span>.
+          </div><div class="howto-demo-q">💬 Đoán xem cả phòng chọn gì để né trùng! Các lựa chọn được giữ kín đến lúc công bố.</div>
         </div>
       </div>
     </div>
@@ -979,6 +973,7 @@ body #screen-result.active{min-height:450px}body .result-card{max-width:900px;mi
       <input class="field-input" id="inp-free-answer" placeholder="Nhập đáp án của bạn..." maxlength="60" autocomplete="off">
       <button class="btn btn-primary" id="btn-submit-free">Gửi đáp án 📨</button>
     </div>
+    <div id="team-tags-wrap" class="team-tags-wrap"><p class="team-tags-help">Trao đổi với đồng đội rồi chọn một tag. Một người chốt cho cả đội; không đổi sau khi chốt.</p><div id="team-tags-grid" class="team-tags-grid"></div><button id="btn-submit-team-tag" class="btn btn-primary" disabled>Chốt đáp án cho cả đội</button></div>
     <div class="card status-chosen" id="status-chosen" style="display:none;">
       <span class="chosen-emoji" id="chosen-emoji">✅</span>
       <div class="chosen-label" id="chosen-label">Bạn đã chọn</div>
@@ -1006,6 +1001,7 @@ body #screen-result.active{min-height:450px}body .result-card{max-width:900px;mi
 <script src="firebase.js"></script>
 <script src="avatar-config.js"></script>
 <script src="game-logic.js"></script>
+<script src="team-tags-player.js"></script>
 <script>
 // ─────────────────────────────────────────
 // STARS
@@ -1243,7 +1239,7 @@ const PLAYER_REVEAL_INTRO_MS=700, PLAYER_REVEAL_STEP_MS=850;
 const PLAYER_REVEAL_READ_MS=3500, PLAYER_LEVEL_TRANSITION_DELAY_MS=4500;
 const playerLevelTransitionInfo = {
   2: { kicker:'LEVEL 2 · THẤU HIỂU TRUNG', title:'🕵️ AI LÀ AI?', rule:'Bí mật chọn bạn hoặc đồng đội — người mà bạn thấy phù hợp hơn.', score:'Cùng chọn một người · +2 điểm' },
-  3: { kicker:'LEVEL 3 · THẤU HIỂU SÂU', title:'🌟 ĂN ĐIỂM CAO', rule:'Tự nhập một đáp án ngắn theo ý bạn. Hãy hiểu nhau thật sâu để trả lời trùng khớp.', score:'Trùng ý · +1 điểm · Trùng ý duy nhất · +3 điểm' }
+  3: { kicker:'LEVEL 3 · THẤU HIỂU SÂU', title:'🌟 ĂN ĐIỂM CAO', rule:'Hai người được trao đổi. Một người chốt một tag chung cho đội; lần chốt đầu tiên được giữ lại.', score:'Trùng đội khác · +1 điểm · Độc nhất · +3 điểm' }
 };
 function hidePlayerLevelTransition() { document.getElementById('player-level-transition').classList.remove('show'); }
 function showPlayerLevelTransition(nextLevel) {
@@ -1523,6 +1519,11 @@ function renderPartnerAnswerStatus() {
   // Firebase. Chỉ đáp án đủ dữ liệu của đúng round đang chơi mới được tính.
   const answer = partnerAnswerCache;
   const answered = Boolean(answer && answer.round === currentRound && answer.answer !== undefined && answer.answer !== '');
+  if (activeGame && activeGame.type === 'team_tags') {
+    document.getElementById('partner-status-text').textContent=answered?'✅ Đội đã chốt đáp án chung':'💬 Được trao đổi với đồng đội · Một người chốt cho cả đội';
+    if(answered) lockAnsweredUI(answer.answer);
+    return;
+  }
   pill.classList.toggle('answered', answered);
   document.getElementById('partner-status-text').textContent = answered
     ? '✅ Đồng đội đã trả lời!' : '⏳ Đồng đội chưa trả lời...';
@@ -1648,7 +1649,7 @@ function applyAlreadyAnsweredIfNeeded(round) {
   if (!myName || !myRoom) return;
   db.ref('rooms/' + myRoom + '/answers/' + myName).once('value').then(snap => {
     const a = snap.val();
-    if (!a || a.round !== round) return; // chưa trả lời vòng này -> không cần khoá gì cả
+    if (!a || a.round !== round || currentRound !== round) return; // Ignore a read completed after the host changed rounds.
     lockAnsweredUI(a.answer);
   });
 }
@@ -1671,6 +1672,7 @@ function lockAnsweredUI(answerVal) {
   document.getElementById('chosen-label').textContent = 'Bạn đã chọn';
   document.getElementById('chosen-display').textContent = answerVal;
   document.getElementById('chosen-sub').textContent = 'Đang chờ đồng đội trả lời...';
+  if(activeGame && activeGame.type === 'team_tags') lockTeamTags(answerVal);
 }
 // ─────────────────────────────────────────
 // RENDER QUESTION
@@ -1687,9 +1689,9 @@ function renderQuestion(game, startTimer = true) {
   if (qType === 'who_is') {
     document.getElementById('special-badge-wrap').style.display = 'block';
     document.getElementById('special-badge-text').textContent = '🕵️ Ai là ai? · Cùng chọn người +2 điểm';
-  } else if (qType === 'text') {
+  } else if ((qType === 'text' || qType === 'team_tags')) {
     document.getElementById('special-badge-wrap').style.display = 'block';
-    document.getElementById('special-badge-text').textContent = '✍️ Câu tự nhập · Trùng ý +1 — Trùng & độc nhất +3';
+    document.getElementById('special-badge-text').textContent = '🏷️ Trao đổi trong đội · Trùng đội khác +1 — Độc nhất +3';
   } else if (game.special) {
     document.getElementById('special-badge-wrap').style.display = 'block';
     document.getElementById('special-badge-text').textContent = '🌟 Câu ăn điểm đặc biệt · +3 điểm';
@@ -1712,7 +1714,7 @@ function renderQuestion(game, startTimer = true) {
     document.getElementById('btn-submit-who').disabled = true;
     document.getElementById('btn-submit-who').textContent = 'Chốt lựa chọn 🕵️';
     selectedWho = null;
-  } else if (qType === 'text') {
+  } else if ((qType === 'text' || qType === 'team_tags')) {
     document.getElementById('answer-grid').style.display = 'none';
     document.getElementById('btn-submit-choice').style.display = 'none';
     document.getElementById('who-answer-wrap').style.display = 'none';
@@ -1744,8 +1746,9 @@ function renderQuestion(game, startTimer = true) {
   document.getElementById('chosen-sub').textContent = 'Đang chờ đồng đội trả lời...';
   // Vẽ lại từ đáp án đã cache. Listener có thể đã nhận đáp án trước khi phần
   // câu hỏi render xong, vì vậy không reset mù về "chưa trả lời".
-  renderPartnerAnswerStatus();
   if (startTimer) startQuestionTimer(game);
+  renderTeamTags(game);
+  renderPartnerAnswerStatus();
 }
 // Timer chỉ chạy khi câu hỏi thật sự được mở. Với câu sau, game có 3 giây
 // countdown trước khi gọi hàm này nên người chơi luôn nhận đủ 30 giây.
@@ -1779,6 +1782,7 @@ function startQuestionTimer(game) {
 // HẾT GIỜ -> khoá toàn bộ UI trả lời, coi như không trả lời nếu chưa gửi
 // ─────────────────────────────────────────
 function handleTimeUp() {
+  document.querySelectorAll('#team-tags-wrap button').forEach(b=>b.disabled=true);
   document.getElementById('btn-a').disabled = true;
   document.getElementById('btn-b').disabled = true;
   document.getElementById('btn-submit-choice').disabled = true;
@@ -1793,7 +1797,7 @@ function handleTimeUp() {
   document.getElementById('chosen-emoji').textContent = '⌛';
   document.getElementById('chosen-label').textContent = 'Đã hết thời gian';
   document.getElementById('chosen-display').textContent = '—';
-  document.getElementById('chosen-sub').textContent = 'Bạn không trả lời kịp — tính như không có đáp án';
+  document.getElementById('chosen-sub').textContent = activeGame && activeGame.type === 'team_tags' ? 'Đội chưa chốt trước khi hết giờ — 0 điểm' : 'Bạn không trả lời kịp — tính như không có đáp án';
 }
 // ─────────────────────────────────────────
 // CHỌN ĐÁP ÁN (câu trắc nghiệm A/B) — chỉ HIGHLIGHT, chưa gửi
@@ -1983,7 +1987,7 @@ function showResultForPlayer(game, leaderboardDelay=0) {
       if (match) {
         if (qType === 'who_is') {
           title = '🕵️ Trùng khớp! +2 điểm';
-        } else if (qType === 'text') {
+        } else if ((qType === 'text' || qType === 'team_tags')) {
           title = isUnique ? '🌟 Ăn ý độc nhất!' : '💞 Ăn ý rồi!';
         } else {
           title = game.special ? '🌟 Ăn ý đặc biệt!' : '💞 Ăn ý rồi!';
@@ -2002,8 +2006,13 @@ function showResultForPlayer(game, leaderboardDelay=0) {
           <div class="rab-label">${partner}</div>
           <div class="rab-val">${displayPAns||'—'}</div>
         </div>`;
+      if(qType === 'team_tags') {
+        document.getElementById('result-title').textContent=match?(isUnique?'🌟 Đội chọn độc nhất!':'💞 Có đội khác cùng chọn!'):'Đội chưa chốt đáp án';
+        document.getElementById('result-answers').innerHTML='<div class="result-ans-box"><div class="rab-label">Đáp án chung của đội</div><div class="rab-val"></div></div>';
+        document.querySelector('#result-answers .rab-val').textContent=displayMyAns||'—';
+      }
       document.getElementById('result-points-wrap').innerHTML = match
-        ? `<div class="result-points">+${pts} điểm cho đội${qType==='text' && !isUnique ? ' (đội khác cũng đoán giống)' : ''}</div>` : '';
+        ? `<div class="result-points">+${pts} điểm cho đội${(qType==='text' || qType==='team_tags') && !isUnique ? ' (đội khác cũng đoán giống)' : ''}</div>` : '';
       const intro = document.getElementById('result-reveal-intro');
       const details = document.getElementById('result-details');
       intro.classList.remove('show');
@@ -2090,13 +2099,13 @@ function renderMatchHistory(rounds) {
     const a1 = escapeHistoryHtml(historyAnswerLabel(team.answer1, item));
     const a2 = escapeHistoryHtml(historyAnswerLabel(team.answer2, item));
     return `<article class="history-round">
-      <div class="history-round-head"><span>${escapeHistoryHtml(historyQuestionLabel(item))}</span><span>${matched ? '💞 Ăn ý' : '🤔 Chưa trùng'}</span></div>
+      <div class="history-round-head"><span>${escapeHistoryHtml(historyQuestionLabel(item))}</span><span>${item.type === 'team_tags' ? (matched ? '🏷️ Đã chốt' : '⌛ Chưa chốt') : (matched ? '💞 Ăn ý' : '🤔 Chưa trùng')}</span></div>
       <p class="history-question">${escapeHistoryHtml(item.question || 'Câu hỏi')}</p>
-      <div class="history-answers">
-        <div class="history-answer"><span class="history-answer-name">${escapeHistoryHtml(team.player1 || 'Bạn 1')}</span><span class="history-answer-value">${a1}</span></div>
-        <div class="history-answer"><span class="history-answer-name">${escapeHistoryHtml(team.player2 || 'Bạn 2')}</span><span class="history-answer-value">${a2}</span></div>
+      <div class="history-answers ${item.type === 'team_tags' ? 'shared-answer' : ''}">
+        <div class="history-answer"><span class="history-answer-name">${item.type === 'team_tags' ? 'Đáp án chung của đội' : escapeHistoryHtml(team.player1 || 'Bạn 1')}</span><span class="history-answer-value">${a1}</span></div>
+        <div class="history-answer" style="${item.type === 'team_tags' ? 'display:none' : ''}"><span class="history-answer-name">${escapeHistoryHtml(team.player2 || 'Bạn 2')}</span><span class="history-answer-value">${a2}</span></div>
       </div>
-      <div class="history-result ${matched ? 'match' : 'miss'}"><span>${matched ? (team.unique ? '🌟 Trùng độc nhất!' : '💞 Hai bạn đã chọn giống nhau') : 'Hai bạn đã chọn khác nhau'}</span><span class="history-points">+${Number(team.points || 0)} điểm</span></div>
+      <div class="history-result ${matched ? 'match' : 'miss'}"><span>${item.type === 'team_tags' ? (matched ? (team.unique ? '🌟 Độc nhất trong phòng!' : '💞 Có đội khác cùng chọn') : 'Đội không chốt đáp án') : (matched ? (team.unique ? '🌟 Trùng độc nhất!' : '💞 Hai bạn đã chọn giống nhau') : 'Hai bạn đã chọn khác nhau')}</span><span class="history-points">+${Number(team.points || 0)} điểm</span></div>
     </article>`;
   }).join('');
 }
@@ -2263,15 +2272,7 @@ window.demoPickL2 = function(choice) {
   document.getElementById('demo-l2-self').classList.toggle('picked', choice === 'self');
   document.getElementById('demo-l2-partner').classList.toggle('picked', choice === 'partner');
 };
-window.demoSendL3 = function() {
-  const val = document.getElementById('demo-l3-input').value.trim();
-  if (!val) { toast('⚠️ Gõ đáp án trước đã!'); return; }
-  sfxSuccess();
-  floatScore(3);
-  miniConfetti();
-  document.getElementById('demo-l3-input').value = '';
-  toast('🌟 Demo: nếu đây là đáp án độc nhất, bạn ăn +3 điểm!');
-};
+
 function hideHowtoGuide() {
   const wrap = document.getElementById('howto-card-wrap');
   if (wrap) wrap.style.display = 'none';

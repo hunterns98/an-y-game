@@ -8,37 +8,59 @@
   const reset=()=>{['player-level-transition','final-wait-screen'].forEach(id=>$(id).classList.remove('show'));$('result-reveal-intro').style.display='none';$('result-details').classList.remove('hidden');};
   toolbar.addEventListener('click',event=>{if(event.target.closest('[data-view],[data-finale]'))reset();},true);
   const picker=$('demo-question');previewQuestions.forEach((q,i)=>{const o=document.createElement('option');o.value=i;o.textContent=(i+1)+'. '+q.text;picker.append(o);});
+  function demoTags(q) {
+    $('answer-text-wrap').style.display='none';$('team-tags-wrap').style.display='flex';
+    $('demo-state').querySelector('[value=match]').textContent='Trùng đội khác · +1';
+    $('demo-state').querySelector('[value=waiting]').textContent='Đội đã chốt · chờ công bố';
+    ['who','miss'].forEach(value=>$('demo-state').querySelector('[value='+value+']').disabled=true);
+    $('special-badge-text').textContent='🏷️ Được trao đổi · Trùng đội khác +1 — Độc nhất +3';
+    $('partner-status-text').textContent='💬 Một người chốt cho cả đội';
+    const grid=$('team-tags-grid');grid.replaceChildren();let selected=null;
+    const submit=$('btn-submit-team-tag');submit.disabled=true;submit.textContent='Chốt đáp án cho cả đội';
+    q.tags.forEach(tag=>{const b=document.createElement('button');b.className='btn-team-tag';b.textContent=tag;b.onclick=()=>{selected=tag;grid.querySelectorAll('button').forEach(x=>x.classList.toggle('selected',x===b));submit.disabled=false;};grid.append(b);});
+    submit.onclick=()=>{if(!selected)return;grid.querySelectorAll('button').forEach(b=>b.disabled=true);submit.disabled=true;$('team-tags-wrap').style.display='none';$('status-chosen').style.display='block';$('chosen-label').textContent='Đội đã chốt';$('chosen-display').textContent=selected;$('chosen-sub').textContent='Đáp án chung đã lưu · Chọn trạng thái công bố để xem điểm minh họa';};
+  }
   function question(){
     reset();const selected=picker.value;const q=previewQuestions[Number(selected)];
     toolbar.querySelector('[data-view="'+(q.level===1?'choice':q.level===2?'who':'text')+'"]').click();
     picker.value=selected;
     $('q-text').textContent=q.text;$('round-badge').textContent='Level '+q.level+' · Câu '+(Number(picker.value)+1)+' / 19';
     if(q.level===1){$('opt-a-text').textContent=q.a;$('opt-b-text').textContent=q.b;}
+    if(q.level===3)demoTags(q);
     $('demo-state').value='question';
   }
   window.selectChoice=c=>{chosen=c==='A'?$('opt-a-text').textContent:$('opt-b-text').textContent;['a','b'].forEach(x=>$('btn-'+x).classList.toggle('selected',x===c.toLowerCase()));$('btn-submit-choice').disabled=false;};
   picker.value='4';
   picker.onchange=question;
   toolbar.querySelectorAll('[data-view]').forEach(b=>b.addEventListener('click',()=>{
+    ['who','miss'].forEach(value=>$('demo-state').querySelector('[value='+value+']').disabled=false);
+    $('demo-state').querySelector('[value=match]').textContent='Ăn ý · +1';
+    $('demo-state').querySelector('[value=waiting]').textContent='Đã gửi · chờ đồng đội';
+    $('team-tags-wrap').style.display='none';$('partner-status-text').textContent='⏳ Thủy đang chọn đáp án…';
     const defaults={choice:4,who:9,text:18};
     if(defaults[b.dataset.view]!==undefined){picker.value=String(defaults[b.dataset.view]);$('round-badge').textContent='Level '+previewQuestions[Number(picker.value)].level+' · Câu '+(Number(picker.value)+1)+' / 19';}
     $('demo-state').value=b.dataset.view==='result'?'match':'question';
+    if(b.dataset.view==='text'){$('q-text').textContent=previewQuestions[18].text;demoTags(previewQuestions[18]);}
   }));
   $('btn-join').onclick=()=>toolbar.querySelector('[data-view="lobby"]').click();
   $('demo-state').onchange=()=>{
     const mode=$('demo-state').value;question();$('demo-state').value=mode;
     if(mode==='question')return;
     if(mode==='join'){document.querySelectorAll('.screen').forEach(e=>e.classList.remove('active'));$('screen-join').classList.add('active');return;}
-    if(mode==='waiting'){['answer-grid','btn-submit-choice','who-answer-wrap','answer-text-wrap'].forEach(id=>$(id).style.display='none');$('status-chosen').style.display='block';$('chosen-display').textContent=previewQuestions[Number(picker.value)].a||'Nhung';return;}
+    if(mode==='waiting'){['answer-grid','btn-submit-choice','who-answer-wrap','answer-text-wrap','team-tags-wrap'].forEach(id=>$(id).style.display='none');$('status-chosen').style.display='block';const q=previewQuestions[Number(picker.value)];$('chosen-display').textContent=q.tags?q.tags[0]:q.a||'Nhung';$('chosen-label').textContent=q.tags?'Đội đã chốt':'Bạn đã chọn';return;}
     if(mode==='level2'||mode==='level3'||mode==='final'){
       document.querySelectorAll('.screen').forEach(e=>e.classList.remove('active'));
       if(mode==='final'){$('final-wait-screen').classList.add('show');return;}
-      const level=mode==='level2'?2:3;$('player-level-transition').classList.add('show');$('player-level-kicker').textContent='LEVEL '+level;$('player-level-title').textContent=level===2?'Thấu Hiểu Trung':'Thấu Hiểu Sâu';$('player-level-rule').textContent=level===2?'Cùng chọn một người: +2 điểm':'Trùng ý: +1 điểm · Trùng và độc nhất: +3 điểm';$('player-level-score').textContent='Điểm minh họa của đội: 12';return;
+      const level=mode==='level2'?2:3;$('player-level-transition').classList.add('show');$('player-level-kicker').textContent='LEVEL '+level;$('player-level-title').textContent=level===2?'Thấu Hiểu Trung':'Thấu Hiểu Sâu';$('player-level-rule').textContent=level===2?'Cùng chọn một người: +2 điểm':'Trao đổi, chốt một tag chung · Trùng đội khác +1 · Độc nhất +3';$('player-level-score').textContent='Điểm minh họa của đội: 12';return;
     }
     show('result');$('result-reveal-intro').style.display=mode==='locked'?'block':'none';$('result-details').classList.toggle('hidden',mode==='locked');
     const points={match:1,who:2,unique:3,miss:0,timeout:0}[mode]||0;
     $('result-match').textContent=points?'💞':'😅';$('result-title').textContent=mode==='unique'?'Ăn ý và độc nhất!':points?'Ăn ý quá đi!':'Lệch sóng mất rồi!';
     const answers=mode==='who'?['Nhung','Nhung']:mode==='unique'?['Kem','Kem']:mode==='timeout'?['Tham gia cùng','—']:['Tham gia cùng',points?'Tham gia cùng':'Bỏ qua'];
     document.querySelectorAll('.rab-val').forEach((el,i)=>el.textContent=answers[i]);$('result-points-wrap').innerHTML='<div class="result-points">+'+points+' điểm cho đội</div><p>Dữ liệu minh họa</p>';
+    const q=previewQuestions[Number(picker.value)];
+    const boxes=document.querySelectorAll('#result-answers .result-ans-box');
+    boxes[1].style.display=q.tags?'none':'';boxes[0].querySelector('.rab-label').textContent=q.tags?'Đáp án chung của đội':'Nhung';
+    if(q.tags){boxes[0].querySelector('.rab-val').textContent=mode==='timeout'?'—':q.tags[0];const pts=mode==='unique'?3:mode==='timeout'?0:1;$('result-points-wrap').textContent='+'+pts+' điểm cho đội · Minh họa';$('result-title').textContent=pts===3?'🌟 Đội chọn độc nhất!':pts===1?'Có đội khác cùng chọn!':'Đội chưa chốt đáp án';}
   };
 })();

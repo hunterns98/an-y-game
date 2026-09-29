@@ -464,11 +464,11 @@ const questions = [
   { level:2, text:"Trong 2 bạn, ai là nhà sáng tạo nội dung, suy diễn một tin nhắn thành cả bộ phim?", type:"who_is" },
   { level:2, text:"Trong 2 bạn, ai là người miệng nói “kệ/bỏ đi” nhưng trong lòng lại để bụng?", type:"who_is" },
   // ── LEVEL 3: Thấu Hiểu Sâu (Ăn Điểm Cao) ──
-  { level:3, text:"Kể tên một thứ người ta hay “liếm” (ghi trực tiếp, không cần “Cái…..”)", type:"text", special:true },
-  { level:3, text:"Một con vật hay được dùng để chỉ tính cách con người", type:"text", special:true },
-  { level:3, text:"Kể tên một Trợ lý Nhà Máy", type:"text", special:true },
-  { level:3, text:"Kể tên một Giám Đốc Nhà Máy", type:"text", special:true },
-  { level:3, text:"Kể tên một nam phòng sales (tính cả người cũ, chỉ cần ghi tên, không cần ghi anh/chị/em)", type:"text", special:true }
+  {"level":3,"text":"Say lắm rồi, không uống nổi nữa… 🤢 Đồng nghiệp đang cầu cứu, không được cứu là gặp chị Huê ngay! Bạn chọn cứu ai?","type":"team_tags","tags":["Phúc","Thắng","Nam","Tuấn","Long"]},
+  {"level":3,"text":"Ôi không, đơn hàng của bạn đang căng quá! Các anh dưới đây đều xin giãn hạn giao. Bạn chọn “du di” cho ai?","type":"team_tags","tags":["Cảnh","Đô","Hồng","Huy","Khoát","Đức Anh"]},
+  {"level":3,"text":"Nay liên hoan vui quá! Bạn quyết định mời một anh uống ly rượu giao bôi. Người được chọn là…","type":"team_tags","tags":["Kim Dương","Xuân Bách","Văn Hiệu","Đức Thăng","Tú Tài Tử","Xuân Cờ"]},
+  {"level":3,"text":"Vòng hồi sinh đã đến! Bạn có một suất đưa một nam đồng nghiệp từng làm phòng Sales trở lại. Bạn chọn ai?","type":"team_tags","tags":["Jack Sơn","Charlie Chính","Quinn Quân","Harry Nam","Năng Khiên"]},
+  {"level":3,"text":"Cả phòng giao cho đội bạn quyết định địa điểm du lịch. Kinh phí không phải nghĩ! Bạn chọn đi đâu?","type":"team_tags","tags":["Hà Nội","Đà Nẵng","Ninh Bình","Nha Trang","Phú Quốc"]}
 ];
 // ── STATE ──
 let roomCode = '';
@@ -846,7 +846,7 @@ function renderRoundReadiness() {
   const allReady = data.total > 0 && data.ready === data.total;
   summary.textContent = allReady
     ? `✅ ${data.ready}/${data.total} đội đã sẵn sàng`
-    : `⏳ ${data.ready}/${data.total} đội sẵn sàng · còn ${data.missing.length} người`;
+    : `⏳ ${data.ready}/${data.total} đội sẵn sàng · còn ${gameCache.type === 'team_tags' ? (data.total-data.ready)+' đội' : data.missing.length+' người'}`;
   summary.className = 'readiness-summary ' + (allReady ? 'ready' : 'waiting');
   const revealBtn = document.getElementById('btn-reveal');
   if (revealBtn && !revealBtn.disabled && gameCache.phase !== 'results') {
@@ -855,7 +855,7 @@ function renderRoundReadiness() {
   list.innerHTML = data.teams.map(row => `
     <div class="readiness-row ${row.ready ? 'ready' : 'missing'}">
       <span class="readiness-team">${row.label}</span>
-      <span class="readiness-status">${row.ready ? '✅ Đã đủ đáp án' : '⏳ ' + (row.missing.join(', ') || 'Thiếu thành viên')}</span>
+      <span class="readiness-status">${gameCache.type === 'team_tags' ? (row.ready ? '✅ Đội đã chốt' : '⏳ Đội chưa chốt') : (row.ready ? '✅ Đã đủ đáp án' : '⏳ ' + (row.missing.join(', ') || 'Thiếu thành viên'))}</span>
     </div>`).join('');
 }
 function renderTeamStartWarning() {
@@ -877,8 +877,9 @@ function listenAnswers() {
   db.ref('rooms/' + roomCode + '/answers').on('value', snap => {
     const answers = snap.val() || {};
     answersCache = answers;
-    const count = Object.keys(answers).length;
-    document.getElementById('answer-count-badge').textContent = count > 0 ? `(${count} đã trả lời)` : '';
+    const shared = gameCache && gameCache.type === 'team_tags';
+    const count = shared ? getRoundReadiness().ready : Object.keys(answers).length;
+    document.getElementById('answer-count-badge').textContent = count > 0 ? `(${count} ${shared ? 'đội' : 'người'} đã trả lời)` : '';
     renderRoundReadiness();
     // Nếu round hiện tại ĐÃ reveal, bảng answer-board đang hiển thị kết quả có điểm
     // (do renderRevealedReadOnly / revealAnswers vẽ) — KHÔNG được ghi đè lại bằng
@@ -894,7 +895,7 @@ function listenAnswers() {
         const label = team.teamName || `Đội ${i+1}: ${team.player1} & ${team.player2||'?'}`;
         return `<div class="answer-row" id="ar-${key}">
           <div class="ar-team">${avatarImg(team.player1,22)} ${avatarImg(team.player2,22)} ${label}</div>
-          <div class="ar-ans">${team.player1}: ${a1} &nbsp; ${team.player2||'?'}: ${a2}</div>
+          <div class="ar-ans">${shared ? (a1 === '✅' && a2 === '✅' ? '✅ Đội đã chốt' : '⏳ Đội chưa chốt') : team.player1+': '+a1+' · '+team.player2+': '+a2}</div>
           <div class="ar-result" id="ar-res-${key}">—</div>
         </div>`;
       });
@@ -984,13 +985,15 @@ function fillDemoAnswers() {
     let a1, a2;
     if (gameCache.type === 'who_is') {
       a1 = team.player1; a2 = index % 3 === 0 ? team.player2 : team.player1;
+    } else if (gameCache.type === 'team_tags') {
+      a1 = gameCache.tags[index % gameCache.tags.length]; a2 = a1;
     } else if (gameCache.type === 'text') {
       a1 = `ý tưởng demo ${index % 4}`; a2 = index % 3 === 0 ? `khác ý ${index}` : a1;
     } else {
       a1 = index % 2 === 0 ? 'A' : 'B'; a2 = index % 3 === 0 ? (a1 === 'A' ? 'B' : 'A') : a1;
     }
-    updates[`answers/${team.player1}`] = { answer:a1, round:gameCache.round, timestamp:serverNow() };
-    updates[`answers/${team.player2}`] = { answer:a2, round:gameCache.round, timestamp:serverNow() + 1 };
+    updates[`answers/${team.player1}`] = { answer:a1, round:gameCache.round, teamKey:key, timestamp:serverNow() };
+    updates[`answers/${team.player2}`] = { answer:a2, round:gameCache.round, teamKey:key, timestamp:serverNow() + 1 };
   });
   db.ref('rooms/' + roomCode).update(updates).then(() => toast('⚡ Đã điền đáp án mẫu cho 8 đội.')).catch(error => toast('❌ Lỗi demo: ' + error.message));
 }
@@ -1027,14 +1030,14 @@ function renderCurrentQuestionCard(game) {
   } else {
     document.getElementById('q-opts').style.display = 'none';
     document.getElementById('q-freetext-note').style.display = 'block';
-    document.getElementById('q-freetext-note').textContent = '✍️ Người chơi tự nhập đáp án — không có lựa chọn mẫu, chỉ cần đồng đội nghĩ giống nhau!';
+    document.getElementById('q-freetext-note').textContent = qType === 'team_tags' ? '🏷️ Hai người trao đổi, chốt một tag chung: ' + (game.tags || []).join(' / ') : '✍️ Người chơi tự nhập đáp án';
   }
   if (qType === 'who_is') {
     document.getElementById('q-special-flag').style.display = 'block';
     document.getElementById('q-special-flag-text').textContent = '🕵️ Ai là ai? · Cùng chọn người +2 điểm';
-  } else if (qType === 'text') {
+  } else if ((qType === 'text' || qType === 'team_tags')) {
     document.getElementById('q-special-flag').style.display = 'block';
-    document.getElementById('q-special-flag-text').textContent = '✍️ Câu tự do · Trùng ý +1 — Trùng & độc nhất +3';
+    document.getElementById('q-special-flag-text').textContent = '🏷️ Một tag chung · Trùng đội khác +1 — Độc nhất +3';
   } else if (game.special) {
     document.getElementById('q-special-flag').style.display = 'block';
     document.getElementById('q-special-flag-text').textContent = '🌟 Câu ăn điểm đặc biệt · +3 điểm';
@@ -1100,6 +1103,7 @@ function sendQuestion(idx) {
     startedAt: firebase.database.ServerValue.TIMESTAMP,
     answerStartsAt
   };
+  if (qType === 'team_tags') payload.tags = q.tags;
   if (qType === 'choice') {
     payload.optionA = q.a;
     payload.optionB = q.b;
@@ -1152,7 +1156,7 @@ function computeRevealResults(game, answers, teams) {
           <div class="ar-result ${match?'win':'lose'}">${match ? '🕵️ +2' : '😅 0'}</div>
         </div>`);
     });
-  } else if (qType === 'text') {
+  } else if ((qType === 'text' || qType === 'team_tags')) {
     Object.entries(teams).forEach(([key, team], i) => {
       const r = results[key];
       let label = '😅 0';
@@ -1163,7 +1167,7 @@ function computeRevealResults(game, answers, teams) {
       rows.push(`
         <div class="answer-row ${r.match?'match':'nomatch'}">
           <div class="ar-team">${avatarImg(team.player1,22)} ${avatarImg(team.player2,22)} ${teamLabel(team,i)}</div>
-          <div class="ar-ans">${team.player1}: <strong>${r.a1||'—'}</strong> &nbsp; ${team.player2||'?'}: <strong>${r.a2||'—'}</strong></div>
+          <div class="ar-ans">${qType === 'team_tags' ? 'Đội chọn: <strong>'+(r.a1||'Chưa chốt')+'</strong>' : team.player1+': <strong>'+(r.a1||'—')+'</strong> · '+team.player2+': <strong>'+(r.a2||'—')+'</strong>'}</div>
           <div class="ar-result ${r.match?'win':'lose'}">${label}</div>
         </div>`);
     });
@@ -1206,8 +1210,22 @@ function renderRevealBoardHtml(rowsHtml, game) {
 // `once()` lại khi Reveal vì một số phiên Firebase có thể trả snapshot rỗng dù UI
 // đang có game/đội/đáp án đầy đủ từ các listener.
 document.getElementById('btn-reveal').addEventListener('click', revealAnswers);
+async function revealTeamTagAnswers() {
+  const readiness = getRoundReadiness();
+  if(readiness.ready < readiness.total && !confirm('Còn '+(readiness.total-readiness.ready)+' đội chưa chốt. Công bố ngay?')) return;
+  const button=document.getElementById('btn-reveal'); button.disabled=true;
+  const round=gameCache.round, ref=db.ref('rooms/'+roomCode);
+  try {
+    await ref.once('value');
+    const result=await ref.transaction(room=>GameLogic.finalizeTeamTagRound(room,round,serverNow()) || undefined,undefined,false);
+    if(!result.committed) throw Error('Câu đã công bố hoặc host đã chuyển câu.');
+    toast('✅ Đã chốt điểm chung và lịch sử của các đội!');
+  } catch(error) { toast('❌ '+error.message); }
+  finally { if(gameCache && !gameCache.revealed) button.disabled=false; }
+}
 function revealAnswers() {
   if (!roomCode) return;
+  if (gameCache && gameCache.type === 'team_tags') return revealTeamTagAnswers();
   const readiness = getRoundReadiness();
   if (readiness.missing.length && !confirm(`Còn ${readiness.missing.length} người chưa trả lời: ${readiness.missing.join(', ')}. Reveal kết quả ngay?`)) return;
   const baseRef = db.ref('rooms/' + roomCode);
@@ -1289,6 +1307,7 @@ function revealAnswers() {
     gameCache = game;
     return baseRef.update({ game, teams, ['history/rounds/' + game.round]: historyRound });
   }).then(() => {
+    const game = gameCache || {};
     toast(game.levelBreak
       ? `🪄 Đã reveal! Đang chiếu luật Level ${(game.level || 1) + 1} trên màn hình lớn.`
       : '🔓 Đã chốt điểm và reveal kết quả!');

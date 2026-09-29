@@ -80,9 +80,9 @@
     let first,second,points;
     if(q.level===1){first=q.a;second=i%3===0?q.b:q.a;points=first===second?1:0;}
     else if(q.level===2){first='Nhung';second=i%3===0?'Thủy':'Nhung';points=first===second?2:0;}
-    else{[first,second]=textPairs[i-14];points=first===second?(i===18?3:1):0;}
+    else{first=q.tags[0];second=first;points=i===18?3:1;}
     total+=points;
-    return '<article class="history-round"><div class="history-round-head">Level '+q.level+' · Câu '+(i+1)+'/19</div><div class="history-question">'+escapeHtml(q.text)+'</div><div class="history-answers"><div class="history-answer"><span class="history-answer-name">Nhung</span><span class="history-answer-value">'+escapeHtml(first)+'</span></div><div class="history-answer"><span class="history-answer-name">Thủy</span><span class="history-answer-value">'+escapeHtml(second)+'</span></div></div><div class="history-result '+(points?'match':'miss')+'"><span>'+(points===3?'🌟 Trùng và độc nhất':points?'💞 Ăn ý':'Chưa trùng ý')+'</span><span class="history-points">+'+points+' điểm</span></div></article>';
+    return '<article class="history-round"><div class="history-round-head">Level '+q.level+' · Câu '+(i+1)+'/19</div><div class="history-question">'+escapeHtml(q.text)+'</div><div class="history-answers"><div class="history-answer"><span class="history-answer-name">'+(q.level===3?'Đáp án chung của đội':'Nhung')+'</span><span class="history-answer-value">'+escapeHtml(first)+'</span></div><div class="history-answer" style="'+(q.level===3?'display:none':'')+'"><span class="history-answer-name">Thủy</span><span class="history-answer-value">'+escapeHtml(second)+'</span></div></div><div class="history-result '+(points?'match':'miss')+'"><span>'+(points===3?'🌟 Trùng và độc nhất':points?(q.level===3?'Có đội khác cùng chọn':'💞 Ăn ý'):'Chưa trùng ý')+'</span><span class="history-points">+'+points+' điểm</span></div></article>';
   }).join('');
   $('history-team-label').textContent='Chị em cùng sóng · '+total+' điểm · 19 câu · Đáp án giả lập để xem bố cục, không phải lịch sử của lượt bấm thử.';
   const people=[['nhung','Nhung'],['thuy','Thủy'],['an','An'],['thoan','Thoan'],['phuong','Phượng'],['anh','Ánh'],['giang','Giang'],['hanh','Hạnh'],['le','Lệ'],['maianh','Mai Anh'],['linh','Linh'],['hang','Hằng'],['hoa','Hoa'],['trang','Trang'],['truc','Trúc'],['lien','Liên']];
