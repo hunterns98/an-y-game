@@ -1231,7 +1231,7 @@ let gameStartCountdownTimer = null;
 const PLAYER_REVEAL_INTRO_MS=700, PLAYER_REVEAL_STEP_MS=850;
 const PLAYER_REVEAL_READ_MS=3500, PLAYER_LEVEL_TRANSITION_DELAY_MS=4500;
 const playerLevelTransitionInfo = {
-  2: { kicker:'LEVEL 2 · THẤU HIỂU TRUNG', title:'🕵️ AI LÀ AI?', rule:'KHÔNG ĐƯỢC trao đổi với đồng đội, chọn bạn hoặc đồng đội cho câu hỏi BTC đưa ra.', score:'Cùng chọn một người · +1 điểm' },
+  2: { kicker:'LEVEL 2 · THẤU HIỂU TRUNG', title:'NGƯỜI ẤY LÀ AI', rule:'KHÔNG ĐƯỢC TRAO ĐỔI, cùng chọn 1 người thì +1 điểm', score:'Cùng chọn một người · +1 điểm' },
   3: { kicker:'LEVEL 3 · THẤU HIỂU SÂU', title:'Thấu Hiểu Sâu', rule:'2 người cùng trao đổi chốt đáp án\nTrùng đội khác chỉ +1\nKhông trùng đội nào +3', score:'Trùng đội khác · +1 điểm · Độc nhất · +3 điểm' }
 };
 function hidePlayerLevelTransition() { document.getElementById('player-level-transition').classList.remove('show'); }

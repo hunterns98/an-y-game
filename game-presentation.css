@@ -28,3 +28,5 @@ body:has(#screen-lobby.active) .game-header{display:none}
 .btn-answer:active:not(:disabled),.btn-team-tag:active:not(:disabled){transform:scale(.98)}
 button:focus-visible,select:focus-visible{outline:3px solid var(--cyan,#00f5d4);outline-offset:3px}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important;scroll-behavior:auto!important}}
+
+.reveal-row .rr-ans{display:flex;flex-direction:column;align-items:flex-start;gap:4px;text-align:left;min-width:0;overflow-wrap:anywhere}

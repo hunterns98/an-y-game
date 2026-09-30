@@ -38,8 +38,8 @@ function drawExtra(mode){
   document.getElementById('d-team-ready-grid').innerHTML=Object.values(teamsCache).map((t,i)=>'<div class="team-ready-card">'+(i<5?'✅ ':'⏳ ')+t.teamName+'</div>').join('');
  }else{
   const level=mode==='transition2'?2:3;
-  transition.innerHTML='<div class="level-transition-kicker">LEVEL '+level+'</div><h2 class="level-transition-title">Thấu Hiểu '+(level===2?'Trung':'Sâu')+'</h2><p class="level-transition-rule"></p><p class="level-transition-wait">chờ BTC mở câu tiếp theo</p>';
-  transition.querySelector('.level-transition-rule').textContent=level===3?'2 người cùng trao đổi chốt đáp án\nTrùng đội khác chỉ +1\nKhông trùng đội nào +3':'KHÔNG ĐƯỢC trao đổi với đồng đội, chọn bạn hoặc đồng đội cho câu hỏi BTC đưa ra.';
+  transition.innerHTML='<div class="level-transition-kicker">LEVEL '+level+'</div><h2 class="level-transition-title">'+(level===2?'NGƯỜI ẤY LÀ AI':'Thấu Hiểu Sâu')+'</h2><p class="level-transition-rule"></p><p class="level-transition-wait">chờ BTC mở câu tiếp theo</p>';
+  transition.querySelector('.level-transition-rule').textContent=level===3?'2 người cùng trao đổi chốt đáp án\nTrùng đội khác chỉ +1\nKhông trùng đội nào +3':'KHÔNG ĐƯỢC TRAO ĐỔI, cùng chọn 1 người thì +1 điểm';
  }
  return true;
 }
