@@ -1,5 +1,9 @@
 .zalo-emote{display:inline-block;width:1.4em;height:1.4em;vertical-align:-.28em;background-image:url('assets/emotes/zalo-emoji-md.png');background-size:5100% 4100%;background-repeat:no-repeat;flex-shrink:0}
 .rule-no{color:#ff5c73;font-weight:900}.rule-yes{color:#39dc97;font-weight:900}
+/* The acknowledgement replaces answer controls, including desktop grid cells. */
+#screen-question:has(#status-chosen[style*="display: block"]) :is(#answer-grid,#who-answer-wrap,#answer-text-wrap,#team-tags-wrap,#btn-submit-choice){display:none!important}
+#status-chosen{overflow-wrap:anywhere}
+.logo-text{overflow-wrap:anywhere}
 body:has(#screen-lobby.active) .game-header{display:none}
 .matchmaking-card{text-align:center;padding:26px 20px!important;line-height:1.65;color:var(--muted)}
 .matchmaking-card strong{display:block;font-size:1.05rem;color:var(--text);margin-bottom:8px}

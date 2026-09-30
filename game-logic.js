@@ -197,6 +197,22 @@
     return {...room,game,teams,history:{...room.history,rounds:{...(room.history && room.history.rounds),[round]:historyRound}}};
   }
 
+  function shouldAutoReveal(room, now) {
+    const game=room && room.game;
+    if(!game || game.status!=='playing' || game.revealed || game.phase!=='answering')return false;
+    const start=Number(game.answerStartsAt||game.startedAt);
+    if(!Number.isFinite(start)||now<start)return false;
+    if(now>=start+30000)return true;
+    const teams=Object.entries(room.teams||{}),answers=room.answers||{};
+    return teams.length>0 && teams.every(([key,t])=>{
+      if(!t.player1||!t.player2)return false;
+      const a=answers[t.player1],b=answers[t.player2];
+      if(!a||!b||a.round!==game.round||b.round!==game.round||!a.answer||!b.answer)return false;
+      if(game.type==='team_tags')return a.teamKey===key && b.teamKey===key && a.answer===b.answer && (game.tags||[]).includes(a.answer);
+      if(game.type==='who_is')return [a.answer,b.answer].every(answer=>[t.player1,t.player2].includes(answer));
+      return [a.answer,b.answer].every(answer=>['A','B'].includes(answer));
+    });
+  }
   function commitPlayerAnswer(room, request, now) {
     const game=room && room.game;
     if(!game || game.status!=='playing' || game.round!==request.round || game.revealed || game.phase!=='answering')return null;
@@ -241,6 +257,7 @@
   global.GameLogic = {
     escapeHtml: value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])),
     transactRoom: transactRoom,
+    shouldAutoReveal: shouldAutoReveal,
     commitPlayerAnswer: commitPlayerAnswer,
     renameTeam: renameTeam,
     finalizeRound: finalizeTeamTagRound,

@@ -16,7 +16,7 @@ let named=G.renameTeam(make(),{teamKey:'t',player:'a',name:'A.#$/[]'});assert.eq
 assert.equal(G.renameTeam(named,{teamKey:'u',player:'c',name:'a.#$/[]'}),null);
 named=G.renameTeam(named,{teamKey:'t',player:'b',name:'New'});assert.equal(Object.keys(named.teamNameReservations).length,1);assert.equal(named.teams.t.teamName,'New');assert.equal(G.renameTeam(named,{teamKey:'t',player:'c',name:'Other'}),null);
 assert.equal(G.escapeHtml('<b>X</b>'),'&lt;b&gt;X&lt;/b&gt;');
-const admin=fs.readFileSync('admin.html','utf8');const host=admin.slice(admin.indexOf('async function revealTeamTagAnswers()'),admin.indexOf('// Tuyệt đối KHÔNG ghi điểm'));
+const admin=fs.readFileSync('admin.html','utf8');const host=admin.slice(admin.indexOf('async function revealTeamTagAnswers()'),admin.indexOf('let autoRevealPending='));
 const button={disabled:false},original=make().game;const context={gameCache:original,roomCode:'TEST',getRoundReadiness:()=>({ready:2,total:2}),document:{getElementById:()=>button},GameLogic:{...G,transactRoom:async()=>{throw Error('network')}},db:{ref:()=>({})},toast(){},serverNow:()=>2000};vm.createContext(context);vm.runInContext(host,context);await context.revealAnswers();assert.equal(context.gameCache.revealed,undefined);assert.equal(button.disabled,false);
 // Actual display renderer must keep team names as text, including historical names.
 const display=fs.readFileSync('display.html','utf8');const extract=n=>{const a=display.indexOf('function '+n+'(');return display.slice(a,display.indexOf('\n}',a)+2)};

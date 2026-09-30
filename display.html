@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Ăn Ý ❤️ — Màn hình lớn</title>
+<title>Cặp Đôi Hoàn Cảnh ❤️ — Màn hình lớn</title>
 <style>
   :root {
     --bg:       #0a0015;
@@ -378,7 +378,7 @@
 <div id="d-start-countdown" aria-live="assertive"><div class="start-count-label" id="d-start-count-label">Cả đội sẵn sàng?</div><div class="start-count-num" id="d-start-count-num">3</div><div class="start-count-label">Chuẩn bị ăn ý!</div></div>
 <div class="level-transition-overlay" id="d-level-transition" aria-live="assertive"><section class="level-transition-card"><div class="level-transition-kicker" id="d-level-kicker">LEVEL UP</div><div class="level-transition-title" id="d-level-title">—</div><p class="level-transition-rule" id="d-level-rule"></p><div class="level-transition-score" id="d-level-score"></div><p class="level-transition-wait">chờ BTC mở câu tiếp theo</p></section></div>
 <div id="top-bar">
-  <div class="brand">❤️ Ăn Ý — Màn hình lớn</div>
+  <div class="brand">❤️ Cặp Đôi Hoàn Cảnh — Màn hình lớn</div>
   <div class="room-pill"><span>Mã phòng</span><strong id="top-room-code">—</strong></div>
 </div>
 <div id="app">
@@ -386,7 +386,7 @@
   <div class="screen active" id="screen-enter">
     <div class="enter-card">
       <span class="enter-emoji">📺</span>
-      <div class="enter-title">Ăn Ý — Màn hình lớn</div>
+      <div class="enter-title">Cặp Đôi Hoàn Cảnh — Màn hình lớn</div>
       <p class="enter-sub">Nhập mã phòng để chiếu lên TV/máy chiếu cho mọi người cùng theo dõi trận đấu.</p>
       <input class="enter-input" id="d-inp-room" placeholder="XXXXX" maxlength="5" autocomplete="off">
       <button class="enter-btn" id="d-btn-connect">Hiển thị 📺</button>
@@ -403,7 +403,7 @@
           <div id="d-qr-code"></div>
         </div>
       </div>
-      <div class="lobby-brand">❤️ Ăn Ý</div>
+      <div class="lobby-brand">❤️ Cặp Đôi Hoàn Cảnh</div>
     </div>
     <div class="waiting-section">
       <div class="waiting-section-label">Người chơi đã sẵn sàng</div>
@@ -515,11 +515,22 @@ const COMMENTS = [
   'Gừng càng già càng cay. Già càng ngày càng cưng.',
   'H.hhh.hồ..i hồi chiều trời mưa. Hồi chiều....mưa.',
   'Bạn thì tày rồi.',
-  'Nothing beats a Jet2 holiday.',
+  'Darling, hold my hand... Nothing beats a Jet2 holiday! And right now, you can save fifty pounds per person.',
   'Nếu bắt phải chọn giữa gia đình và chết, tôi vẫn chọn gia đình.',
   'Anh em mình cứ thế thôi hẹ hẹ hẹ.',
   'Trí thông minh giản zị.',
-  'Kính thưa hội đồng xét xử'
+  'Kính thưa hội đồng xét xử',
+  'chan bom đê',
+  'six seven',
+  'HDPE là ngon luôn',
+  'Hãy làm ta bận với những thứ tạo ra tiền, đừng bận với những thứ tạo ra muộn phiền',
+  'Bài toán này quá rối. Rối em nhờ!',
+  'Đừng nên nói Ơ quá nhiều',
+  'Em không say chúng ta say',
+  'Em khạc hay anh khạc',
+  'Cô ấy xinh đẹp, tài giỏi, nhưng cô ấy không có được tôi',
+  'Ngược với môn đăng hộ đối? Nhân đôi hộ đói',
+  'Ngũ hành khuyết hỏa, xin lửa xin lửa'
 ];
 let commentBag = [];
 let lastShownCommentIdx = -1;
@@ -846,7 +857,7 @@ function renderJoinQR() {
   el.innerHTML = ''; // xoá QR cũ trước khi vẽ QR mới (đổi/kết nối lại phòng)
   if (typeof QRCode === 'undefined') {
     // Vẫn cho host biết chính xác cách tham gia nếu CDN QR tạm thời chưa tải được.
-    el.innerHTML = '<span title="Mở Ăn Ý và nhập mã phòng" style="font-size:2rem;line-height:1">📱</span>';
+    el.innerHTML = '<span title="Mở Cặp Đôi Hoàn Cảnh và nhập mã phòng" style="font-size:2rem;line-height:1">📱</span>';
     return;
   }
   new QRCode(el, {
