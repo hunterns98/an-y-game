@@ -1583,8 +1583,9 @@ function listenGame() {
       // giữa lúc đang trả lời) -> khôi phục đúng trạng thái "đã trả lời", tránh gửi đè lại.
       applyAlreadyAnsweredIfNeeded(newRound);
       // Countdown only if not first
-      if (newRound > 0) {
+      if (newRound > 0 && phase !== 'results') {
         runCountdown(() => {
+          if(!activeGame || activeGame.status!=='playing' || activeGame.round!==game.round || activeGame.revealed || activeGame.phase==='results')return;
           showScreen('question');
           startQuestionTimer(game);
         });
@@ -2130,7 +2131,6 @@ async function buildPersonalCard() {
 document.getElementById('btn-create-personal-card').addEventListener('click', async () => {
   const btn = document.getElementById('btn-create-personal-card'); btn.disabled = true; btn.textContent = '⏳ Đang tạo thiệp...';
   try {
-    if (document.fonts && document.fonts.ready) await document.fonts.ready;
     const src = await buildPersonalCard();
     document.getElementById('personal-card-preview').src = src;
     document.getElementById('personal-card-modal').classList.add('show');

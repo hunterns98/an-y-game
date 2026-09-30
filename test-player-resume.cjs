@@ -1,0 +1,10 @@
+const fs=require('fs'),vm=require('vm'),assert=require('assert/strict');
+const source=fs.readFileSync('index.html','utf8');
+const code=source.slice(source.indexOf('function listenGame()'),source.indexOf('\nfunction clearPlayerRevealSequence()'));
+let onGame,screen,countdowns=[],reveals=0;
+const context={myRoom:'TEST',db:{ref:()=>({on:(event,callback)=>onGame=callback})},activeGame:null,prevRound:-1,prevRevealed:false,gameStartCountdownTimer:null,hasAnswered:false,document:{getElementById:()=>({classList:{remove(){}}})},hideHowtoGuide(){},clearPlayerRevealSequence(){},renderQuestion(){},applyAlreadyAnsweredIfNeeded(){},showScreen:s=>screen=s,runCountdown:cb=>countdowns.push(cb),startQuestionTimer(){},startPlayerRevealSequence(){screen='result';reveals++}};
+vm.createContext(context);vm.runInContext(code,context);context.listenGame();
+onGame({val:()=>({status:'playing',round:13,phase:'results',revealed:true})});assert.equal(screen,'result');assert.equal(countdowns.length,0);
+onGame({val:()=>({status:'playing',round:14,phase:'answering',revealed:false})});assert.equal(countdowns.length,1);
+onGame({val:()=>({status:'playing',round:14,phase:'results',revealed:true})});countdowns[0]();assert.equal(screen,'result');assert.equal(reveals,2);
+console.log('PASS: reconnect into results skips countdown; pending countdown cannot overwrite newly revealed results.');
