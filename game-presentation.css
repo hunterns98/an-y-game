@@ -20,3 +20,5 @@ body:has(#screen-lobby.active) .game-header{display:none}
 /* Keep question lines aligned and preserve the three transition instructions. */
 #q-text,#d-question-text{text-align:left;text-indent:0}
 .player-level-rule,.level-transition-rule{white-space:pre-line}
+
+#q-text.question-single-line,#d-question-text.question-single-line{text-align:center}

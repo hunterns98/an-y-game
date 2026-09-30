@@ -46,8 +46,29 @@
     nameInput.addEventListener('compositionend',updateTeamNameInput);
     updateTeamNameInput();
   }
+  // Count rendered text lines, including inline strike-through, after layout.
+  let alignmentFrame=0;
+  function alignQuestions(){
+    alignmentFrame=0;
+    document.querySelectorAll('#q-text,#d-question-text').forEach(el=>{
+      if(!el.getClientRects().length || !el.clientWidth)return;
+      const range=document.createRange();range.selectNodeContents(el);
+      const tops=[];
+      for(const rect of range.getClientRects()){
+        if(rect.width>0 && rect.height>0 && !tops.some(y=>Math.abs(y-rect.top)<3))tops.push(rect.top);
+      }
+      el.classList.toggle('question-single-line',tops.length===1);
+    });
+  }
+  function scheduleAlignment(){if(!alignmentFrame)alignmentFrame=requestAnimationFrame(alignQuestions);}
+  const questionResize=new ResizeObserver(scheduleAlignment);
+  document.querySelectorAll('#q-text,#d-question-text').forEach(el=>questionResize.observe(el));
+  window.addEventListener('resize',scheduleAlignment);
+  if(document.fonts)document.fonts.ready.then(scheduleAlignment);
+  scheduleAlignment();
   const observer=new MutationObserver(records=>{
     observer.disconnect();
+    scheduleAlignment();
     const roots=new Set();
     records.forEach(record=>{if(record.type==='characterData')roots.add(record.target.parentElement);else record.addedNodes.forEach(n=>{if(n.nodeType===1)roots.add(n);else if(n.nodeType===3)roots.add(n.parentElement);});});
     roots.forEach(root=>{if(root && root.isConnected)render(root)});
