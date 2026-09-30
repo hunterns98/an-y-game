@@ -5,7 +5,7 @@ require('./game-logic.js');
 const G=global.GameLogic;
 const questions=Function('return '+fs.readFileSync('admin.html','utf8').match(/const questions = (\[[\s\S]*?\n\]);/)[1])();
 assert.equal(questions.length,19);
-assert.deepEqual(questions.slice(14).map(q=>q.tags.length),[6,5,6,6,6]);
+assert.deepEqual(questions.slice(14).map(q=>q.tags.length),[6,6,6,6,5]);
 const original={game:{status:'playing',phase:'answering',type:'team_tags',round:14,level:3,question:questions[15].text,tags:questions[15].tags,answerStartsAt:1000},teams:{},history:{rounds:{0:{preserve:true}}}};
 for(let i=0;i<8;i++)original.teams['t'+i]={player1:'a'+i,player2:'b'+i,score:10};
 const originalJSON=JSON.stringify(original);

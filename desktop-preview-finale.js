@@ -66,7 +66,7 @@
   });
   normalButtons.forEach(b=>b.addEventListener('click',clearFinale));
   const next=document.createElement('button');next.id='preview-gift-next';next.className='gift-card-action';next.textContent='Tiếp tục · Mở quà 20/10 🎁';next.onclick=()=>finale('gift');$('result-details').appendChild(next);
-  document.querySelector('.gift-subtitle').textContent='Cảm ơn vì đã đến';
+  document.querySelector('.gift-subtitle').textContent='Cam on vi da den';
   $('btn-open-gift').onclick=()=>finale('poem');
   $('btn-create-personal-card').onclick=()=>finale('card');
   $('btn-close-personal-card').onclick=()=>finale('poem');

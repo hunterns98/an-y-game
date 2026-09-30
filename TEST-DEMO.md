@@ -10,7 +10,7 @@ Mở `test-demo.html` trên cùng máy chủ với game. Đường dẫn cũ `de
 - Liên kết công bố điểm mở `test-demo-display.html`: kết quả từng câu của tám đội; tổng điểm và xếp hạng chỉ hiện khi vinh danh.
 - Level 2 cùng chọn một người được +1 điểm. Phòng chờ có trạng thái chưa ghép đội; trang người chơi luôn tắt âm thanh.
 - Biểu cảm Zalo dùng ảnh trong `assets/emotes`, được hiển thị qua `game-presentation.css` và `game-presentation.js`. Khi cập nhật hosting, đưa lên cả các file này. Kiểm tra nội dung và quy tắc hiển thị bằng `node test-presentation.cjs`.
-- Level 3 có 5 câu chọn tag (6/5/6/6/6 lựa chọn). Hai người được trao đổi; người chốt hợp lệ đầu tiên quyết định đáp án chung. Trùng đội khác +1, độc nhất +3, không chốt +0. Thời gian 30 giây.
+- Level 3 có 5 câu chọn tag (6/6/6/6/5 lựa chọn). Hai người được trao đổi; người chốt hợp lệ đầu tiên quyết định đáp án chung. Trùng đội khác +1, độc nhất +3, không chốt +0. Thời gian 30 giây.
 
 Demo dùng dữ liệu giả lập, không kết nối Firebase và không ảnh hưởng phòng thật. Các trạng thái được mở trực tiếp để duyệt hình thức, không mô phỏng thời gian và đồng bộ của trận thật. Màn công bố điểm dùng cách dựng giao diện và công thức tính điểm của game.
 
