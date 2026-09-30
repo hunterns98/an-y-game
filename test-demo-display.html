@@ -1,4 +1,4 @@
-<!doctype html><html lang="vi"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Test Demo · Công bố điểm</title><style>
+<!doctype html><html lang="vi"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Test Demo · Display</title><style>
   :root {
     --bg:       #0a0015;
     --border:   rgba(255,255,255,0.12);
@@ -357,9 +357,54 @@
     .timer-circle { width: 76px; height: 76px; font-size: 1.6rem; }
   }
 
-body{overflow:auto}nav{position:sticky;top:0;z-index:99999;background:#210b37;padding:16px;display:flex;gap:16px;flex-wrap:wrap;align-items:center}nav a{color:#ffc4e4}select{padding:10px;border-radius:8px}main{max-width:1200px;margin:auto;padding:24px}#d-reveal-board{display:block}#board{margin-top:24px}
-</style><link rel="stylesheet" href="game-presentation.css"></head><body><nav><a href="test-demo.html">← Test Demo người chơi</a><strong>Màn hình lớn · Dữ liệu minh họa</strong><select id="mode" aria-label="Màn hình"><option value="round">Công bố điểm sau câu</option><option value="level">Luật chuyển Level 3</option><option value="final">Vinh danh chung cuộc</option></select><select id="type" aria-label="Loại câu"><option value="choice">Level 1 · A/B</option><option value="who_is">Level 2 · Ai là ai</option><option value="team_tags">Level 3 · Tag chung</option></select><select id="question" aria-label="Câu Level 3" style="max-width:400px"></select></nav><main><h2 id="question-title"></h2><div id="d-reveal-board"></div><div id="board"></div></main><script src="game-presentation.js"></script><script>
-const questions=[
+body{overflow:auto}#d-qr-code{font:600 12px/1.4 sans-serif!important;text-align:center;white-space:normal}#next-quote{padding:10px 14px;border-radius:8px;border:0;cursor:pointer}#demo-stage .screen{display:none}#demo-stage .screen.active{display:block}#demo-stage .level-transition-card{margin:8vh auto;text-align:center}#demo-stage .waiting-card{margin-top:16px}nav{position:sticky;top:0;z-index:99999;background:#210b37;padding:16px;display:flex;gap:16px;flex-wrap:wrap;align-items:center}nav a{color:#ffc4e4}select{padding:10px;border-radius:8px}main{max-width:1200px;margin:auto;padding:24px}#d-reveal-board{display:block}#board{margin-top:24px}
+</style><link rel="stylesheet" href="game-presentation.css"></head><body><nav><a href="test-demo.html">← Test Demo người chơi</a><strong>Màn hình lớn · Dữ liệu minh họa</strong><select id="mode" aria-label="Màn hình"><option value="lobby">Phòng chờ · Quote vô tri</option><option value="question">Câu hỏi đang chơi</option><option value="round">Công bố điểm sau câu</option><option value="transition2">Chuyển Level 2</option><option value="transition3">Chuyển Level 3</option><option value="final">Vinh danh chung cuộc</option></select><select id="type" aria-label="Loại câu"><option value="choice">Level 1 · A/B</option><option value="who_is">Level 2 · Ai là ai</option><option value="team_tags">Level 3 · Tag chung</option></select><select id="question" aria-label="Câu Level 3" style="max-width:400px"></select><select id="full-question" aria-label="Chọn câu hỏi" style="max-width:400px"></select><button id="next-quote" type="button">Quote tiếp theo</button></nav><main><div id="demo-stage">  <div class="screen" id="screen-waiting">
+    <div class="waiting-card">
+      <div class="lobby-join-banner">
+        <div class="lobby-join-copy">Quét mã QR bằng camera điện thoại để tham gia</div>
+        <div class="lobby-pin-box"><span class="lobby-pin-label">Mã phòng</span><strong class="big-room-code" id="d-room-code-big">—</strong></div>
+        <div class="qr-box">
+          <div id="d-qr-code"></div>
+        </div>
+      </div>
+      <div class="lobby-brand">❤️ Cặp Đôi Hoàn Cảnh</div>
+    </div>
+    <div class="waiting-section">
+      <div class="waiting-section-label">Người chơi đã sẵn sàng</div>
+      <div class="player-lobby-grid" id="d-player-chips"></div>
+      <div id="d-player-count">0 người đã vào</div>
+    </div>
+    <div class="waiting-section" id="d-teams-section" style="display:none;">
+      <div class="waiting-section-label">💞 Các cặp đấu</div>
+      <div class="pair-grid" id="d-team-pairs"></div>
+    </div>
+  </div>
+  <div class="screen" id="screen-question">
+    <div class="top-meta-row">
+      <div id="d-round-badge" class="round-badge">Level 1 · Câu 1 / 19</div>
+      <div id="d-timer-wrap"><div class="timer-circle" id="d-timer-circle">—</div></div>
+    </div>
+    <div id="d-special-badge" class="special-badge" style="display:none;"></div>
+    <div id="d-game-ending-notice" class="game-ending-notice" aria-live="polite"></div>
+    <div class="question-display-card">
+      <div class="question-display-text" id="d-question-text">...</div>
+      <div class="options-row" id="d-options-row" style="display:none;">
+        <div class="opt-box"><span class="opt-tag">Lựa chọn A</span><span id="d-opt-a">—</span></div>
+        <div class="opt-box"><span class="opt-tag">Lựa chọn B</span><span id="d-opt-b">—</span></div>
+      </div>
+    </div>
+    <div class="progress-wrap" id="d-progress-wrap">
+      <div class="progress-label">Số đội đã trả lời</div>
+      <div class="progress-count" id="d-progress-count">0 / 0</div>
+      <div class="team-ready-grid" id="d-team-ready-grid"></div>
+    </div>
+    <div class="reveal-intro" id="d-reveal-intro">🔒 ĐÁP ÁN ĐÃ KHÓA · CÙNG XEM NÀO!</div>
+    <div class="reveal-board" id="demo-unused-reveal"></div>
+    <div class="leader-spotlight" id="d-leader-spotlight"></div>
+    <div class="kahoot-leaderboard" id="d-round-leaderboard" style="display:none;"></div>
+  </div>
+</div><h2 id="question-title"></h2><div id="d-reveal-board"></div><div id="board"></div></main><aside class="commentator-bubble" id="commentator-bubble"><span id="commentator-text"></span></aside><script src="avatar-config.js"></script><script src="game-presentation.js"></script><script>
+const allQuestions=[
   // ── LEVEL 1: Thấu Hiểu Nông (A/B) ──
   { level:1, text:"Khóc trên ô tô hay Cười trên xe máy:", a:"Khóc trên ô tô", b:"Cười trên xe máy", special:false },
   { level:1, text:"Được chọn một, bạn sẽ chọn:", a:"Đẹp nhất phòng", b:"Giàu nhất phòng", special:false },
@@ -382,7 +427,86 @@ const questions=[
   {"level":3,"text":"Ôi không, đơn hàng của bạn đang căng quá! Các anh dưới đây đều xin giãn hạn giao. Bạn chọn “hỗ trợ xin” cho ai?:","type":"team_tags","tags":["Cảnh","Đô","Hồng","Huy","Khoát","Đức Anh"]},
   {"level":3,"text":"Nay liên hoan vui quá, bạn quyết định mời một anh uống ly rượu giao bôi. Người được chọn là anh…:","type":"team_tags","tags":["Xuân Cờ","Kim Dương","Xuân Bách","Văn Hiệu","Đức Thăng","Tú Tài Tử"]},
   {"level":3,"text":"Vòng hồi sinh đã đến! Bạn có một suất đưa một nam đồng nghiệp từng làm phòng Sales trở lại (chị Rít không nói thế). Bạn chọn ai?:","type":"team_tags","tags":["Jack Sơn","Charlie Chính","Quinn Quân","Harry Nam","Năng Khiên"]}
-].filter(q=>q.type==='team_tags');
+];
+const questions=allQuestions.filter(q=>q.type==='team_tags');
+const COMMENTS=[
+  'Đủ nắng hoa sẽ nở, đủ rồi dừng lại thôi.',
+  'Nếu một ngày giàu có, tôi sẽ ăn sữa chua mà không cần liếm nắp.',
+  'Hợp đồng kỳ nghỉ không em?',
+  'Cố lên cố lên, sắp tới rồi sắp tới rồi.',
+  'Ê nha. Tôi nhắc em.',
+  'Thì phải làm sao? Phải chịu.',
+  'Kìn chá nà. Kìn chá nề yố.',
+  'Lửa hận thù đốt cháy ký ức hai ta.',
+  'Nếu một ngày giàu có, tôi sẽ bóc hết giấy ướt lúc đi ăn hàng.',
+  'Doki Doki, Fuwa Fuwa, Oishikunare, Moe Moe Kun.',
+  'Đen tình đỏ bạc. Bạn đen cả hai.',
+  'Một ngày thật tuyệt, tuyệt vọng!',
+  'Họ cười tôi vì tôi khác họ. Tôi cười họ vì họ cười với tôi.',
+  'Cứ tưởng mình là love, ai ngờ đâu là lốp.',
+  'Bây giờ em đã có chồng, như chim vào lồng như cá cắn câu.',
+  'Cá cắn câu biết đâu mà gỡ? Chim vào lồng biết ngày nào ra?',
+  'Những lúc chán đời bạn hãy thử đi cắt tóc. Vì biết đâu cắt xong bạn sẽ chán cái bản mặt bạn hơn cả đời.',
+  'Ủa em?',
+  'Của rẻ là của congan.',
+  'Đừng cúi đầu, vương miện sẽ rơi.',
+  'Sống Nay Stress Mai.',
+  '2, 3 con mực. Yêu em căng cực.',
+  'Sẽ có những con cá phải giả chó.',
+  '🖤🩷 Hồng Đen trong khu vực bạn đóoooo.',
+  '1 điều nhịn là 9 đứa ngồi lên đầu.',
+  "Trust me I'm a Dogtor.",
+  'Gừng càng già càng cay. Già càng ngày càng cưng.',
+  'H.hhh.hồ..i hồi chiều trời mưa. Hồi chiều....mưa.',
+  'Bạn thì tày rồi.',
+  'Darling, hold my hand... Nothing beats a Jet2 holiday! And right now, you can save fifty pounds per person.',
+  'Nếu bắt phải chọn giữa gia đình và chết, tôi vẫn chọn gia đình.',
+  'Anh em mình cứ thế thôi hẹ hẹ hẹ.',
+  'Trí thông minh giản zị.',
+  'Kính thưa hội đồng xét xử',
+  'chan bom đê',
+  'six seven',
+  'HDPE là ngon luôn',
+  'Hãy làm ta bận với những thứ tạo ra tiền, đừng bận với những thứ tạo ra muộn phiền',
+  'Bài toán này quá rối. Rối em nhờ!',
+  'Đừng nên nói Ơ quá nhiều',
+  'Em không say chúng ta say',
+  'Em khạc hay anh khạc',
+  'Cô ấy xinh đẹp, tài giỏi, nhưng cô ấy không có được tôi',
+  'Ngược với môn đăng hộ đối? Nhân đôi hộ đói',
+  'Ngũ hành khuyết hỏa, xin lửa xin lửa'
+];
+function renderCommentText(target, comment) {
+  // Tim hồng Unicode mới chưa có trên mọi máy: vẽ SVG nội tuyến, không cần font/CDN.
+  const parts = comment.split('🩷');
+  target.textContent = '';
+  parts.forEach((part, index) => {
+    if (index > 0) {
+      const heart = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+      heart.setAttribute('class', 'quote-pink-heart');
+      heart.setAttribute('viewBox', '0 0 24 24');
+      heart.setAttribute('role', 'img');
+      heart.setAttribute('aria-label', 'Tim hồng');
+      const shape = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+      shape.setAttribute('fill', '#f78fba');
+      shape.setAttribute('d', 'M12 21 3.5 12.6C-2 7.1 5.5-1 12 5.5 18.5-1 26 7.1 20.5 12.6Z');
+      heart.appendChild(shape);
+      target.appendChild(heart);
+    }
+    target.appendChild(document.createTextNode(part));
+  });
+}
+function avatarImg(name, size) {
+  size = size || 28;
+  const num = playersCache[name] && playersCache[name].avatar;
+  const initials = String(name || '?').trim().split(/\s+/).map(part => part.charAt(0)).join('').slice(0,2).toUpperCase().replace(/[<>&"']/g, '');
+  if (!num) return `<span class="avatar-frame" style="--avatar-size:${size}px"><span class="avatar-placeholder">${initials}</span></span>`;
+  const fallback = PlayerAvatars.fallbackSrc(num);
+  const avatarPosition = PlayerAvatars.positionFor(name);
+  const avatarZoom = PlayerAvatars.zoomFor(name);
+  return `<span class="avatar-frame" style="--avatar-size:${size}px"><span class="avatar-placeholder">${initials}</span><img class="avatar-thumb" style="object-position:${avatarPosition};transform:scale(${avatarZoom});transform-origin:${avatarPosition}" src="${PlayerAvatars.srcFor(name,num)}" onload="this.parentElement.classList.add('is-loaded')" onerror="this.onerror=null;this.src='${fallback}'" alt=""></span>`;
+}
+const playersCache={};
 questions.forEach((q,i)=>{const o=document.createElement('option');o.value=i;o.textContent='Câu '+(i+15)+': '+q.text;document.getElementById('question').append(o);});
 window.normalizeAnswer =  function(str) {
   if (str === null || str === undefined) return '';
@@ -671,8 +795,9 @@ window.normalizeAnswer =  function(str) {
 const teamsCache={},answersCache={};
 const people=['Nhung','Thủy','An','Thoan','Phượng','Ánh','Giang','Hạnh','Lệ','Mai Anh','Linh','Hằng','Hoa','Trang','Trúc','Liên'];
 const keys=['nhung','thuy','an','thoan','phuong','anh','giang','hanh','le','mai-anh','linh','hang','hoa','trang','truc','lien'];
-function avatarImg(name,size){return '<img alt="'+name+'" src="assets/avatars/players/'+keys[people.indexOf(name)]+'.webp" style="width:'+size+'px;height:'+size+'px;border-radius:50%;object-fit:cover">';}
+
 for(let i=0;i<8;i++)teamsCache[i]={player1:people[i*2],player2:people[i*2+1],teamName:'Đội '+(i+1),score:18-i,_idx:i};
+people.forEach((name,i)=>playersCache[name]={name,avatar:i+1});
 function renderPodiumLeaderboard(targetId, sorted, mode='round') {
   const target = document.getElementById(targetId);
   if (!target) return;
@@ -799,6 +924,7 @@ function renderRevealBoard(g, opts={}) {
 }
 function draw(){
  const mode=document.getElementById('mode').value;
+ if(drawExtra(mode))return;
  const type=document.getElementById('type').value;
  const q=questions[Number(document.getElementById('question').value)];
  document.getElementById('question').style.display=type==='team_tags'?'block':'none';
@@ -816,5 +942,53 @@ function draw(){
  else if(mode==='level'){document.getElementById('board').innerHTML='<section class="level-transition-card"><h2>Thấu Hiểu Sâu</h2><p>2 người cùng trao đổi chốt đáp án<br>Trùng đội khác chỉ +1<br>Không trùng đội nào +3</p><p>chờ BTC mở câu tiếp theo</p></section>';}
  else {renderPodiumLeaderboard('board',sorted,mode==='final'?'final':'round');document.querySelectorAll('.podium-card,.lb-rest-row').forEach(el=>el.classList.add('is-revealed','is-name-revealed','is-score-grown'));}
 }
+const fullQuestion=document.getElementById('full-question');
+allQuestions.forEach((q,i)=>{const o=document.createElement('option');o.value=i;o.textContent='Câu '+(i+1)+' · '+q.text;fullQuestion.append(o);});
+const transition=document.createElement('section');transition.className='level-transition-card';document.getElementById('demo-stage').append(transition);
+let quoteIndex=-1;
+function nextQuote(){quoteIndex=(quoteIndex+1)%COMMENTS.length;renderCommentText(document.getElementById('commentator-text'),COMMENTS[quoteIndex]);}
+document.getElementById('next-quote').onclick=nextQuote;
+setInterval(()=>{if(document.getElementById('mode').value==='lobby')nextQuote();},10000);
+function drawExtra(mode){
+ const extra=['lobby','question','transition2','transition3'].includes(mode);
+ document.getElementById('demo-stage').style.display=extra?'block':'none';
+ document.getElementById('screen-waiting').classList.toggle('active',mode==='lobby');
+ document.getElementById('screen-question').classList.toggle('active',mode==='question');
+ transition.style.display=mode.startsWith('transition')?'block':'none';
+ document.getElementById('commentator-bubble').style.display=mode==='lobby'?'block':'none';
+ document.getElementById('next-quote').style.display=mode==='lobby'?'inline-block':'none';
+ fullQuestion.style.display=mode==='question'?'block':'none';
+ document.getElementById('type').style.display=mode==='round'?'block':'none';
+ document.getElementById('question').style.display=mode==='round'&&document.getElementById('type').value==='team_tags'?'block':'none';
+ document.getElementById('question-title').style.display=mode==='round'?'block':'none';
+ if(!extra)return false;
+ document.getElementById('board').replaceChildren();document.getElementById('d-reveal-board').style.display='none';
+ if(mode==='lobby'){
+  document.getElementById('d-room-code-big').textContent='DEMO';
+  document.querySelector('.lobby-join-copy').textContent='Phòng minh họa · Không kết nối phòng thật';
+  document.getElementById('d-qr-code').textContent='QR sẽ xuất hiện khi mở phòng thật';
+  document.getElementById('d-player-chips').innerHTML=people.map(name=>'<div class="d-chip">'+avatarImg(name,38)+'<span class="d-chip-name">'+name+'</span></div>').join('');
+  document.getElementById('d-player-count').textContent='✨ 16 người đã vào · đang chờ BTC bắt đầu';
+  if(quoteIndex<0)nextQuote();
+ }else if(mode==='question'){
+  const i=Number(fullQuestion.value),q=allQuestions[i];
+  document.getElementById('d-question-text').textContent=q.text;
+  document.getElementById('d-round-badge').textContent='Level '+q.level+' · Câu '+(i+1)+' / 19';
+  document.getElementById('d-timer-circle').textContent='24';
+  document.getElementById('d-options-row').style.display=q.level===1?'flex':'none';
+  document.getElementById('d-opt-a').textContent=q.a||'';document.getElementById('d-opt-b').textContent=q.b||'';
+  const badge=document.getElementById('d-special-badge');badge.style.display=q.level===1?'none':'block';badge.textContent=q.level===2?'Ai là ai? · Cùng chọn người +1 điểm':'Hai người trao đổi, chốt một đáp án chung: '+(q.tags||[]).join(' / ');
+  document.getElementById('d-progress-count').textContent='5 / 8';
+  document.getElementById('d-team-ready-grid').innerHTML=Object.values(teamsCache).map((t,i)=>'<div class="team-ready-card">'+(i<5?'✅ ':'⏳ ')+t.teamName+'</div>').join('');
+ }else{
+  const level=mode==='transition2'?2:3;
+  transition.innerHTML='<div class="level-transition-kicker">LEVEL '+level+'</div><h2 class="level-transition-title">Thấu Hiểu '+(level===2?'Trung':'Sâu')+'</h2><p class="level-transition-rule"></p><p class="level-transition-wait">chờ BTC mở câu tiếp theo</p>';
+  transition.querySelector('.level-transition-rule').textContent=level===3?'2 người cùng trao đổi chốt đáp án\nTrùng đội khác chỉ +1\nKhông trùng đội nào +3':'KHÔNG ĐƯỢC trao đổi với đồng đội, chọn bạn hoặc đồng đội cho câu hỏi BTC đưa ra.';
+ }
+ return true;
+}
+
+
+
 document.querySelectorAll('select').forEach(el=>el.onchange=draw);draw();
 </script></body></html>
