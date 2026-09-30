@@ -1518,6 +1518,7 @@ function renderPartnerAnswerStatus() {
   pill.classList.toggle('answered', answered);
   document.getElementById('partner-status-text').textContent = answered
     ? '✅ Đồng đội đã trả lời!' : '⏳ Đồng đội chưa trả lời...';
+  if(hasAnswered)updateChosenWaitingCopy();
 }
 function renderPartnerAvatar(partnerName) {
   db.ref('rooms/' + myRoom + '/players/' + partnerName + '/avatar').once('value').then(snap => {
@@ -1646,6 +1647,7 @@ function applyAlreadyAnsweredIfNeeded(round) {
   });
 }
 function lockAnsweredUI(answerVal) {
+  clearTimeout(answerUiTimer);
   hasAnswered = true;
   clearInterval(timerInterval);
   document.getElementById('btn-a').disabled = true;
@@ -1662,8 +1664,8 @@ function lockAnsweredUI(answerVal) {
   document.getElementById('status-chosen').style.display = 'block';
   document.getElementById('chosen-emoji').textContent = '✅';
   document.getElementById('chosen-label').textContent = 'Bạn đã chọn';
-  document.getElementById('chosen-display').textContent = answerVal;
-  document.getElementById('chosen-sub').textContent = 'Đang chờ đồng đội trả lời...';
+  document.getElementById('chosen-display').textContent = activeGame && !activeGame.type ? resolveChoiceText(answerVal,activeGame) : activeGame && activeGame.type==='choice' ? resolveChoiceText(answerVal,activeGame) : answerVal;
+  updateChosenWaitingCopy();
   if(activeGame && activeGame.type === 'team_tags') lockTeamTags(answerVal);
 }
 // ─────────────────────────────────────────
@@ -1877,9 +1879,7 @@ function submitFreeAnswer() {
   submitAnswer(val);
 }
 
-// Ghi trực tiếp vào ô đáp án của người chơi. Không dùng transaction ở root `room`:
-// Firebase chỉ hydrate các node đang lắng nghe (game/players), nên root transaction
-// có thể nhận null dù các màn hình vẫn đang hiển thị đúng dữ liệu.
+// Commit against the current room state so stale or late answers cannot overwrite a new round.
 async function submitAnswer(answer) {
   const round=currentRound;
   if(!firebaseConnected){hasAnswered=false;toast('⚠️ Đang mất kết nối. Hãy thử lại.');if(activeGame)renderQuestion(activeGame);return;}
@@ -1888,7 +1888,7 @@ async function submitAnswer(answer) {
     const result=await GameLogic.transactRoom(db.ref('rooms/'+myRoom),room=>GameLogic.commitPlayerAnswer(room,{round,player:myName,answer},serverNow())||undefined);
     if(currentRound!==round)return;
     const room=result.snapshot.val(),saved=room && room.answers && room.answers[myName];
-    if(saved && saved.round===round){lockAnsweredUI(saved.answer);markAnswerAcknowledged();document.getElementById('chosen-sub').textContent='✅ Đáp án đã lưu — đang chờ đồng đội trả lời...';return;}
+    if(saved && saved.round===round){lockAnsweredUI(saved.answer);markAnswerAcknowledged();updateChosenWaitingCopy();return;}
     throw Error('Câu đã đóng, hết giờ hoặc đội đã thay đổi.');
   }catch(error){
     if(currentRound!==round)return;
@@ -1897,6 +1897,11 @@ async function submitAnswer(answer) {
   }
 }
 
+function updateChosenWaitingCopy() {
+  if(activeGame && activeGame.type==='team_tags')return;
+  const ready=partnerAnswerCache && partnerAnswerCache.round===currentRound && partnerAnswerCache.answer!==undefined && partnerAnswerCache.answer!=='';
+  document.getElementById('chosen-sub').textContent=ready?'✅ Cả hai đã chốt · Hồi hộp chờ xem có cùng tần số không!':'✅ Đáp án đã lưu · Chờ đồng đội chốt nhé!';
+}
 function markAnswerAcknowledged() {
   const type = (activeGame && activeGame.type) || 'choice';
   const buttonId = type === 'who_is' ? 'btn-submit-who' : type === 'text' ? 'btn-submit-free' : 'btn-submit-choice';

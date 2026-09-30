@@ -22,3 +22,9 @@ body:has(#screen-lobby.active) .game-header{display:none}
 .player-level-rule,.level-transition-rule{white-space:pre-line}
 
 #q-text.question-single-line,#d-question-text.question-single-line{text-align:center}
+
+/* Brief feedback, with no continuous animation on answer controls. */
+.btn-answer,.btn-who,.btn-team-tag{touch-action:manipulation;transition:transform .14s ease,border-color .14s ease,background-color .14s ease}
+.btn-answer:active:not(:disabled),.btn-team-tag:active:not(:disabled){transform:scale(.98)}
+button:focus-visible,select:focus-visible{outline:3px solid var(--cyan,#00f5d4);outline-offset:3px}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important;scroll-behavior:auto!important}}

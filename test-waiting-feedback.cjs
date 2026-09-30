@@ -1,0 +1,11 @@
+const fs=require('fs'),vm=require('vm'),assert=require('node:assert/strict');
+const source=fs.readFileSync('index.html','utf8');
+const start=source.indexOf('function updateChosenWaitingCopy()');
+const fn=source.slice(start,source.indexOf('\n}',start)+2);
+const label={textContent:''};const context={activeGame:{type:'choice'},currentRound:3,partnerAnswerCache:null,document:{getElementById:()=>label}};vm.createContext(context);vm.runInContext(fn,context);
+context.updateChosenWaitingCopy();assert.match(label.textContent,/Chờ đồng đội/);
+context.partnerAnswerCache={round:2,answer:'A'};context.updateChosenWaitingCopy();assert.match(label.textContent,/Chờ đồng đội/);
+context.partnerAnswerCache={round:3,answer:'B'};context.updateChosenWaitingCopy();assert.match(label.textContent,/Cả hai đã chốt/);
+context.partnerAnswerCache={round:3,answer:''};context.updateChosenWaitingCopy();assert.match(label.textContent,/Chờ đồng đội/);
+context.activeGame.type='team_tags';label.textContent='Đáp án chung đã lưu';context.updateChosenWaitingCopy();assert.equal(label.textContent,'Đáp án chung đã lưu');
+console.log('PASS: waiting feedback ignores stale/empty answers and preserves shared-team feedback.');

@@ -68,7 +68,7 @@
   scheduleAlignment();
   const observer=new MutationObserver(records=>{
     observer.disconnect();
-    scheduleAlignment();
+    if(records.some(record=>{const el=record.target.nodeType===1?record.target:record.target.parentElement;return el && el.closest('#q-text,#d-question-text');}))scheduleAlignment();
     const roots=new Set();
     records.forEach(record=>{if(record.type==='characterData')roots.add(record.target.parentElement);else record.addedNodes.forEach(n=>{if(n.nodeType===1)roots.add(n);else if(n.nodeType===3)roots.add(n.parentElement);});});
     roots.forEach(root=>{if(root && root.isConnected)render(root)});
