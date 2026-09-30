@@ -1248,7 +1248,7 @@ let partnerStatusRef=null, partnerStatusName='', partnerAnswerCache=null;
 // cả session — tránh chồng listener mỗi khi node `teams` (toàn phòng) đổi.
 // Kết hợp điều kiện myTeamKey (giống pattern partnerListenerAttached ở trên)
 // để không khoá guard nhầm khi player join TRƯỚC lúc admin ghép cặp.
-let myTeamListenerAttached=false;
+
 let selectedChoice=null, selectedWho=null, timeIsUp=false;
 let answerUiTimer=null;
 let lastPlayerCountdownTick = null;
@@ -1460,7 +1460,11 @@ function findMyTeam() {
     document.getElementById('matchmaking-card').style.display=paired?'none':'block';
     document.getElementById('partner-display').style.display=paired?'block':'none';
     document.getElementById('team-name-card').style.display=paired?'block':'none';
-    if(!paired){myTeam=null;myTeamKey=null;}
+    if(!paired){
+      myTeam=null;myTeamKey=null;
+      if(partnerStatusRef)partnerStatusRef.off('value');
+      partnerStatusRef=null;partnerStatusName='';partnerAnswerCache=null;
+    }
     teamsCache = teams;
     Object.entries(teams).forEach(([key, team]) => {
       if ((team.player1 === myName || team.player2 === myName) && team.player1 && team.player2) {
@@ -1479,17 +1483,7 @@ function findMyTeam() {
         if (partner) listenPartnerStatus(partner);
       }
     });
-    // keep updating score
-    if (myTeamKey && !myTeamListenerAttached) {
-      myTeamListenerAttached = true;
-      db.ref('rooms/' + myRoom + '/teams/' + myTeamKey).on('value', ts => {
-        if (!ts.val()) return;
-        const t = ts.val();
-        myTeam = t;
-        const partner = t.player1===myName ? t.player2 : t.player1;
-        renderTeamNameUI(t, myTeamKey);
-      });
-    }
+
   });
 }
 // ─────────────────────────────────────────
@@ -1885,55 +1879,23 @@ function submitFreeAnswer() {
 // Ghi trực tiếp vào ô đáp án của người chơi. Không dùng transaction ở root `room`:
 // Firebase chỉ hydrate các node đang lắng nghe (game/players), nên root transaction
 // có thể nhận null dù các màn hình vẫn đang hiển thị đúng dữ liệu.
-function submitAnswer(answer) {
-  const round = currentRound;
-  const submittedAt = serverNow();
-  let answerAbortReason = '';
-  if (!firebaseConnected && navigator.onLine === false) {
-    hasAnswered = false;
-    toast('⚠️ Bạn đang offline — đáp án chưa được gửi.');
-    if (activeGame) renderQuestion(activeGame);
-    return;
+async function submitAnswer(answer) {
+  const round=currentRound;
+  if(!firebaseConnected){hasAnswered=false;toast('⚠️ Đang mất kết nối. Hãy thử lại.');if(activeGame)renderQuestion(activeGame);return;}
+  document.getElementById('chosen-sub').textContent='⏳ Đang gửi đáp án...';
+  try {
+    const result=await GameLogic.transactRoom(db.ref('rooms/'+myRoom),room=>GameLogic.commitPlayerAnswer(room,{round,player:myName,answer},serverNow())||undefined);
+    if(currentRound!==round)return;
+    const room=result.snapshot.val(),saved=room && room.answers && room.answers[myName];
+    if(saved && saved.round===round){lockAnsweredUI(saved.answer);markAnswerAcknowledged();document.getElementById('chosen-sub').textContent='✅ Đáp án đã lưu — đang chờ đồng đội trả lời...';return;}
+    throw Error('Câu đã đóng, hết giờ hoặc đội đã thay đổi.');
+  }catch(error){
+    if(currentRound!==round)return;
+    hasAnswered=false;clearTimeout(answerUiTimer);toast('❌ '+error.message);
+    if(activeGame && activeGame.phase==='answering')renderQuestion(activeGame);
   }
-  document.getElementById('chosen-sub').textContent = '⏳ Đang gửi đáp án...';
-  const answerRef = db.ref('rooms/' + myRoom + '/answers/' + myName);
-  // activeGame đến từ listener realtime đã dùng để vẽ chính câu hỏi này. Tránh
-  // đọc `once()` lần nữa vì một số phiên Firebase trả snapshot rỗng trong lúc
-  // listener vẫn đã đồng bộ dữ liệu.
-  Promise.resolve().then(() => {
-    const game = activeGame;
-    if (!game) throw new Error('Đang đồng bộ vòng chơi — hãy thử lại sau giây lát.');
-    const phase = game.phase || (game.revealed ? 'results' : 'answering');
-    if (game.status !== 'playing' || game.round !== round) {
-      throw new Error('Host đã chuyển sang câu khác.');
-    }
-    if (phase === 'results' || game.revealed) {
-      throw new Error('Host đã reveal kết quả của câu này.');
-    }
-    return answerRef.transaction(existing => {
-    if (existing && existing.round === round) {
-      answerAbortReason = 'Bạn đã gửi đáp án cho câu này rồi.';
-      return;
-    }
-    return { answer, round, timestamp: submittedAt };
-    });
-  }).then(result => {
-    if (!result.committed) {
-      hasAnswered = false;
-      clearTimeout(answerUiTimer);
-      toast('⚠️ ' + (answerAbortReason || 'Không thể lưu đáp án. Hãy thử lại.'));
-      if (activeGame && (activeGame.phase || 'answering') !== 'results') renderQuestion(activeGame);
-      return;
-    }
-    markAnswerAcknowledged();
-    document.getElementById('chosen-sub').textContent = '✅ Đáp án đã lưu — đang chờ đồng đội trả lời...';
-  }).catch(error => {
-    hasAnswered = false;
-    clearTimeout(answerUiTimer);
-    toast('❌ ' + (error && error.message ? error.message : 'Không gửi được đáp án. Kiểm tra kết nối rồi thử lại.'));
-    if (activeGame && (activeGame.phase || 'answering') !== 'results') renderQuestion(activeGame);
-  });
 }
+
 function markAnswerAcknowledged() {
   const type = (activeGame && activeGame.type) || 'choice';
   const buttonId = type === 'who_is' ? 'btn-submit-who' : type === 'text' ? 'btn-submit-free' : 'btn-submit-choice';
@@ -2022,7 +1984,7 @@ function streakHtml(team) {
   return streak >= 2 ? `<span class="rank-shift up">🔥 ${streak}</span>` : '';
 }
 function getPlayerAwards(teams) {
-  const label = team => team.teamName || (team.player1 + ' & ' + team.player2);
+  const label = team => GameLogic.escapeHtml(team.teamName || (team.player1 + ' & ' + team.player2));
   const values = Object.values(teams || {});
   if (!values.length) return [];
   const by = metric => [...values].sort((a,b) => metric(b) - metric(a))[0];
@@ -2209,38 +2171,20 @@ document.getElementById('btn-edit-team-name').addEventListener('click', () => {
 });
 document.getElementById('btn-save-team-name').addEventListener('click', saveTeamName);
 document.getElementById('inp-team-name').addEventListener('keypress', e => { if (e.key === 'Enter') saveTeamName(); });
-function saveTeamName() {
-  const val = document.getElementById('inp-team-name').value.trim();
-  if (!val) { toast('⚠️ Nhập tên đội trước đã!'); return; }
-  if (GamePresentation.teamNameLength(val)>20) { toast('⚠️ Tên đội tối đa 20 ký tự.'); return; }
-  if (!myTeamKey) return;
-  const newKey = normalizeAnswer(val);
-  if (!newKey) { toast('⚠️ Tên đội không hợp lệ, thử tên khác!'); return; }
-  const oldName = myTeam && myTeam.teamName;
-  const oldKey = oldName ? normalizeAnswer(oldName) : null;
-  const applyName = () => {
-    db.ref('rooms/' + myRoom + '/teams/' + myTeamKey + '/teamName').set(val).then(() => {
-      if (oldKey && oldKey !== newKey) {
-        db.ref('rooms/' + myRoom + '/teamNameReservations/' + oldKey).remove();
-      }
-      document.getElementById('team-name-edit-row').classList.remove('show');
-      toast('✅ Đã đổi tên đội thành "' + val + '"');
-      sfxClick();
-    });
-  };
-  if (oldKey === newKey) { applyName(); return; } // chỉ đổi hoa/thường/khoảng trắng -> không cần giữ tên lại
-  // ── Giữ tên đội theo nguyên tắc "ai lưu trước được trước" ──
-  db.ref('rooms/' + myRoom + '/teamNameReservations/' + newKey).transaction(curr => {
-    if (curr === null) return myTeamKey;
-    return; // abort -> tên đội đã có đội khác dùng
-  }, (error, committed) => {
-    if (error) { toast('❌ Lỗi: ' + error.message); return; }
-    if (!committed) {
-      toast('❌ Tên đội "' + val + '" đã có đội khác dùng rồi!');
-      return;
-    }
-    applyName();
-  });
+let teamNameSaving=false;
+async function saveTeamName() {
+  if(teamNameSaving || !myTeamKey)return;
+  const name=document.getElementById('inp-team-name').value.trim();
+  if(!name || GamePresentation.teamNameLength(name)>20){toast('⚠️ Nhập tên đội từ 1 đến 20 ký tự.');return;}
+  if(!firebaseConnected){toast('⚠️ Đang mất kết nối. Hãy thử lại.');return;}
+  teamNameSaving=true;document.getElementById('btn-save-team-name').disabled=true;
+  const teamKey=myTeamKey;
+  try {
+    const result=await GameLogic.transactRoom(db.ref('rooms/'+myRoom),room=>GameLogic.renameTeam(room,{teamKey,player:myName,name})||undefined);
+    if(!result.committed)throw Error('Tên đã có đội khác dùng hoặc đội của bạn đã thay đổi.');
+    document.getElementById('team-name-edit-row').classList.remove('show');toast('✅ Đã đổi tên đội thành "'+name+'"');
+  }catch(error){toast('❌ '+error.message);}
+  finally{teamNameSaving=false;document.getElementById('btn-save-team-name').disabled=false;}
 }
 // ─────────────────────────────────────────
 // HOW-TO-PLAY GUIDE (chỉ hiện ở lobby, ẩn khi game bắt đầu)

@@ -978,7 +978,7 @@ function renderProgress() {
       const answer = answersCache[name];
       return !answer || answer.round !== (gameCache && gameCache.round) || answer.answer === undefined || answer.answer === '';
     });
-    const label = team.teamName || `Đội ${index + 1}`;
+    const label = GameLogic.escapeHtml(team.teamName || `Đội ${index + 1}`);
     return `<div class="team-ready-card ${done ? 'ready' : ''}"><span class="team-ready-name">${label}</span><span class="team-ready-state">${done ? '✅ Sẵn sàng' : '⏳ ' + (missing.join(', ') || 'Đang chờ')}</span></div>`;
   }).join('');
 }
@@ -1188,7 +1188,7 @@ function clearRevealSequence() {
 function renderPodiumLeaderboard(targetId, sorted, mode='round') {
   const target = document.getElementById(targetId);
   if (!target) return;
-  const teamLabel = t => t.teamName || ('Đội ' + (t._idx + 1));
+  const teamLabel = t => GameLogic.escapeHtml(t.teamName || ('Đội ' + (t._idx + 1)));
   if (!sorted.length) { target.innerHTML = '<div class="reveal-empty">Chưa có dữ liệu</div>'; return; }
   const rankAt = index => index > 0 && (sorted[index].score || 0) === (sorted[index - 1].score || 0)
     ? rankAt(index - 1) : index + 1;
@@ -1232,7 +1232,7 @@ function renderCompactRoundLeaderboard(targetId, sorted) {
   const target = document.getElementById(targetId);
   if (!target) return;
   const allTiedAtZero = sorted.length > 1 && sorted.every(team => (team.score || 0) === 0);
-  const label = team => team.teamName || ('Đội ' + (team._idx + 1));
+  const label = team => GameLogic.escapeHtml(team.teamName || ('Đội ' + (team._idx + 1)));
   if (allTiedAtZero) {
     target.innerHTML = `<div class="round-compact"><div class="round-compact-head"><span class="round-compact-title">📊 Bảng điểm vừa cập nhật</span><span class="round-compact-sub">Câu tiếp theo sẽ tạo khác biệt</span></div><div class="round-compact-empty">⚡ Chưa phân định — tất cả đội đang cùng 0 điểm!</div></div>`;
     return;
@@ -1263,7 +1263,7 @@ function streakHtml(team) {
 }
 function getAwards(teams) {
   const list = Object.values(teams || {});
-  const label = team => team.teamName || ('Đội ' + (team._idx + 1));
+  const label = team => GameLogic.escapeHtml(team.teamName || ('Đội ' + (team._idx + 1)));
   if (!list.length) return [];
   const by = metric => [...list].sort((a,b) => metric(b) - metric(a))[0];
   const champion = by(team => team.score || 0);
@@ -1280,7 +1280,7 @@ function getAwards(teams) {
 function getTeamJourney(teams) {
   return [...teams].sort((a,b) => (b.score || 0) - (a.score || 0)).map((team, index) => {
     const stats = team.stats || {};
-    const label = team.teamName || `Đội ${team._idx + 1}`;
+    const label = GameLogic.escapeHtml(team.teamName || `Đội ${team._idx + 1}`);
     return `<div class="journey-card"><b>${index + 1}. ${label}</b><br><span>b-) ${stats.matches || 0} lần · 🔥 chuỗi ${stats.bestStreak || 0} · 🚀 +${stats.bestComeback || 0}</span></div>`;
   }).join('');
 }
@@ -1331,7 +1331,7 @@ function renderRevealBoard(g, opts={}) {
   const qType = g.type || 'choice';
   const teams = teamsCache;
   const answers = g.finalAnswers || answersCache;
-  const teamLabel = (t, i) => t.teamName || ('Đội ' + (i+1));
+  const teamLabel = (t, i) => GameLogic.escapeHtml(t.teamName || ('Đội ' + (i+1)));
   const rows = [];
 
   // ── Tính match/isUnique bằng GameLogic (pure function — game-logic.js) ──
@@ -1392,7 +1392,7 @@ function runFinalPodiumSequence(sorted) {
   const ended = document.getElementById('screen-ended');
   if (!board) return;
   const call = document.getElementById('d-final-podium-call');
-  const label = team => team.teamName || 'Đội chơi';
+  const label = team => GameLogic.escapeHtml(team.teamName || 'Đội chơi');
   const showMedal = (index, text) => {
     const item = board.querySelector(`[data-final-index="${index}"]`);
     if (!item) return;

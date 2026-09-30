@@ -1,5 +1,7 @@
 # Test Demo
 
+Kiểm tra lỗi mạng, đáp án đến muộn, đổi tên đồng thời và chuyển câu: `node test-audit-regressions.cjs`. Đây là kiểm tra mô phỏng; không ghi dữ liệu phòng thật.
+
 Mở `test-demo.html` trên cùng máy chủ với game. Đường dẫn cũ `desktop-preview.html` vẫn hoạt động.
 
 - Chọn màn ở thanh trên: phòng chờ, ba level, kết quả, mở quà, thơ, 16 thiệp và lịch sử.

@@ -170,14 +170,15 @@
   }
 
   function finalizeTeamTagRound(room, round, now) {
-    if (!room || !room.game || room.game.type !== 'team_tags' || room.game.status !== 'playing' ||
+    if (!room || !room.game || room.game.status !== 'playing' ||
         room.game.round !== round || room.game.revealed || room.game.phase !== 'answering') return null;
     const game = {...room.game}, teams = JSON.parse(JSON.stringify(room.teams || {}));
     const answers = Object.fromEntries(Object.entries(room.answers || {}).filter(([,a])=>a && a.round === round));
     const results = computeRoundResults(game, teams, answers);
     const ranks = () => Object.entries(teams).sort(([,a],[,b])=>(b.score||0)-(a.score||0));
     const before = Object.fromEntries(ranks().map(([key],i)=>[key,i+1]));
-    const historyRound = { round, level:3, question:game.question, type:game.type, tags:game.tags, revealedAt:now, teams:{} };
+    const historyRound = { round, level:game.level||1, question:game.question||'', type:game.type||'choice', special:!!game.special, optionA:game.optionA||'', optionB:game.optionB||'', revealedAt:now, teams:{} };
+    if(game.tags)historyRound.tags=game.tags;
     Object.entries(teams).forEach(([key,team])=>{
       const result = results[key];
       team.stats = {matches:0,unique:0,currentStreak:0,bestStreak:0,bestComeback:0,...team.stats};
@@ -192,10 +193,36 @@
       team.lastRankChange={from:before[key],to:i+1,delta:before[key]-i-1,round};
       team.stats.bestComeback=Math.max(team.stats.bestComeback,team.lastRankChange.delta);
     });
-    Object.assign(game,{phase:'results',revealed:true,revealedAt:now,finalAnswers:answers,levelTransitionAt:null});
+    Object.assign(game,{phase:'results',revealed:true,revealedAt:now,finalAnswers:answers,levelTransitionAt:game.levelBreak ? now+700+Object.keys(teams).length*850+3500+4500 : null});
     return {...room,game,teams,history:{...room.history,rounds:{...(room.history && room.history.rounds),[round]:historyRound}}};
   }
 
+  function commitPlayerAnswer(room, request, now) {
+    const game=room && room.game;
+    if(!game || game.status!=='playing' || game.round!==request.round || game.revealed || game.phase!=='answering')return null;
+    const start=Number(game.answerStartsAt||game.startedAt);
+    if(!Number.isFinite(start)||now<start||now>=start+30000)return null;
+    const team=Object.values(room.teams||{}).find(t=>t.player1===request.player||t.player2===request.player);
+    if(!team)return null;
+    if((game.type||'choice')==='choice' && !['A','B'].includes(request.answer))return null;
+    if(game.type==='who_is' && ![team.player1,team.player2].includes(request.answer))return null;
+    if(game.type==='team_tags')return null;
+    const answers=room.answers||{};
+    if(answers[request.player] && answers[request.player].round===game.round)return null;
+    return {...room,answers:{...answers,[request.player]:{answer:request.answer,round:request.round,timestamp:now}}};
+  }
+  function renameTeam(room, request) {
+    const team=room && (room.teams||{})[request.teamKey],name=String(request.name||'').trim();
+    if(!team || ![team.player1,team.player2].includes(request.player)||!name)return null;
+    if(Array.from(new Intl.Segmenter('vi',{granularity:'grapheme'}).segment(name)).length>20)return null;
+    const normalized=normalizeAnswer(name);
+    if(!normalized || Object.entries(room.teams).some(([key,t])=>key!==request.teamKey && normalizeAnswer(t.teamName||'')===normalized))return null;
+    const reservations={...(room.teamNameReservations||{})};
+    Object.entries(reservations).forEach(([key,owner])=>{if(owner===request.teamKey)delete reservations[key]});
+    const safeKey='n_'+Array.from(normalized,c=>c.codePointAt(0).toString(16)).join('_');
+    reservations[safeKey]=request.teamKey;
+    return {...room,teams:{...room.teams,[request.teamKey]:{...team,teamName:name}},teamNameReservations:reservations};
+  }
   // Keep the full room cached throughout the transaction. A one-shot read can
   // be evicted before its update callback when only child listeners remain.
   async function transactRoom(ref, update) {
@@ -212,7 +239,11 @@
   }
 
   global.GameLogic = {
+    escapeHtml: value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])),
     transactRoom: transactRoom,
+    commitPlayerAnswer: commitPlayerAnswer,
+    renameTeam: renameTeam,
+    finalizeRound: finalizeTeamTagRound,
     commitTeamTagAnswer: commitTeamTagAnswer,
     finalizeTeamTagRound: finalizeTeamTagRound,
     computeChoiceResult: computeChoiceResult,

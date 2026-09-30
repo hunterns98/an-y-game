@@ -720,10 +720,11 @@ function cleanupPlayerFromTeams(name) {
     } else {
       // Cả 2 slot đều rỗng sau khi xoá -> không còn ai để mất điểm -> xoá hẳn team
       db.ref('rooms/' + roomCode + '/teams/' + key).remove();
-      if (team.teamName) {
-        const teamNameKey = normalizeAnswer(team.teamName);
-        if (teamNameKey) db.ref('rooms/' + roomCode + '/teamNameReservations/' + teamNameKey).remove();
-      }
+      const reservations=db.ref('rooms/'+roomCode+'/teamNameReservations');
+      reservations.transaction(current=>{
+        if(!current)return current;
+        const next={...current};Object.entries(next).forEach(([name,owner])=>{if(owner===key)delete next[name]});return next;
+      });
     }
   });
 }
@@ -742,7 +743,7 @@ function listenTeams() {
     const container = document.getElementById('team-list-display');
     container.innerHTML = list.map((t,i) => `
       <div class="team-row">
-        <div class="team-players">${avatarImg(t.player1,24)} ${avatarImg(t.player2,24)} ${t.teamName ? '<strong>'+t.teamName+'</strong> · ' : 'Đội '+(i+1)+': '}<strong>${t.player1||'Đang chờ'}</strong> & <strong>${t.player2||'Đang chờ'}</strong></div>
+        <div class="team-players">${avatarImg(t.player1,24)} ${avatarImg(t.player2,24)} ${t.teamName ? '<strong>'+escapeHtml(t.teamName)+'</strong> · ' : 'Đội '+(i+1)+': '}<strong>${t.player1||'Đang chờ'}</strong> & <strong>${t.player2||'Đang chờ'}</strong></div>
         <div class="team-score-badge">${t.score||0} điểm</div>
       </div>`).join('');
     renderScoreBoard(list);
@@ -855,7 +856,7 @@ function renderRoundReadiness() {
   }
   list.innerHTML = data.teams.map(row => `
     <div class="readiness-row ${row.ready ? 'ready' : 'missing'}">
-      <span class="readiness-team">${row.label}</span>
+      <span class="readiness-team">${escapeHtml(row.label)}</span>
       <span class="readiness-status">${gameCache.type === 'team_tags' ? (row.ready ? '✅ Đội đã chốt' : '⏳ Đội chưa chốt') : (row.ready ? '✅ Đã đủ đáp án' : '⏳ ' + (row.missing.join(', ') || 'Thiếu thành viên'))}</span>
     </div>`).join('');
 }
@@ -893,7 +894,7 @@ function listenAnswers() {
       const rows = Object.entries(teams).map(([key, team], i) => {
         const a1 = answers[team.player1] ? '✅' : '⏳';
         const a2 = answers[team.player2] ? '✅' : '⏳';
-        const label = team.teamName || `Đội ${i+1}: ${team.player1} & ${team.player2||'?'}`;
+        const label = GameLogic.escapeHtml(team.teamName || `Đội ${i+1}: ${team.player1} & ${team.player2||'?'}`);
         return `<div class="answer-row" id="ar-${key}">
           <div class="ar-team">${avatarImg(team.player1,22)} ${avatarImg(team.player2,22)} ${label}</div>
           <div class="ar-ans">${shared ? (a1 === '✅' && a2 === '✅' ? '✅ Đội đã chốt' : '⏳ Đội chưa chốt') : team.player1+': '+a1+' · '+team.player2+': '+a2}</div>
@@ -969,8 +970,7 @@ function armHostStartCountdown(game) {
   if (hostStartCountdownTimer) clearTimeout(hostStartCountdownTimer);
   hostStartCountdownTimer = setTimeout(() => {
     if (gameCache && gameCache.status === 'starting' && String(gameCache.countdownEndsAt || '') === key) {
-      sendQuestion(0);
-      toast('🎮 Game bắt đầu!');
+      sendQuestion(0).then(()=>toast('🎮 Game bắt đầu!')).catch(error=>{hostStartCountdownKey='';toast('❌ Chưa mở câu đầu: '+error.message);setTimeout(()=>{if(gameCache && gameCache.status==='starting')armHostStartCountdown(gameCache);},3000);});
     }
   }, Math.max(0, Number(game.countdownEndsAt) - serverNow()));
 }
@@ -1083,7 +1083,7 @@ function applyControlButtonsState(game) {
   revealBtn.textContent = '🔓 Reveal đáp án';
 }
 // ── SEND QUESTION ──
-function sendQuestion(idx) {
+async function sendQuestion(idx) {
   const q = questions[idx];
   const qType = q.type || 'choice';
   const isLevelBreak = idx < questions.length - 1 && questions[idx + 1].level !== q.level;
@@ -1111,7 +1111,14 @@ function sendQuestion(idx) {
   }
   // Câu mới và việc xoá đáp án cũ phải đến cùng lúc. Nếu không, máy người chơi
   // có thể thấy câu mới trong một khoảnh khắc nhưng vẫn đọc đáp án của câu trước.
-  db.ref('rooms/' + roomCode).update({ game: payload, answers: null });
+  const expectedRound=idx-1;
+  const result=await GameLogic.transactRoom(db.ref('rooms/'+roomCode),room=>{
+    if(!room || !room.game)return;
+    const current=room.game;
+    if(idx===0 ? current.status!=='starting' : current.round!==expectedRound || current.status!=='playing' || !current.revealed || Number(current.levelTransitionAt||0)>serverNow())return;
+    return {...room,game:payload,answers:null};
+  });
+  if(!result.committed)throw Error('Trạng thái câu hỏi đã thay đổi. Hãy thử lại.');
   // Update admin UI — dùng chung hàm render với rehydrate-path
   lastKnownRevealed = false;
   renderCurrentQuestionCard(payload);
@@ -1137,7 +1144,7 @@ function computeRevealResults(game, answers, teams) {
   const qType = game.type || 'choice';
   const rows = [];
   const scoreUpdates = {};
-  const teamLabel = (team, i) => team.teamName ? team.teamName : `Đội ${i+1}: ${team.player1} & ${team.player2||'?'}`;
+  const teamLabel = (team, i) => GameLogic.escapeHtml(team.teamName ? team.teamName : `Đội ${i+1}: ${team.player1} & ${team.player2||'?'}`);
 
   // ── Tính match/pts/isUnique bằng GameLogic (pure function — game-logic.js) ──
   // Công thức GIỮ NGUYÊN 100% so với bản gốc (xem game-logic.js: computeChoiceResult /
@@ -1207,9 +1214,8 @@ function renderRevealBoardHtml(rowsHtml, game) {
   else adminRevealTimer = setTimeout(revealScoreBoard, leaderboardAt - elapsed);
 }
 // ── REVEAL + CHỐT ĐIỂM ──
-// Dùng state realtime đã đồng bộ để tính, sau đó multi-location update. Không đọc
-// `once()` lại khi Reveal vì một số phiên Firebase có thể trả snapshot rỗng dù UI
-// đang có game/đội/đáp án đầy đủ từ các listener.
+// All levels finalize against the latest room in one transaction. Local UI state
+// is updated by listeners only after Firebase accepts the write.
 document.getElementById('btn-reveal').addEventListener('click', revealAnswers);
 async function revealTeamTagAnswers() {
   const readiness = getRoundReadiness();
@@ -1217,7 +1223,7 @@ async function revealTeamTagAnswers() {
   const button=document.getElementById('btn-reveal'); button.disabled=true;
   const round=gameCache.round, ref=db.ref('rooms/'+roomCode);
   try {
-    const result=await GameLogic.transactRoom(ref,room=>GameLogic.finalizeTeamTagRound(room,round,serverNow()) || undefined);
+    const result=await GameLogic.transactRoom(ref,room=>GameLogic.finalizeRound(room,round,serverNow()) || undefined);
     if(!result.committed) {
       const latest=result.snapshot.val();
       if(latest && latest.game && latest.game.round===round && latest.game.revealed) { toast('✅ Câu này đã được công bố.'); return; }
@@ -1228,100 +1234,9 @@ async function revealTeamTagAnswers() {
   finally { if(gameCache && !gameCache.revealed) button.disabled=false; }
 }
 function revealAnswers() {
-  if (!roomCode) return;
-  if (gameCache && gameCache.type === 'team_tags') return revealTeamTagAnswers();
-  const readiness = getRoundReadiness();
-  if (readiness.missing.length && !confirm(`Còn ${readiness.missing.length} người chưa trả lời: ${readiness.missing.join(', ')}. Reveal kết quả ngay?`)) return;
-  const baseRef = db.ref('rooms/' + roomCode);
-  document.getElementById('btn-reveal').disabled = true;
-  return Promise.resolve().then(() => {
-    const game = gameCache ? { ...gameCache } : null;
-    if (!game) throw new Error('Đang đồng bộ dữ liệu vòng chơi — hãy thử lại sau giây lát.');
-    const phase = game.phase || (game.revealed ? 'results' : 'answering');
-    if (game.revealed || phase === 'results') {
-      throw new Error('Câu này đã được reveal rồi.');
-    }
-    const answers = answersCache || {};
-    const currentAnswers = {};
-    Object.entries(answers).forEach(([name, answer]) => {
-      if (answer && answer.round === game.round) currentAnswers[name] = answer;
-    });
-    const teams = JSON.parse(JSON.stringify(teamsCache || {}));
-    const rankTeams = () => Object.entries(teams)
-      .sort(([, a], [, b]) => (b.score || 0) - (a.score || 0));
-    const beforeRank = {};
-    rankTeams().forEach(([key], index) => { beforeRank[key] = index + 1; });
-    const results = GameLogic.computeRoundResults(game, teams, currentAnswers);
-    Object.entries(teams).forEach(([key, team]) => {
-      const r = results[key];
-      team.stats = team.stats || { matches: 0, unique: 0, currentStreak: 0, bestStreak: 0, bestComeback: 0 };
-      if (r && r.match) {
-        team.score = (team.score || 0) + r.pts;
-        team.stats.matches = (team.stats.matches || 0) + 1;
-        if (r.isUnique) team.stats.unique = (team.stats.unique || 0) + 1;
-        team.stats.currentStreak = (team.stats.currentStreak || 0) + 1;
-        team.stats.bestStreak = Math.max(team.stats.bestStreak || 0, team.stats.currentStreak);
-      } else {
-        team.stats.currentStreak = 0;
-      }
-    });
-    rankTeams().forEach(([key], index) => {
-      const from = beforeRank[key] || index + 1;
-      const to = index + 1;
-      teams[key].lastRankChange = { from, to, delta: from - to, round: game.round };
-      teams[key].stats.bestComeback = Math.max((teams[key].stats && teams[key].stats.bestComeback) || 0, Math.max(0, from - to));
-    });
-    game.phase = 'results';
-    game.revealed = true;
-    game.revealedAt = serverNow();
-    // Cùng một mốc cho player, display và host: 0.7s intro + từng đội 0.85s
-    // + 3.5s đọc bảng điểm + 4.5s trước khi chiếu luật Level mới.
-    game.levelTransitionAt = game.levelBreak
-      ? game.revealedAt + 700 + Object.keys(teams).length * 850 + 3500 + 4500
-      : null;
-    // Snapshot đáp án được dùng cho reveal; đáp án đến muộn không thể làm phần
-    // hiển thị khác với điểm đã chốt.
-    game.finalAnswers = currentAnswers;
-    // Lưu "ký ức" bất biến của từng câu trước khi câu sau ghi đè game/answers.
-    // Chỉ giao diện của đúng đội mới đọc phần dữ liệu của họ ở màn xem lại.
-    const historyRound = {
-      round: game.round,
-      level: game.level || 1,
-      question: game.question || '',
-      type: game.type || 'choice',
-      special: !!game.special,
-      optionA: game.optionA || '',
-      optionB: game.optionB || '',
-      revealedAt: game.revealedAt,
-      teams: {}
-    };
-    Object.entries(teams).forEach(([key, team]) => {
-      const result = results[key] || {};
-      historyRound.teams[key] = {
-        teamName: team.teamName || '',
-        player1: team.player1 || '',
-        player2: team.player2 || '',
-        answer1: result.a1 == null ? '' : String(result.a1),
-        answer2: result.a2 == null ? '' : String(result.a2),
-        match: !!result.match,
-        points: Number(result.pts || 0),
-        unique: !!result.isUnique
-      };
-    });
-    gameCache = game;
-    return baseRef.update({ game, teams, ['history/rounds/' + game.round]: historyRound });
-  }).then(() => {
-    const game = gameCache || {};
-    toast(game.levelBreak
-      ? `🪄 Đã reveal! Đang chiếu luật Level ${(game.level || 1) + 1} trên màn hình lớn.`
-      : '🔓 Đã chốt điểm và reveal kết quả!');
-  }).catch(error => {
-    toast('❌ Không thể reveal: ' + error.message);
-  }).finally(() => {
-    if (gameCache && !gameCache.revealed) document.getElementById('btn-reveal').disabled = false;
-  });
+  if (!roomCode || !gameCache || document.getElementById('btn-reveal').disabled) return;
+  return revealTeamTagAnswers();
 }
-// ── REHYDRATE (CHỈ ĐỌC): render lại bảng kết quả khi F5 vào đúng lúc round đã reveal.
 // Tuyệt đối KHÔNG ghi điểm, KHÔNG set game.revealed — chỉ tính lại để hiển thị.
 function renderRevealedReadOnly(game) {
   if (game.finalAnswers) {
@@ -1341,17 +1256,21 @@ function renderRevealedReadOnly(game) {
   });
 }
 // ── NEXT QUESTION ──
-document.getElementById('btn-next').addEventListener('click', () => {
-  currentRound++;
-  if (currentRound >= questions.length) {
-    endGame(); return;
-  }
-  sendQuestion(currentRound);
-  toast(`➡️ Chuyển câu ${currentRound+1}`);
+let nextQuestionPending=false;
+document.getElementById('btn-next').addEventListener('click', async () => {
+  if(nextQuestionPending || !gameCache || !gameCache.revealed || gameCache.status!=='playing')return;
+  nextQuestionPending=true;document.getElementById('btn-next').disabled=true;
+  const next=gameCache.round+1;
+  try {
+    if(next>=questions.length){await endGame();return;}
+    await sendQuestion(next);
+    toast('➡️ Chuyển câu '+(next+1));
+  } catch(error){toast('❌ Chưa chuyển câu: '+error.message);}
+  finally {nextQuestionPending=false;applyControlButtonsState(gameCache);}
 });
 // ── END GAME ──
-function endGame() {
-  db.ref('rooms/' + roomCode + '/game').update({ status:'ended', giftRevealed:false });
+async function endGame() {
+  await db.ref('rooms/' + roomCode + '/game').update({ status:'ended', giftRevealed:false });
   gamePhase = 'ended';
   updateStatusBadge('ended');
   applyControlButtonsState({ status: 'ended' });
@@ -1359,7 +1278,7 @@ function endGame() {
 }
 document.getElementById('btn-end-game').addEventListener('click', () => {
   if (!confirm('Kết thúc game? Người chơi sẽ thấy màn hình kết quả.')) return;
-  endGame();
+  endGame().catch(error=>toast('❌ Chưa kết thúc được: '+error.message));
 });
 document.getElementById('btn-reveal-gift').addEventListener('click', () => {
   if (!roomCode || !gameCache || gameCache.status !== 'ended' || gameCache.giftRevealed) return;
@@ -1428,7 +1347,7 @@ function renderScoreBoard(teams) {
   const medals = ['🥇','🥈','🥉'];
   document.getElementById('score-board').innerHTML = sorted.map((t,i)=>`
     <div class="team-row">
-      <div>${medals[i]||'#'+(i+1)} <span class="team-players" style="display:inline;">${t.teamName ? t.teamName+' · ' : ''}${t.player1||'Đang chờ'} & ${t.player2||'Đang chờ'}${rankShiftHtml(t)}</span></div>
+      <div>${medals[i]||'#'+(i+1)} <span class="team-players" style="display:inline;">${t.teamName ? escapeHtml(t.teamName)+' · ' : ''}${t.player1||'Đang chờ'} & ${t.player2||'Đang chờ'}${rankShiftHtml(t)}</span></div>
       <div class="team-score-badge">${t.score||0} điểm</div>
     </div>`).join('') || '<div style="color:var(--muted);font-size:0.85rem;text-align:center;padding:8px;">Chưa có dữ liệu</div>';
 }
