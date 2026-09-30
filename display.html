@@ -797,7 +797,7 @@ const REVEAL_READ_MS = 3500;
 const LEVEL_TRANSITION_DELAY_MS = 4500;
 const levelTransitionInfo = {
   2: { kicker:'LEVEL 2 · THẤU HIỂU TRUNG', title:'🕵️ AI LÀ AI?', rule:'Với mỗi câu, bí mật chọn bạn hoặc đồng đội — người mà bạn thấy phù hợp hơn.', score:'Cùng chọn một người · +1 điểm' },
-  3: { kicker:'LEVEL 3 · THẤU HIỂU SÂU', title:'Thấu Hiểu Sâu', rule:'Trao đổi, chốt một đáp án chung · Trùng đội khác +1 · Không trùng đội nào +3', score:'Trùng đội khác · +1 điểm &nbsp;·&nbsp; Độc nhất · +3 điểm' }
+  3: { kicker:'LEVEL 3 · THẤU HIỂU SÂU', title:'Thấu Hiểu Sâu', rule:'2 người cùng trao đổi chốt đáp án\nTrùng đội khác chỉ +1\nKhông trùng đội nào +3', score:'Trùng đội khác · +1 điểm &nbsp;·&nbsp; Độc nhất · +3 điểm' }
 };
 function hideDisplayLevelTransition() { document.getElementById('d-level-transition').classList.remove('show'); }
 function showDisplayLevelTransition(nextLevel) {

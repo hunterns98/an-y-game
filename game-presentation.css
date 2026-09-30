@@ -16,3 +16,7 @@ body:has(#screen-lobby.active) .game-header{display:none}
 .final-wait-copy del{text-decoration-thickness:2px}
 .team-name-edit-row.show{flex-wrap:wrap}.team-name-edit-row input{min-width:0;flex:1}.team-name-edit-row .btn-save-name,.btn-edit-name{flex-shrink:0}#team-name-count{flex-basis:100%;text-align:right;color:var(--muted);font-size:.75rem}
 .team-name-val,.ws-team-name,.podium-team,.lb-rest-team,.round-compact-team,.rr-team,.team-ready-name{min-width:0;max-width:100%;white-space:normal;overflow-wrap:anywhere;overflow:hidden;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2}
+
+/* Keep question lines aligned and preserve the three transition instructions. */
+#q-text,#d-question-text{text-align:left;text-indent:0}
+.player-level-rule,.level-transition-rule{white-space:pre-line}

@@ -836,12 +836,12 @@ body:not(.phone) #screen-result.active{min-height:450px}body:not(.phone) .result
       <div class="waiting-pulse">
         <div class="pulse-ring"><img id="lobby-avatar-img" class="avatar-thumb" src="" alt="Ảnh đại diện của bạn"></div>
         <div>
-          <div style="font-weight:800;font-size:1.1rem;margin-bottom:4px;">Đã vào phòng! ;p</div>
+          <div style="font-weight:800;font-size:1.1rem;margin-bottom:4px;">Đã vào phòng!</div>
           <div class="waiting-text">Chờ BTC bắt đầu game...</div>
         </div>
       </div>
       <div class="my-avatar-row" id="my-avatar-row" style="display:none;">
-        <span>Bạn là: <b id="my-avatar-name">—</b></span>
+        <span>Chào <b id="my-avatar-name">—</b> đã tới kiếp nạn thứ 82</span>
       </div>
     </div>
     <div id="matchmaking-card" class="card matchmaking-card"><div class="matchmaking-orbit">🔎</div><strong>BTC đang tìm người phù hợp cho bạn</strong>Hãy cầu nguyện đi, đồng đội của bạn sắp xuất hiện rồi!</div>
@@ -1181,7 +1181,7 @@ const previewQuestions = [
     if(mode==='level2'||mode==='level3'||mode==='final'){
       document.querySelectorAll('.screen').forEach(e=>e.classList.remove('active'));
       if(mode==='final'){$('final-wait-screen').classList.add('show');return;}
-      const level=mode==='level2'?2:3;$('player-level-transition').classList.add('show');$('player-level-kicker').textContent='LEVEL '+level;$('player-level-title').textContent=level===2?'Thấu Hiểu Trung':'Thấu Hiểu Sâu';$('player-level-rule').textContent=level===2?'Cùng chọn một người: +1 điểm':'Trao đổi, chốt một đáp án chung · Trùng đội khác +1 · Không trùng đội nào +3';$('player-level-score').textContent='';return;
+      const level=mode==='level2'?2:3;$('player-level-transition').classList.add('show');$('player-level-kicker').textContent='LEVEL '+level;$('player-level-title').textContent=level===2?'Thấu Hiểu Trung':'Thấu Hiểu Sâu';$('player-level-rule').textContent=level===2?'Cùng chọn một người: +1 điểm':'2 người cùng trao đổi chốt đáp án\nTrùng đội khác chỉ +1\nKhông trùng đội nào +3';$('player-level-score').textContent='';return;
     }
     show('result');$('result-reveal-intro').style.display=mode==='locked'?'block':'none';$('result-details').classList.toggle('hidden',mode==='locked');
     const points={match:1,who:1,unique:3,miss:0,timeout:0}[mode]||0;

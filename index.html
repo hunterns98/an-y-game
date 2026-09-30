@@ -850,12 +850,12 @@ body #screen-result.active{min-height:450px}body .result-card{max-width:900px;mi
       <div class="waiting-pulse">
         <div class="pulse-ring"><img id="lobby-avatar-img" class="avatar-thumb" src="" alt="Ảnh đại diện của bạn"></div>
         <div>
-          <div style="font-weight:800;font-size:1.1rem;margin-bottom:4px;">Đã vào phòng! ;p</div>
+          <div style="font-weight:800;font-size:1.1rem;margin-bottom:4px;">Đã vào phòng!</div>
           <div class="waiting-text">Chờ BTC bắt đầu game...</div>
         </div>
       </div>
       <div class="my-avatar-row" id="my-avatar-row" style="display:none;">
-        <span>Bạn là: <b id="my-avatar-name">—</b></span>
+        <span>Chào <b id="my-avatar-name">—</b> đã tới kiếp nạn thứ 82</span>
       </div>
     </div>
     <div id="matchmaking-card" class="card matchmaking-card"><div class="matchmaking-orbit">🔎</div><strong>BTC đang tìm người phù hợp cho bạn</strong>Hãy cầu nguyện đi, đồng đội của bạn sắp xuất hiện rồi!</div>
@@ -1232,7 +1232,7 @@ const PLAYER_REVEAL_INTRO_MS=700, PLAYER_REVEAL_STEP_MS=850;
 const PLAYER_REVEAL_READ_MS=3500, PLAYER_LEVEL_TRANSITION_DELAY_MS=4500;
 const playerLevelTransitionInfo = {
   2: { kicker:'LEVEL 2 · THẤU HIỂU TRUNG', title:'🕵️ AI LÀ AI?', rule:'KHÔNG ĐƯỢC trao đổi với đồng đội, chọn bạn hoặc đồng đội cho câu hỏi BTC đưa ra.', score:'Cùng chọn một người · +1 điểm' },
-  3: { kicker:'LEVEL 3 · THẤU HIỂU SÂU', title:'Thấu Hiểu Sâu', rule:'Trao đổi, chốt một đáp án chung · Trùng đội khác +1 · Không trùng đội nào +3', score:'Trùng đội khác · +1 điểm · Độc nhất · +3 điểm' }
+  3: { kicker:'LEVEL 3 · THẤU HIỂU SÂU', title:'Thấu Hiểu Sâu', rule:'2 người cùng trao đổi chốt đáp án\nTrùng đội khác chỉ +1\nKhông trùng đội nào +3', score:'Trùng đội khác · +1 điểm · Độc nhất · +3 điểm' }
 };
 function hidePlayerLevelTransition() { document.getElementById('player-level-transition').classList.remove('show'); }
 function showPlayerLevelTransition(nextLevel) {

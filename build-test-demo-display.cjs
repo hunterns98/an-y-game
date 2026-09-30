@@ -32,7 +32,7 @@ function draw(){
  const results=GameLogic.computeRoundResults(game,teamsCache,answersCache);
  const sorted=Object.entries(teamsCache).map(([key,t])=>({...t,score:t.score+results[key].pts})).sort((a,b)=>b.score-a.score);
  if(mode==='round'){renderRevealBoard(game);document.getElementById('board').replaceChildren();}
- else if(mode==='level'){document.getElementById('board').innerHTML='<section class="level-transition-card"><h2>Thấu Hiểu Sâu</h2><p>Trao đổi, chốt một đáp án chung · Trùng đội khác +1 · Không trùng đội nào +3</p><p>chờ BTC mở câu tiếp theo</p></section>';}
+ else if(mode==='level'){document.getElementById('board').innerHTML='<section class="level-transition-card"><h2>Thấu Hiểu Sâu</h2><p>2 người cùng trao đổi chốt đáp án<br>Trùng đội khác chỉ +1<br>Không trùng đội nào +3</p><p>chờ BTC mở câu tiếp theo</p></section>';}
  else {renderPodiumLeaderboard('board',sorted,mode==='final'?'final':'round');document.querySelectorAll('.podium-card,.lb-rest-row').forEach(el=>el.classList.add('is-revealed','is-name-revealed','is-score-grown'));}
 }
 document.querySelectorAll('select').forEach(el=>el.onchange=draw);draw();
