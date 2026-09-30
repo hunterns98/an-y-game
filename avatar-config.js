@@ -15,7 +15,7 @@
     hanh:      { slot: 8,  file: 'hanh.webp' },
     le:        { slot: 9,  file: 'le.webp' },
     maianh:    { slot: 10, file: 'mai-anh.webp' },
-    linh:      { slot: 11, file: 'linh.webp' },
+    linh:      { slot: 11, file: 'linh-20260930.png', position: '50% 40%', zoom: 1.7 },
     hang:      { slot: 12, file: 'hang.webp', position: '52% 35%', zoom: 1.55 },
     hoa:       { slot: 13, file: 'hoa.webp' },
     // Ảnh gốc ngang, gương mặt ở lệch về bên phải nên avatar cần crop riêng.
