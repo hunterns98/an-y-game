@@ -289,7 +289,7 @@
   ::-webkit-scrollbar-track { background: transparent; }
   ::-webkit-scrollbar-thumb { background: rgba(155,93,229,0.3); border-radius: 3px; }
 </style>
-<script src="demo-team-names.js"></script><script src="award-music-config.js"></script></head>
+<script src="demo-team-names.js"></script><script src="award-music-config.js"></script><script src="pairing-config.js"></script></head>
 <body>
 <div class="connection-banner" id="admin-connection-banner" role="status" aria-live="polite"></div>
 <!-- AUTH -->
@@ -921,29 +921,24 @@ function updateStatusBadge(status) {
   badge.className = 'status-pill ' + cls;
 }
 // ── MAKE TEAMS ──
-document.getElementById('btn-make-teams').addEventListener('click', () => {
-  if (!roomCode) { toast('⚠️ Chưa có phòng!'); return; }
-  db.ref('rooms/' + roomCode + '/players').once('value').then(snap => {
-    const players = snap.val();
-    if (!players) { toast('⚠️ Chưa có người chơi!'); return; }
-    const list = Object.values(players);
-    if (list.length < 2) { toast('⚠️ Cần ít nhất 2 người!'); return; }
-    list.sort(() => Math.random() - 0.5);
-    const teams = {};
-    for (let i = 0; i < list.length; i += 2) {
-      const n = Math.floor(i/2) + 1;
-      teams['team'+n] = {
-        player1: list[i].name,
-        player2: list[i+1] ? list[i+1].name : '',
-        score: 0
-      };
-    }
-    db.ref('rooms/' + roomCode + '/teamNameReservations').remove(); // dọn tên đội cũ nếu ghép lại
-    db.ref('rooms/' + roomCode + '/teams').set(teams);
-    toast(list.length % 2
-      ? '⚠️ Đã ghép đội nhưng còn 1 người chưa có đồng đội.'
-      : '💞 Đã ghép ' + Object.keys(teams).length + ' đội!');
+let pairingPending=false;
+document.getElementById('btn-make-teams').addEventListener('click',async()=>{
+ if(!roomCode||pairingPending)return;
+ pairingPending=true;
+ const button=document.getElementById('btn-make-teams');button.disabled=true;
+ try{
+  const snapshot=await db.ref('rooms/'+roomCode).once('value');
+  const original=snapshot.val(),expected=Number(original?.pairingCount||0);
+  const candidate=preparePairing(original);
+  if(!candidate)throw Error('Cần đủ 16 người trong danh sách và phòng chưa bắt đầu để ghép đội.');
+  const roster=JSON.stringify(Object.keys(original.players||{}).sort());
+  const result=await GameLogic.transactRoom(db.ref('rooms/'+roomCode),room=>{
+   if(!room || Number(room.pairingCount||0)!==expected || JSON.stringify(Object.keys(room.players||{}).sort())!==roster || ['starting','playing','ended'].includes(room.game?.status))return;
+   return {...room,teams:candidate.teams,teamNameReservations:null,pairingCount:expected+1};
   });
+  if(!result.committed)throw Error('Phòng vừa thay đổi. Hãy thử lại.');
+  toast('Đã ghép '+Object.keys(candidate.teams).length+' đội!');
+ }catch(e){toast('⚠️ '+e.message);}finally{pairingPending=false;button.disabled=false;}
 });
 // ── START GAME ──
 document.getElementById('btn-start-game').addEventListener('click', () => {

@@ -231,6 +231,7 @@
   function renameTeam(room, request) {
     const team=room && (room.teams||{})[request.teamKey],name=String(request.name||'').trim();
     if(!team || ![team.player1,team.player2].includes(request.player)||!name)return null;
+    if(team.nameEditor && team.nameEditor!==request.player)return null;
     if(Array.from(new Intl.Segmenter('vi',{granularity:'grapheme'}).segment(name)).length>20)return null;
     const normalized=normalizeAnswer(name);
     if(!normalized || Object.entries(room.teams).some(([key,t])=>key!==request.teamKey && normalizeAnswer(t.teamName||'')===normalized))return null;

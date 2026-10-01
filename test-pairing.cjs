@@ -1,0 +1,12 @@
+const assert=require('node:assert/strict');require('./pairing-config.js');global.normalizeAnswer=s=>s.toLowerCase();require('./game-logic.js');
+const names=['Nhung','Thoan','Hạnh','Liên','An','Hằng','Trúc','Lệ','Phượng','Mai Anh','Trang','Hoa','Ánh','Giang','Linh','Thủy'];
+const room={players:Object.fromEntries(names.map(name=>[name,{name}]))};
+const first=preparePairing(room,()=>0);assert.deepEqual(Object.values(first.teams).map(t=>[t.player1,t.player2]),[['Nhung','Thoan'],['Hạnh','Liên'],['An','Hằng'],['Trúc','Lệ'],['Phượng','Mai Anh'],['Trang','Hoa'],['Ánh','Giang'],['Linh','Thủy']]);
+const second=preparePairing(first,()=>.9);assert.deepEqual(Object.values(second.teams).map(t=>[t.player1,t.player2]),[['Nhung','Thoan'],['Hạnh','Mai Anh'],['An','Liên'],['Trúc','Phượng'],['Lệ','Hoa'],['Ánh','Linh'],['Giang','Thủy'],['Trang','Hằng']]);
+assert.equal(preparePairing(second,()=>.2).pairingCount,3);
+assert.equal(preparePairing({...room,players:{Nhung:{name:'Nhung'}}}),null);
+assert.equal(preparePairing({...room,game:{status:'playing'}}),null);
+assert.equal(GameLogic.renameTeam(first,{teamKey:'team1',player:'Thoan',name:'Test'}),null);
+assert(GameLogic.renameTeam(first,{teamKey:'team1',player:'Nhung',name:'Test'}));
+assert.equal(second.teams.team1.nameEditor,'Thoan');
+console.log('PASS: both pairing plans, third shuffle, incomplete roster, game lock and naming permissions.');

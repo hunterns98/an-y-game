@@ -926,7 +926,7 @@ body #screen-result.active{min-height:450px}body .result-card{max-width:900px;mi
         <div class="howto-panel" id="howto-panel-3">
           <div class="howto-rule-box">
             <b>Luật chơi:</b> Hai người <strong class="rule-yes">ĐƯỢC</strong> trao đổi và chọn một đáp án chung cho đội.<br>
-            Mỗi câu chọn ngẫu nhiên một đại diện chốt đáp án cho đội.<br>
+            
             Trùng đội khác → <span class="howto-pts good">+1 điểm</span>.<br>
             Không trùng với đội khác → <span class="howto-pts great">+3 điểm</span>. b-)<br>
             Không chốt trước khi hết giờ → <span class="howto-pts zero">0 điểm</span>.
@@ -2173,6 +2173,11 @@ function renderTeamNameUI(team, key) {
   wrap.style.display = 'block';
   const valEl = document.getElementById('team-name-val');
   valEl.textContent = team.teamName || defaultTeamLabel(key);
+  const allowed=!team.nameEditor||team.nameEditor===myName;
+  document.getElementById('btn-edit-team-name').style.display=allowed?'':'none';
+  if(!allowed)document.getElementById('team-name-edit-row').classList.remove('show');
+  let note=document.getElementById('team-name-editor-note');if(!note){note=document.createElement('p');note.id='team-name-editor-note';wrap.append(note);}
+  note.textContent=team.nameEditor?(allowed?'Bạn được chọn đặt tên cho đội.':team.nameEditor+' được chọn đặt tên cho đội.'):'';
 }
 document.getElementById('btn-edit-team-name').addEventListener('click', () => {
   document.getElementById('inp-team-name').value =
