@@ -289,7 +289,7 @@
   ::-webkit-scrollbar-track { background: transparent; }
   ::-webkit-scrollbar-thumb { background: rgba(155,93,229,0.3); border-radius: 3px; }
 </style>
-<script src="demo-team-names.js"></script></head>
+<script src="demo-team-names.js"></script><script src="award-music-config.js"></script></head>
 <body>
 <div class="connection-banner" id="admin-connection-banner" role="status" aria-live="polite"></div>
 <!-- AUTH -->
@@ -320,6 +320,7 @@
       <button class="btn btn-purple" id="btn-open-display">📺 Màn hình lớn</button>
       <button class="btn btn-ghost" id="btn-rematch">🔁 Chơi lại</button>
       <button class="btn btn-ghost" id="btn-end-game">🏁 Kết thúc</button>
+      <button class="btn btn-cyan" id="btn-awards-music" style="display:none">🎵 Chuyển nhạc trao giải</button>
       <button class="btn btn-cyan" id="btn-reveal-gift" style="display:none;">🎁 Reveal quà</button>
       <button class="btn btn-red" id="btn-reset">🗑 Reset</button>
     </div>
@@ -1028,7 +1029,7 @@ function renderCurrentQuestionCard(game) {
   } else if (qType === 'who_is') {
     document.getElementById('q-opts').style.display = 'none';
     document.getElementById('q-freetext-note').style.display = 'block';
-    document.getElementById('q-freetext-note').textContent = '🕵️ Người chơi bí mật chọn bản thân hoặc đồng đội — cùng chọn một người là ăn ý!';
+    document.getElementById('q-freetext-note').textContent = 'Người chơi bí mật chọn bản thân hoặc đồng đội — cùng chọn một người là ăn ý!';
   } else {
     document.getElementById('q-opts').style.display = 'none';
     document.getElementById('q-freetext-note').style.display = 'block';
@@ -1036,7 +1037,7 @@ function renderCurrentQuestionCard(game) {
   }
   if (qType === 'who_is') {
     document.getElementById('q-special-flag').style.display = 'block';
-    document.getElementById('q-special-flag-text').textContent = '🕵️ Ai là ai? · Cùng chọn người +1 điểm';
+    document.getElementById('q-special-flag-text').textContent = 'Ai là ai? · Cùng chọn người +1 điểm';
   } else if ((qType === 'text' || qType === 'team_tags')) {
     document.getElementById('q-special-flag').style.display = 'block';
     document.getElementById('q-special-flag-text').textContent = '🏷️ Một đáp án chung · Trùng đội khác +1 — Độc nhất +3';
@@ -1052,6 +1053,10 @@ function renderCurrentQuestionCard(game) {
 function applyControlButtonsState(game) {
   const revealBtn = document.getElementById('btn-reveal');
   const nextBtn = document.getElementById('btn-next');
+  const musicBtn=document.getElementById('btn-awards-music');
+  musicBtn.style.display=game?.status==='ended'?'inline-block':'none';
+  musicBtn.disabled=!window.AWARD_MUSIC_URL || game?.giftRevealed || game?.ceremonyMusic==='awards';
+  musicBtn.textContent=!window.AWARD_MUSIC_URL?'🎵 Chờ bổ sung nhạc trao giải':game?.ceremonyMusic==='awards'?'✅ Đang phát nhạc trao giải':'🎵 Chuyển nhạc trao giải';
   const giftBtn = document.getElementById('btn-reveal-gift');
   if (giftBtn) {
     const canRevealGift = !!game && game.status === 'ended';
@@ -1112,11 +1117,16 @@ async function sendQuestion(idx) {
   }
   // Câu mới và việc xoá đáp án cũ phải đến cùng lúc. Nếu không, máy người chơi
   // có thể thấy câu mới trong một khoảnh khắc nhưng vẫn đọc đáp án của câu trước.
+  const representativeSlots={};
   const expectedRound=idx-1;
   const result=await GameLogic.transactRoom(db.ref('rooms/'+roomCode),room=>{
     if(!room || !room.game)return;
     const current=room.game;
     if(idx===0 ? current.status!=='starting' : current.round!==expectedRound || current.status!=='playing' || !current.revealed || Number(current.levelTransitionAt||0)>serverNow())return;
+    if(qType==='team_tags')payload.representatives=Object.fromEntries(Object.entries(room.teams||{}).map(([key,team])=>{
+      if(!representativeSlots[key])representativeSlots[key]=Math.random()<.5?'player1':'player2';
+      return [key,team[representativeSlots[key]]];
+    }));
     return {...room,game:payload,answers:null};
   });
   if(!result.committed)throw Error('Trạng thái câu hỏi đã thay đổi. Hãy thử lại.');
@@ -1162,7 +1172,7 @@ function computeRevealResults(game, answers, teams) {
         <div class="answer-row ${match?'match':'nomatch'}">
           <div class="ar-team">${avatarImg(team.player1,22)} ${avatarImg(team.player2,22)} ${teamLabel(team,i)}</div>
           <div class="ar-ans">${team.player1}: <strong>${a1||'—'}</strong> &nbsp; ${team.player2||'?'}: <strong>${a2||'—'}</strong></div>
-          <div class="ar-result ${match?'win':'lose'}">${match ? '🕵️ +1' : '😅 0'}</div>
+          <div class="ar-result ${match?'win':'lose'}">${match ? '+1' : '😅 0'}</div>
         </div>`);
     });
   } else if ((qType === 'text' || qType === 'team_tags')) {
@@ -1299,6 +1309,13 @@ async function endGame() {
 document.getElementById('btn-end-game').addEventListener('click', () => {
   if (!confirm('Kết thúc game? Người chơi sẽ thấy màn hình kết quả.')) return;
   endGame().catch(error=>toast('❌ Chưa kết thúc được: '+error.message));
+});
+document.getElementById('btn-awards-music').addEventListener('click',async()=>{
+ if(!roomCode||!window.AWARD_MUSIC_URL)return;
+ try{await GameLogic.transactRoom(db.ref('rooms/'+roomCode),room=>{
+  if(!room||room.game?.status!=='ended'||room.game.giftRevealed)return;
+  room.game.ceremonyMusic='awards';return room;
+ });}catch(e){toast('❌ Chưa chuyển được nhạc. Hãy thử lại.');}
 });
 document.getElementById('btn-reveal-gift').addEventListener('click', () => {
   if (!roomCode || !gameCache || gameCache.status !== 'ended' || gameCache.giftRevealed) return;

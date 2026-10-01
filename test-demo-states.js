@@ -13,8 +13,9 @@
     $('demo-state').querySelector('[value=match]').textContent='Trùng đội khác · +1';
     $('demo-state').querySelector('[value=waiting]').textContent='Đội đã chốt · chờ công bố';
     ['who','miss'].forEach(value=>$('demo-state').querySelector('[value='+value+']').disabled=true);
-    $('special-badge-text').textContent='🏷️ Được trao đổi · Trùng đội khác +1 — Độc nhất +3';
-    $('partner-status-text').textContent='💬 Một người chốt cho cả đội';
+    $('special-badge-text').textContent='Được trao đổi · Trùng đội khác +1 — Không trùng đội khác +3';
+    $('partner-status-text').textContent='Nhung là đại diện chốt đáp án câu này';
+    document.querySelector('.team-tags-help').textContent='Bạn là đại diện câu này. Trao đổi với đồng đội rồi chốt nhé!';
     const grid=$('team-tags-grid');grid.replaceChildren();let selected=null;
     const submit=$('btn-submit-team-tag');submit.disabled=true;submit.textContent='Chốt đáp án cho cả đội';
     q.tags.forEach(tag=>{const b=document.createElement('button');b.className='btn-team-tag';b.textContent=tag;b.onclick=()=>{selected=tag;grid.querySelectorAll('button').forEach(x=>x.classList.toggle('selected',x===b));submit.disabled=false;};grid.append(b);});
@@ -53,7 +54,7 @@
     if(mode==='level2'||mode==='level3'||mode==='final'){
       document.querySelectorAll('.screen').forEach(e=>e.classList.remove('active'));
       if(mode==='final'){$('final-wait-screen').classList.add('show');return;}
-      const level=mode==='level2'?2:3;$('player-level-transition').classList.add('show');$('player-level-kicker').textContent='LEVEL '+level;$('player-level-title').textContent=level===2?'NGƯỜI ẤY LÀ AI':'Thấu Hiểu Sâu';$('player-level-rule').textContent=level===2?'KHÔNG ĐƯỢC TRAO ĐỔI, cùng chọn 1 người thì +1 điểm':'2 người cùng trao đổi chốt đáp án\nTrùng đội khác chỉ +1\nKhông trùng đội nào +3';$('player-level-score').textContent='';return;
+      const level=mode==='level2'?2:3;$('player-level-transition').classList.add('show');$('player-level-kicker').textContent='LEVEL '+level;$('player-level-title').textContent=level===2?'NGƯỜI ẤY LÀ AI':'Thấu Hiểu Sâu';$('player-level-rule').textContent=level===2?'KHÔNG ĐƯỢC TRAO ĐỔI.\nCùng chọn 1 người +1 điểm':'2 người cùng trao đổi chốt đáp án\nTrùng đội khác chỉ +1\nKhông trùng đội nào +3';$('player-level-score').textContent='';return;
     }
     show('result');$('result-reveal-intro').style.display=mode==='locked'?'block':'none';$('result-details').classList.toggle('hidden',mode==='locked');
     const points={match:1,who:1,unique:3,miss:0,timeout:0}[mode]||0;

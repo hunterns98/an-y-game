@@ -296,7 +296,7 @@
   #d-podium-spotlight::before { content:''; position:absolute; width:min(58vw,760px); height:min(58vw,760px); border-radius:50%; background:radial-gradient(circle,rgba(255,251,211,.96) 0%,rgba(255,225,120,.46) 20%,rgba(255,214,10,.14) 43%,transparent 70%); filter:blur(2px); transform:translate(-70vw,-45vh) scale(.88); }
   #screen-ended.finale-dim #d-podium-spotlight { opacity:1; }
   #screen-ended.finale-dim #d-podium-spotlight::before { animation:podiumSearchlight 3s cubic-bezier(.42,0,.2,1) forwards; }
-  @keyframes podiumSearchlight { 0% { transform:translate(-62vw,-42vh) scale(.9); } 26% { transform:translate(62vw,-18vh) scale(.98); } 53% { transform:translate(7vw,48vh) scale(.85); } 76% { transform:translate(68vw,40vh) scale(.74); } 100% { transform:translate(21vw,10vh) scale(.58); } }
+  @keyframes podiumSearchlight { 0% { transform:translate(-62vw,-42vh) scale(.9); } 26% { transform:translate(62vw,-18vh) scale(.98); } 53% { transform:translate(7vw,48vh) scale(.85); } 76% { transform:translate(68vw,40vh) scale(.74); } 100% { transform:translate(calc(var(--medal-x,50vw) - min(29vw,380px)),calc(var(--medal-y,45vh) - min(29vw,380px))) scale(.58); } }
   #screen-ended.champion-spotlight #d-podium-spotlight { opacity:1; }
   #screen-ended.champion-spotlight #d-podium-spotlight::before { transform:translate(21vw,10vh) scale(.58); animation:podiumLightZoomOut .85s ease-out forwards; }
   @keyframes podiumLightZoomOut { to { transform:translate(21vw,10vh) scale(2.5); opacity:0; } }
@@ -366,11 +366,12 @@
 <link rel="stylesheet" href="team-tags.css">
 <link rel="stylesheet" href="game-presentation.css">
 <link rel="stylesheet" href="gift-kittens.css">
-</head>
+<script src="award-music-config.js"></script></head>
 <body>
 <!-- Nhạc nền theo từng khoảnh khắc trên màn hình lớn. -->
 <audio id="d-music-lobby" loop preload="auto"><source src="assets/audio/lobby.mp3" type="audio/mpeg"></audio>
 <audio id="d-music-countdown" preload="auto"><source src="assets/audio/countdown-30s.mp3" type="audio/mpeg"></audio>
+<audio id="d-music-awards" loop preload="none"></audio>
 <audio id="d-music-leaderboard" loop preload="auto"><source src="assets/audio/leaderboard.mp3" type="audio/mpeg"></audio>
 <div class="connection-banner" id="d-connection-banner" role="status" aria-live="polite"></div>
 <div class="stars" id="stars"></div>
@@ -635,15 +636,17 @@ let dac, displaySfxEnabled = true;
 const displayMusic = {
   lobby: document.getElementById('d-music-lobby'),
   countdown: document.getElementById('d-music-countdown'),
+  awards: document.getElementById('d-music-awards'),
   leaderboard: document.getElementById('d-music-leaderboard')
 };
 // Tải sẵn cả ba track khi mở display. Chúng chưa phát ở đây, nên không vướng
 // chính sách autoplay, nhưng đã có dữ liệu sẵn trước lúc game đổi trạng thái.
 Object.values(displayMusic).forEach(track => {
-  if (!track) return;
+  if (!track || track.id==='d-music-awards') return;
   track.preload = 'auto';
   track.load();
 });
+if(window.AWARD_MUSIC_URL)displayMusic.awards.src=window.AWARD_MUSIC_URL;
 let displayMusicMode = 'lobby';
 let displayBgmUnlocked = false;
 function syncDisplayBgm({ restart = false } = {}) {
@@ -797,7 +800,7 @@ const REVEAL_STEP_MS = 850;
 const REVEAL_READ_MS = 3500;
 const LEVEL_TRANSITION_DELAY_MS = 4500;
 const levelTransitionInfo = {
-  2: { kicker:'LEVEL 2 · THẤU HIỂU TRUNG', title:'NGƯỜI ẤY LÀ AI', rule:'KHÔNG ĐƯỢC TRAO ĐỔI, cùng chọn 1 người thì +1 điểm', score:'Cùng chọn một người · +1 điểm' },
+  2: { kicker:'LEVEL 2 · THẤU HIỂU TRUNG', title:'NGƯỜI ẤY LÀ AI', rule:'KHÔNG ĐƯỢC TRAO ĐỔI.\nCùng chọn 1 người +1 điểm', score:'Cùng chọn một người · +1 điểm' },
   3: { kicker:'LEVEL 3 · THẤU HIỂU SÂU', title:'Thấu Hiểu Sâu', rule:'2 người cùng trao đổi chốt đáp án\nTrùng đội khác chỉ +1\nKhông trùng đội nào +3', score:'Trùng đội khác · +1 điểm &nbsp;·&nbsp; Độc nhất · +3 điểm' }
 };
 function hideDisplayLevelTransition() { document.getElementById('d-level-transition').classList.remove('show'); }
@@ -1091,10 +1094,10 @@ function renderQuestionDisplay(g) {
   const specialEl = document.getElementById('d-special-badge');
   if (qType === 'who_is') {
     specialEl.style.display = 'inline-flex';
-    specialEl.textContent = '🕵️ Ai là ai? · Cùng chọn người +1 điểm';
+    specialEl.textContent = 'Ai là ai? · Cùng chọn người +1 điểm';
   } else if ((qType === 'text' || qType === 'team_tags')) {
     specialEl.style.display = 'inline-flex';
-    specialEl.textContent = '🏷️ Trao đổi trong đội · Trùng đội khác +1 — Độc nhất +3';
+    specialEl.textContent = 'Được trao đổi · Trùng đội khác +1 — Không trùng đội khác +3';
   } else if (g.special) {
     specialEl.style.display = 'inline-flex';
     specialEl.textContent = '🌟 Câu ăn điểm đặc biệt · +3 điểm';
@@ -1444,7 +1447,8 @@ function runFinalPodiumSequence(sorted) {
     if (ended) ended.classList.add('finale-dim');
     if (call) { call.textContent = '...'; call.classList.remove('is-champion'); }
   }, 9000);
-  if (sorted[0]) finalPodiumLater(() => showMedal(0, '🥇'), 10000);
+  if (sorted[0]) finalPodiumLater(() => {showMedal(0, '🥇'); requestAnimationFrame(positionGoldSpotlight);}, 10000);
+  finalPodiumLater(positionGoldSpotlight, 11000);
   finalPodiumLater(() => {
     if (ended) { ended.classList.remove('finale-dim'); ended.classList.add('champion-spotlight'); }
     if (sorted[0]) revealName(0, `🏆 QUÁN QUÂN · ${label(sorted[0])}!`, true);
@@ -1466,9 +1470,15 @@ function clearEndedConfetti() {
     endedConfettiInterval = null;
   }
 }
+function positionGoldSpotlight(){
+ const medal=document.querySelector('#d-final-leaderboard .rank-1 .podium-medal');
+ const light=document.getElementById('d-podium-spotlight');if(!medal||!light)return;
+ const r=medal.getBoundingClientRect();light.style.setProperty('--medal-x',(r.left+r.width/2)+'px');light.style.setProperty('--medal-y',(r.top+r.height/2)+'px');
+}
+window.addEventListener('resize',positionGoldSpotlight);
 function showEnded() {
   setCommentatorVisible(false);
-  setDisplayMusic('leaderboard');
+  setDisplayMusic(gameCache?.ceremonyMusic==='awards' && window.AWARD_MUSIC_URL?'awards':'leaderboard');
   document.body.classList.add('floral-finale');
   showScreen('ended');
   db.ref('rooms/' + myRoom + '/teams').once('value').then(snap => {
@@ -1479,7 +1489,7 @@ function showEnded() {
     if (finalPodiumSequenceKey === sequenceKey) return;
     clearFinalPodiumSequence();
     finalPodiumSequenceKey = sequenceKey;
-    setDisplayMusic('leaderboard', { restart: true });
+    setDisplayMusic(gameCache?.ceremonyMusic==='awards' && window.AWARD_MUSIC_URL?'awards':'leaderboard', { restart: true });
     renderPodiumLeaderboard('d-final-leaderboard', sorted, 'final');
     const awards = document.getElementById('d-award-list');
     awards.classList.remove('is-revealed');

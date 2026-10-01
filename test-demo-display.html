@@ -290,7 +290,7 @@
   #d-podium-spotlight::before { content:''; position:absolute; width:min(58vw,760px); height:min(58vw,760px); border-radius:50%; background:radial-gradient(circle,rgba(255,251,211,.96) 0%,rgba(255,225,120,.46) 20%,rgba(255,214,10,.14) 43%,transparent 70%); filter:blur(2px); transform:translate(-70vw,-45vh) scale(.88); }
   #screen-ended.finale-dim #d-podium-spotlight { opacity:1; }
   #screen-ended.finale-dim #d-podium-spotlight::before { animation:podiumSearchlight 3s cubic-bezier(.42,0,.2,1) forwards; }
-  @keyframes podiumSearchlight { 0% { transform:translate(-62vw,-42vh) scale(.9); } 26% { transform:translate(62vw,-18vh) scale(.98); } 53% { transform:translate(7vw,48vh) scale(.85); } 76% { transform:translate(68vw,40vh) scale(.74); } 100% { transform:translate(21vw,10vh) scale(.58); } }
+  @keyframes podiumSearchlight { 0% { transform:translate(-62vw,-42vh) scale(.9); } 26% { transform:translate(62vw,-18vh) scale(.98); } 53% { transform:translate(7vw,48vh) scale(.85); } 76% { transform:translate(68vw,40vh) scale(.74); } 100% { transform:translate(calc(var(--medal-x,50vw) - min(29vw,380px)),calc(var(--medal-y,45vh) - min(29vw,380px))) scale(.58); } }
   #screen-ended.champion-spotlight #d-podium-spotlight { opacity:1; }
   #screen-ended.champion-spotlight #d-podium-spotlight::before { transform:translate(21vw,10vh) scale(.58); animation:podiumLightZoomOut .85s ease-out forwards; }
   @keyframes podiumLightZoomOut { to { transform:translate(21vw,10vh) scale(2.5); opacity:0; } }
@@ -688,6 +688,7 @@ window.normalizeAnswer =  function(str) {
         !team || !team.player1 || !team.player2 ||
         ![team.player1, team.player2].includes(request.player) ||
         !(game.tags || []).includes(request.answer)) return null;
+    if(game.representatives && game.representatives[request.teamKey]!==request.player)return null;
     const answers = room.answers || {};
     if ([team.player1, team.player2].some(name => answers[name] && answers[name].round === game.round)) return null;
     const answer = { answer:request.answer, round:game.round, teamKey:request.teamKey, submittedBy:request.player, timestamp:now };
@@ -989,7 +990,7 @@ function drawExtra(mode){
  }else{
   const level=mode==='transition2'?2:3;
   transition.innerHTML='<div class="level-transition-kicker">LEVEL '+level+'</div><h2 class="level-transition-title">'+(level===2?'NGƯỜI ẤY LÀ AI':'Thấu Hiểu Sâu')+'</h2><p class="level-transition-rule"></p><p class="level-transition-wait">chờ BTC mở câu tiếp theo</p>';
-  transition.querySelector('.level-transition-rule').textContent=level===3?'2 người cùng trao đổi chốt đáp án\nTrùng đội khác chỉ +1\nKhông trùng đội nào +3':'KHÔNG ĐƯỢC TRAO ĐỔI, cùng chọn 1 người thì +1 điểm';
+  transition.querySelector('.level-transition-rule').textContent=level===3?'2 người cùng trao đổi chốt đáp án\nTrùng đội khác chỉ +1\nKhông trùng đội nào +3':'KHÔNG ĐƯỢC TRAO ĐỔI.\nCùng chọn 1 người +1 điểm';
  }
  return true;
 }

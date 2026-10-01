@@ -6,6 +6,9 @@ function renderTeamTags(game) {
   wrap.style.display = game.type === 'team_tags' ? 'flex' : 'none';
   if (game.type !== 'team_tags') return;
   selectedTeamTag = null;
+  const representative=game.representatives && game.representatives[myTeamKey];
+  const canSubmit=!representative || representative===myName;
+  wrap.querySelector('.team-tags-help').textContent=representative?(canSubmit?'Bạn là đại diện câu này. Trao đổi với đồng đội rồi chốt nhé!':representative+' là đại diện câu này. Hãy trao đổi và để đồng đội chốt nhé!'):'Trao đổi với đồng đội rồi chốt một đáp án chung.';
   document.getElementById('answer-text-wrap').style.display = 'none';
   const grid = document.getElementById('team-tags-grid');
   grid.replaceChildren();
@@ -13,9 +16,9 @@ function renderTeamTags(game) {
     const button = document.createElement('button');
     button.type = 'button'; button.className = 'btn-team-tag'; button.textContent = tag;
     const expired = serverNow() >= Number(game.answerStartsAt || game.startedAt) + 30000;
-    button.disabled = hasAnswered || expired || teamTagSending;
+    button.disabled = !canSubmit || hasAnswered || expired || teamTagSending;
     button.onclick = () => {
-      if (hasAnswered || timeIsUp || teamTagSending) return;
+      if (!canSubmit || hasAnswered || timeIsUp || teamTagSending) return;
       selectedTeamTag = tag;
       grid.querySelectorAll('button').forEach(b=>b.classList.toggle('selected', b === button));
       document.getElementById('btn-submit-team-tag').disabled = false;
@@ -35,6 +38,7 @@ function lockTeamTags(answer) {
 document.getElementById('btn-submit-team-tag').onclick = async () => {
   if (!selectedTeamTag || hasAnswered || timeIsUp || teamTagSending || !activeGame || activeGame.type !== 'team_tags') return;
   if (!firebaseConnected) { toast('⚠️ Đang mất kết nối. Kết nối lại rồi chốt đáp án nhé.'); return; }
+  if(activeGame.representatives && activeGame.representatives[myTeamKey]!==myName)return;
   const request = {teamKey:myTeamKey,player:myName,round:currentRound,answer:selectedTeamTag};
   const ref = db.ref('rooms/' + myRoom);
   teamTagSending = true;

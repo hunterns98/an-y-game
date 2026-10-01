@@ -858,7 +858,7 @@ body #screen-result.active{min-height:450px}body .result-card{max-width:900px;mi
         <span>Chào <b id="my-avatar-name">—</b> đã tới kiếp nạn thứ 82</span>
       </div>
     </div>
-    <div id="matchmaking-card" class="card matchmaking-card"><div class="matchmaking-orbit">🔎</div><strong>BTC đang tìm người phù hợp cho bạn</strong>Hãy cầu nguyện đi, đồng đội của bạn sắp xuất hiện rồi!</div>
+    <div id="matchmaking-card" class="card matchmaking-card"><div class="matchmaking-orbit">🔎</div><strong>BTC đang tìm người phù hợp cho bạn</strong>Hãy cầu nguyện đi, đồng đội của bạn sắp xuất hiện rồi! Trong lúc chờ đợi, bạn có thể nghía luật chơi nhé.</div>
     <div id="partner-display" class="card" style="display:none;">
       <div class="field-label" style="margin-bottom:12px;">Đồng đội của bạn</div>
       <div class="partner-tag">
@@ -926,7 +926,7 @@ body #screen-result.active{min-height:450px}body .result-card{max-width:900px;mi
         <div class="howto-panel" id="howto-panel-3">
           <div class="howto-rule-box">
             <b>Luật chơi:</b> Hai người <strong class="rule-yes">ĐƯỢC</strong> trao đổi và chọn một đáp án chung cho đội.<br>
-            Chỉ một người chốt, lần chốt đầu tiên được giữ lại.<br>
+            Mỗi câu chọn ngẫu nhiên một đại diện chốt đáp án cho đội.<br>
             Trùng đội khác → <span class="howto-pts good">+1 điểm</span>.<br>
             Không trùng với đội khác → <span class="howto-pts great">+3 điểm</span>. b-)<br>
             Không chốt trước khi hết giờ → <span class="howto-pts zero">0 điểm</span>.
@@ -969,7 +969,7 @@ body #screen-result.active{min-height:450px}body .result-card{max-width:900px;mi
         <button class="btn-who-choice" id="btn-who-self" type="button"><span class="who-role">Bạn</span><span id="who-self-name">—</span></button>
         <button class="btn-who-choice" id="btn-who-partner" type="button"><span class="who-role">Đồng đội</span><span id="who-partner-name">—</span></button>
       </div>
-      <button class="btn btn-primary" id="btn-submit-who" disabled>Chốt lựa chọn 🕵️</button>
+      <button class="btn btn-primary" id="btn-submit-who" disabled>Chốt lựa chọn </button>
     </div>
     <div class="card" id="answer-text-wrap" style="display:none;flex-direction:column;gap:12px;">
       <input class="field-input" id="inp-free-answer" placeholder="Nhập đáp án của bạn..." maxlength="60" autocomplete="off">
@@ -1231,7 +1231,7 @@ let gameStartCountdownTimer = null;
 const PLAYER_REVEAL_INTRO_MS=700, PLAYER_REVEAL_STEP_MS=850;
 const PLAYER_REVEAL_READ_MS=3500, PLAYER_LEVEL_TRANSITION_DELAY_MS=4500;
 const playerLevelTransitionInfo = {
-  2: { kicker:'LEVEL 2 · THẤU HIỂU TRUNG', title:'NGƯỜI ẤY LÀ AI', rule:'KHÔNG ĐƯỢC TRAO ĐỔI, cùng chọn 1 người thì +1 điểm', score:'Cùng chọn một người · +1 điểm' },
+  2: { kicker:'LEVEL 2 · THẤU HIỂU TRUNG', title:'NGƯỜI ẤY LÀ AI', rule:'KHÔNG ĐƯỢC TRAO ĐỔI.\nCùng chọn 1 người +1 điểm', score:'Cùng chọn một người · +1 điểm' },
   3: { kicker:'LEVEL 3 · THẤU HIỂU SÂU', title:'Thấu Hiểu Sâu', rule:'2 người cùng trao đổi chốt đáp án\nTrùng đội khác chỉ +1\nKhông trùng đội nào +3', score:'Trùng đội khác · +1 điểm · Độc nhất · +3 điểm' }
 };
 function hidePlayerLevelTransition() { document.getElementById('player-level-transition').classList.remove('show'); }
@@ -1689,10 +1689,10 @@ function renderQuestion(game, startTimer = true) {
   // Special / free-text badge
   if (qType === 'who_is') {
     document.getElementById('special-badge-wrap').style.display = 'block';
-    document.getElementById('special-badge-text').textContent = '🕵️ Ai là ai? · Cùng chọn người +1 điểm';
+    document.getElementById('special-badge-text').textContent = 'Ai là ai? · Cùng chọn người +1 điểm';
   } else if ((qType === 'text' || qType === 'team_tags')) {
     document.getElementById('special-badge-wrap').style.display = 'block';
-    document.getElementById('special-badge-text').textContent = '🏷️ Trao đổi trong đội · Trùng đội khác +1 — Độc nhất +3';
+    document.getElementById('special-badge-text').textContent = 'Được trao đổi · Trùng đội khác +1 — Không trùng đội khác +3';
   } else if (game.special) {
     document.getElementById('special-badge-wrap').style.display = 'block';
     document.getElementById('special-badge-text').textContent = '🌟 Câu ăn điểm đặc biệt · +3 điểm';
@@ -1713,7 +1713,7 @@ function renderQuestion(game, startTimer = true) {
     document.getElementById('btn-who-self').classList.remove('selected');
     document.getElementById('btn-who-partner').classList.remove('selected');
     document.getElementById('btn-submit-who').disabled = true;
-    document.getElementById('btn-submit-who').textContent = 'Chốt lựa chọn 🕵️';
+    document.getElementById('btn-submit-who').textContent = 'Chốt lựa chọn ';
     selectedWho = null;
   } else if ((qType === 'text' || qType === 'team_tags')) {
     document.getElementById('answer-grid').style.display = 'none';

@@ -163,6 +163,7 @@
         !team || !team.player1 || !team.player2 ||
         ![team.player1, team.player2].includes(request.player) ||
         !(game.tags || []).includes(request.answer)) return null;
+    if(game.representatives && game.representatives[request.teamKey]!==request.player)return null;
     const answers = room.answers || {};
     if ([team.player1, team.player2].some(name => answers[name] && answers[name].round === game.round)) return null;
     const answer = { answer:request.answer, round:game.round, teamKey:request.teamKey, submittedBy:request.player, timestamp:now };

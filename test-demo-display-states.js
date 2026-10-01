@@ -41,7 +41,7 @@ function drawExtra(mode){
  }else{
   const level=mode==='transition2'?2:3;
   transition.innerHTML='<div class="level-transition-kicker">LEVEL '+level+'</div><h2 class="level-transition-title">'+(level===2?'NGƯỜI ẤY LÀ AI':'Thấu Hiểu Sâu')+'</h2><p class="level-transition-rule"></p><p class="level-transition-wait">chờ BTC mở câu tiếp theo</p>';
-  transition.querySelector('.level-transition-rule').textContent=level===3?'2 người cùng trao đổi chốt đáp án\nTrùng đội khác chỉ +1\nKhông trùng đội nào +3':'KHÔNG ĐƯỢC TRAO ĐỔI, cùng chọn 1 người thì +1 điểm';
+  transition.querySelector('.level-transition-rule').textContent=level===3?'2 người cùng trao đổi chốt đáp án\nTrùng đội khác chỉ +1\nKhông trùng đội nào +3':'KHÔNG ĐƯỢC TRAO ĐỔI.\nCùng chọn 1 người +1 điểm';
  }
  return true;
 }
