@@ -43,4 +43,36 @@ async function start(){
 }
 function reset(){token++;cancelAnimationFrame(raf);cancelAnimationFrame(fx);const c=$('confetti');c.getContext('2d').clearRect(0,0,c.width,c.height);running=false;revealed=new Set();lastName=null;activeTeam=-1;firstSlots=pairs.map(()=>0);document.querySelectorAll('.flying-name').forEach(el=>el.remove());$('hub-unit').textContent='chị đẹp';index=0;angle=0;pool=[...order];for(let i=pool.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[pool[i],pool[j]]=[pool[j],pool[i]];}$('start').disabled=false;$('skip').disabled=false;$('fast').disabled=false;$('hub-label').textContent='SẴN SÀNG';$('announcement').textContent='Một tương lai tươi sáng đang chờ đợi chúng ta';$('subtitle').textContent='';$('player-preview').textContent='BTC đang tìm người phù hợp cho bạn. Hãy cầu nguyện đi, đồng đội của bạn sắp xuất hiện rồi!';renderTeams();paint();}
 $('start').onclick=start;$('reset').onclick=reset;$('skip').onclick=()=>{token++;cancelAnimationFrame(raf);revealed=new Set(order);lastName=null;index=16;pool=[];paint();finish();chime(true);burst(true);};$('sound').onclick=()=>{muted=!muted;$('sound').textContent='Âm thanh: '+(muted?'Tắt':'Bật');};$('full').onclick=()=>{(document.fullscreenElement?document.exitFullscreen():document.documentElement.requestFullscreen()).catch(()=>{});};document.addEventListener('keydown',e=>{if(e.repeat||e.ctrlKey||e.metaKey||e.altKey||/INPUT|SELECT|TEXTAREA/.test(e.target.tagName))return;if(e.key.toLowerCase()==='m')$('sound').click();if(e.key.toLowerCase()==='f')$('full').click();});reset();
+
+if(new URLSearchParams(location.search).has('live')){
+ document.querySelector('nav').hidden=true;document.querySelector('footer').hidden=true;
+ document.querySelector('nav').style.display='none';document.querySelector('footer').style.display='none';
+ let liveId=null,previous=-1,lastTick=-1,liveData=null,receivedAt=0,liveFrame=0;
+ document.addEventListener('keydown',e=>{if(e.repeat)return;const key=e.key.toLowerCase();if(key==='m'||key==='f'){e.preventDefault();e.stopImmediatePropagation();ac=ac||new (window.AudioContext||window.webkitAudioContext)();ac.resume().catch(()=>{});parent.postMessage({kind:key==='m'?'pairing-mute':'pairing-fullscreen'},location.origin);}},true);
+ window.addEventListener('message',event=>{
+  if(event.origin!==location.origin||event.source!==parent)return;
+  if(event.data?.kind==='pairing-stop'){muted=true;running=false;liveData=null;cancelAnimationFrame(liveFrame);return;}
+  if(event.data?.kind!=='pairing-live')return;
+  liveData=event.data;receivedAt=performance.now();
+  ac=ac||new (window.AudioContext||window.webkitAudioContext)();if(soundAllowed())ac.resume().catch(()=>{});
+  cancelAnimationFrame(liveFrame);liveFrame=requestAnimationFrame(liveRender);
+ });
+ function soundAllowed(){return liveData?.sound;}
+ function liveRender(){
+  if(!liveData)return;
+  const {state,sound}=liveData,now=liveData.now+performance.now()-receivedAt;muted=!sound;
+  if(liveId!==state.id){liveId=state.id;previous=-1;pairs.splice(0,pairs.length,...Object.values(state.teams).map(t=>[t.player1,t.player2]));order.splice(0,order.length,...pairs.flat());}
+  const elapsed=state.status==='running'?Math.max(0,now-state.startedAt):-1;
+  const sequence=[];state.orders.forEach((keys,round)=>keys.forEach((key,j)=>sequence.push({name:state.teams[key][round?'player2':'player1'],at:(round?11300:0)+2700+j*850,team:Object.keys(state.teams).indexOf(key)})));
+  const visible=sequence.filter(x=>elapsed>=x.at);index=visible.length;revealed=new Set(visible.map(x=>x.name));pool=order.filter(n=>!revealed.has(n));
+  const latest=visible.at(-1);lastName=latest?.name||null;activeTeam=latest?.team??-1;running=state.status==='running';
+  const round=elapsed>=11300?1:0,within=elapsed-(round?11300:0),spinning=elapsed>=0&&within<2700;
+  angle=spinning?Math.PI*8*(1-Math.pow(1-within/2700,4)):0;
+  paint();if(index!==previous)renderTeams();$('hub-label').textContent=elapsed<0?'SẴN SÀNG':'LƯỢT '+(round+1)+' / 2';
+  $('announcement').textContent=elapsed<0?'Một tương lai tươi sáng đang chờ đợi chúng ta':spinning?'*Insert nhạc xổ số* ~Tăng tăng tắng tắng tăng~':index===16?'Chuẩn bị chan nhau nào!':index===8?'Đã có 8 thí sinh đầu tiên. Nửa còn lại gọi tên':latest?latest.name+' → Đội '+(latest.team+1):'';
+  if(index!==previous){if(previous>=0&&index>previous&&latest){flyToTeam(latest.name);chime(round===1);burst(round===1);}previous=index;}
+  if(spinning&&Math.floor(elapsed/140)!==lastTick){lastTick=Math.floor(elapsed/140);tone(420,.04,.025);}
+  liveFrame=requestAnimationFrame(liveRender);
+ }
+}
 })();

@@ -934,10 +934,12 @@ document.getElementById('btn-make-teams').addEventListener('click',async()=>{
   const roster=JSON.stringify(Object.keys(original.players||{}).sort());
   const result=await GameLogic.transactRoom(db.ref('rooms/'+roomCode),room=>{
    if(!room || Number(room.pairingCount||0)!==expected || JSON.stringify(Object.keys(room.players||{}).sort())!==roster || ['starting','playing','ended'].includes(room.game?.status))return;
-   return {...room,teams:candidate.teams,teamNameReservations:null,pairingCount:expected+1};
+   if(room.pairing && room.pairing.status!=='complete')return;
+   const shuffle=()=>Object.keys(candidate.teams).map(key=>({key,r:Math.random()})).sort((a,b)=>a.r-b.r).map(x=>x.key);
+   return {...room,teams:null,teamNameReservations:null,pairingCount:expected+1,pairing:{id:expected+1,status:'ready',teams:candidate.teams,orders:[shuffle(),shuffle()]}};
   });
   if(!result.committed)throw Error('Phòng vừa thay đổi. Hãy thử lại.');
-  toast('Đã ghép '+Object.keys(candidate.teams).length+' đội!');
+  toast('Đã chuẩn bị vòng quay. Bấm Bắt đầu chia cặp để công bố.');
  }catch(e){toast('⚠️ '+e.message);}finally{pairingPending=false;button.disabled=false;}
 });
 // ── START GAME ──
@@ -1391,5 +1393,5 @@ function rankShiftHtml(team) {
     : `<span class="rank-shift down">▼ ${Math.abs(change.delta)}</span>`;
 }
 </script>
-</body>
+<script src="pairing-live-admin.js"></script></body>
 </html>
