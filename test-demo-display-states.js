@@ -6,7 +6,8 @@ function nextQuote(){quoteIndex=(quoteIndex+1)%COMMENTS.length;renderCommentText
 document.getElementById('next-quote').onclick=nextQuote;
 setInterval(()=>{if(document.getElementById('mode').value==='lobby')nextQuote();},10000);
 function drawExtra(mode){
- const extra=['lobby','question','transition2','transition3'].includes(mode);
+ document.getElementById('screen-gift-reveal').classList.toggle('active',mode==='gift');
+ const extra=['gift','lobby','question','transition2','transition3'].includes(mode);
  document.getElementById('demo-stage').style.display=extra?'block':'none';
  document.getElementById('screen-waiting').classList.toggle('active',mode==='lobby');
  document.getElementById('screen-question').classList.toggle('active',mode==='question');
@@ -19,6 +20,7 @@ function drawExtra(mode){
  document.getElementById('question-title').style.display=mode==='round'?'block':'none';
  if(!extra)return false;
  document.getElementById('board').replaceChildren();document.getElementById('d-reveal-board').style.display='none';
+ if(mode==='gift')return true;
  if(mode==='lobby'){
   document.getElementById('d-room-code-big').textContent='DEMO';
   document.querySelector('.lobby-join-copy').textContent='Phòng minh họa · Không kết nối phòng thật';

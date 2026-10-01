@@ -1,0 +1,8 @@
+/* Display only: gift card above, dancing kittens centered below. */
+#screen-gift-reveal.active,#demo-stage #screen-gift-reveal.active{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px}
+#screen-gift-reveal .display-gift-card{flex:none;width:min(100%,850px);padding:clamp(24px,4vh,44px) clamp(24px,5vw,58px)}
+#screen-gift-reveal .display-gift-icon{font-size:clamp(3rem,8vh,5rem)}
+#screen-gift-reveal .display-gift-title{font-size:clamp(2rem,4vw,3rem)}
+.gift-kittens{flex:none;width:320px;max-width:80vw;height:280px;position:relative;overflow:hidden;align-self:center}
+.gift-kittens canvas{display:block;position:absolute;width:100%;height:auto;top:50%;left:0;transform:translateY(-50%);pointer-events:none}
+
