@@ -1,0 +1,1 @@
+window.demoTeamNames=()=>["Chị đẹp rẽ sóng","Đội Vô Trí","Bún và bạn","Chị em guột","Hai nàng báo","Không say không về","Đẹp có tổ chức","Hội mê trà sữa","Song kiếm hợp bích","Hết cứu rồi","Nữ hoàng hóng","Cặp đôi bất ổn"].map(name=>({name,sort:Math.random()})).sort((a,b)=>a.sort-b.sort).slice(0,8).map(x=>x.name);

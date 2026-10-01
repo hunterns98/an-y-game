@@ -835,7 +835,7 @@ body #screen-result.active{min-height:450px}body .result-card{max-width:900px;mi
     <div class="card" style="display:flex;flex-direction:column;gap:16px;">
       <div>
         <div class="field-label">Tên của bạn</div>
-        <input class="field-input" id="inp-name" placeholder="Nhập tên bạn..." maxlength="20" autocomplete="off">
+        <input type="hidden" id="inp-name"><div class="join-name-tags" role="group" aria-label="Chọn tên của bạn"><button type="button" class="join-name-tag" data-name="Nhung" aria-pressed="false">Nhung</button><button type="button" class="join-name-tag" data-name="Thủy" aria-pressed="false">Thủy</button><button type="button" class="join-name-tag" data-name="An" aria-pressed="false">An</button><button type="button" class="join-name-tag" data-name="Thoan" aria-pressed="false">Thoan</button><button type="button" class="join-name-tag" data-name="Phượng" aria-pressed="false">Phượng</button><button type="button" class="join-name-tag" data-name="Ánh" aria-pressed="false">Ánh</button><button type="button" class="join-name-tag" data-name="Giang" aria-pressed="false">Giang</button><button type="button" class="join-name-tag" data-name="Hạnh" aria-pressed="false">Hạnh</button><button type="button" class="join-name-tag" data-name="Lệ" aria-pressed="false">Lệ</button><button type="button" class="join-name-tag" data-name="Mai Anh" aria-pressed="false">Mai Anh</button><button type="button" class="join-name-tag" data-name="Linh" aria-pressed="false">Linh</button><button type="button" class="join-name-tag" data-name="Hằng" aria-pressed="false">Hằng</button><button type="button" class="join-name-tag" data-name="Hoa" aria-pressed="false">Hoa</button><button type="button" class="join-name-tag" data-name="Trang" aria-pressed="false">Trang</button><button type="button" class="join-name-tag" data-name="Trúc" aria-pressed="false">Trúc</button><button type="button" class="join-name-tag" data-name="Liên" aria-pressed="false">Liên</button></div><p id="join-name-confirm" aria-live="polite">Chọn tên của bạn rồi xác nhận vào phòng.</p>
       </div>
       <div>
         <div class="field-label">Mã phòng</div>
@@ -1369,14 +1369,21 @@ function enterGameAsPlayer(name, room, avatarNum) {
 // ─────────────────────────────────────────
 // JOIN
 // ─────────────────────────────────────────
+document.querySelectorAll('.join-name-tag').forEach(button=>button.addEventListener('click',()=>{
+  if(document.getElementById('btn-join').disabled)return;
+  document.getElementById('inp-name').value=button.dataset.name;
+  document.querySelectorAll('.join-name-tag').forEach(el=>el.setAttribute('aria-pressed',String(el===button)));
+  document.getElementById('join-name-confirm').textContent='Bạn chọn '+button.dataset.name+'. Bấm Vào phòng để xác nhận.';
+}));
 document.getElementById('btn-join').addEventListener('click', joinRoom);
 document.getElementById('inp-room').addEventListener('keypress', e => { if(e.key==='Enter') joinRoom(); });
 document.getElementById('inp-name').addEventListener('keypress', e => { if(e.key==='Enter') document.getElementById('inp-room').focus(); });
 function joinRoom() {
+  if(document.getElementById('btn-join').disabled)return;
   sfxClick();
   myName = document.getElementById('inp-name').value.trim();
   myRoom = document.getElementById('inp-room').value.trim().toUpperCase();
-  if (!myName) { toast('⚠️ Nhập tên của bạn!'); return; }
+  if (!myName) { toast('⚠️ Chọn tên của bạn!'); return; }
   if (!myRoom) { toast('⚠️ Nhập mã phòng!'); return; }
   const btn = document.getElementById('btn-join');
   btn.textContent = '⏳ Đang kết nối...'; btn.disabled = true;

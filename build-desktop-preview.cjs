@@ -27,7 +27,7 @@ body:not(.phone) #screen-result.active{min-height:450px}body:not(.phone) .result
 }
 `;
 page=page.replace('</head>','<style>'+css+'</style></head>').replace('<body>',`<body><nav class="preview-toolbar"><strong>Cặp Đôi Hoàn Cảnh · Bản thử bố cục</strong><button data-view="lobby">Phòng chờ</button><button data-view="choice">Level 1</button><button data-view="who">Level 2</button><button data-view="text">Level 3</button><button data-view="result">Kết quả</button><button id="preview-phone">Xem điện thoại</button></nav><p class="preview-note">Dữ liệu minh họa · Không gửi đáp án vào phòng thật · Bản game gốc được giữ nguyên</p>`);
-const js=`
+let js=`
 const $=id=>document.getElementById(id);let view='choice';let chosen='Tham gia cùng';
 window.switchHowtoTab=n=>{document.querySelectorAll('.howto-panel').forEach(e=>e.classList.remove('active'));$('howto-panel-'+n).classList.add('active');document.querySelectorAll('.howto-tab-btn').forEach(e=>e.classList.toggle('active',e.dataset.tab==n));};
 window.selectChoice=c=>{chosen=c==='A'?'Tham gia cùng':'Bỏ qua';['a','b'].forEach(x=>$('btn-'+x).classList.toggle('selected',x===c.toLowerCase()));$('btn-submit-choice').disabled=false;};
@@ -43,6 +43,9 @@ const questionSource = fs.readFileSync('admin.html','utf8').match(/const questio
 const finale = 'const previewQuestions = '+questionSource+';\n'+fs.readFileSync('desktop-preview-finale.js','utf8');
 const states = fs.readFileSync('test-demo-states.js','utf8');
 page=page.replace('Cặp Đôi Hoàn Cảnh · Bản thử bố cục','Cặp Đôi Hoàn Cảnh · Test Demo').replace('Bản game gốc được giữ nguyên','Chọn màn bất kỳ để duyệt giao diện');
+js+=`
+document.querySelectorAll('.join-name-tag').forEach(b=>b.onclick=()=>{document.getElementById('inp-name').value=b.dataset.name;document.querySelectorAll('.join-name-tag').forEach(x=>x.setAttribute('aria-pressed',String(x===b)));document.getElementById('join-name-confirm').textContent='Bạn chọn '+b.dataset.name+'.';});`;
 page=page.replace('</body>','<script src="game-presentation.js"></script><script>'+js+'\n'+finale+'\n'+states+'</script></body>');
 fs.writeFileSync('desktop-preview.html',page);fs.writeFileSync('test-demo.html',page);
 new Function(js+'\n'+finale+'\n'+states);console.log('Built Test Demo and desktop-preview compatibility copy.');
+

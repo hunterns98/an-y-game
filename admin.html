@@ -289,7 +289,7 @@
   ::-webkit-scrollbar-track { background: transparent; }
   ::-webkit-scrollbar-thumb { background: rgba(155,93,229,0.3); border-radius: 3px; }
 </style>
-</head>
+<script src="demo-team-names.js"></script></head>
 <body>
 <div class="connection-banner" id="admin-connection-banner" role="status" aria-live="polite"></div>
 <!-- AUTH -->
@@ -586,8 +586,9 @@ function createDemoRoom(attempt = 0) {
     players[name] = { name, avatar:index + 1, score:0, answer:'', sessionId:`demo-${index + 1}` };
     nameReservations[normalizeAnswer(name)] = name;
   });
+  const demoTeamLabels=demoTeamNames();
   for (let i = 0; i < 8; i++) {
-    teams[`team${i + 1}`] = { teamName:`Đội ${i + 1}`, player1:demoNames[i * 2], player2:demoNames[i * 2 + 1], score:0 };
+    teams[`team${i + 1}`] = { teamName:demoTeamLabels[i], player1:demoNames[i * 2], player2:demoNames[i * 2 + 1], score:0 };
   }
   const payload = { host:'Host Demo', status:'waiting', currentRound:-1, isDemo:true, createdAt:firebase.database.ServerValue.TIMESTAMP, avatarPool:shuffledAvatarPool(), players, nameReservations, teams };
   db.ref('rooms/' + code).transaction(current => current === null ? payload : undefined, (error, committed) => {

@@ -406,7 +406,7 @@ body{overflow:auto}#d-qr-code{font:600 12px/1.4 sans-serif!important;text-align:
     <div class="leader-spotlight" id="d-leader-spotlight"></div>
     <div class="kahoot-leaderboard" id="d-round-leaderboard" style="display:none;"></div>
   </div>
-</div><h2 id="question-title"></h2><div id="d-reveal-board"></div><div id="board"></div></main><aside class="commentator-bubble" id="commentator-bubble"><span id="commentator-text"></span></aside><script src="avatar-config.js"></script><script src="game-presentation.js"></script><script>
+</div><h2 id="question-title"></h2><div id="d-reveal-board"></div><div id="board"></div></main><aside class="commentator-bubble" id="commentator-bubble"><span id="commentator-text"></span></aside><script src="demo-team-names.js"></script><script src="avatar-config.js"></script><script src="game-presentation.js"></script><script>
 const allQuestions=[
   // ── LEVEL 1: Thấu Hiểu Nông (A/B) ──
   { level:1, text:"Khóc trên ô tô hay Cười trên xe máy:", a:"Khóc trên ô tô", b:"Cười trên xe máy", special:false },
@@ -799,7 +799,8 @@ const teamsCache={},answersCache={};
 const people=['Nhung','Thủy','An','Thoan','Phượng','Ánh','Giang','Hạnh','Lệ','Mai Anh','Linh','Hằng','Hoa','Trang','Trúc','Liên'];
 const keys=['nhung','thuy','an','thoan','phuong','anh','giang','hanh','le','mai-anh','linh','hang','hoa','trang','truc','lien'];
 
-for(let i=0;i<8;i++)teamsCache[i]={player1:people[i*2],player2:people[i*2+1],teamName:'Đội '+(i+1),score:18-i,_idx:i};
+const demoTeamLabels=demoTeamNames();
+for(let i=0;i<8;i++)teamsCache[i]={player1:people[i*2],player2:people[i*2+1],teamName:demoTeamLabels[i],score:18-i,_idx:i};
 people.forEach((name,i)=>playersCache[name]={name,avatar:i+1});
 function renderPodiumLeaderboard(targetId, sorted, mode='round') {
   const target = document.getElementById(targetId);
