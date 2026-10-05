@@ -32,4 +32,6 @@ button:focus-visible,select:focus-visible{outline:3px solid var(--cyan,#00f5d4);
 .reveal-row .rr-ans{display:flex;flex-direction:column;align-items:flex-start;gap:4px;text-align:left;min-width:0;overflow-wrap:anywhere}
 
 .join-name-tags{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}.join-name-tag{padding:12px 5px;border:1px solid var(--border);border-radius:14px;background:rgba(255,255,255,.06);color:var(--text);font:inherit;cursor:pointer}.join-name-tag[aria-pressed="true"]{background:#6428a5;border-color:var(--cyan);box-shadow:0 0 0 1px var(--cyan)}#join-name-confirm{font-size:.85rem;color:var(--muted);line-height:1.5;margin-top:12px}
-.lobby-pin-box{position:relative;border-left:0!important}.lobby-pin-box::before{content:'';position:absolute;left:-13px;top:50%;width:24px;height:24px;border-top:3px solid #6f35cc;border-right:3px solid #6f35cc;transform:translateY(-50%) rotate(45deg);border-radius:3px}@media(max-width:700px){.lobby-pin-box::before{display:none}}
+.lobby-pin-box{position:relative;border-left:0!important}.lobby-pin-box::before{content:'';position:absolute;left:-20px;top:0;width:22px;height:100%;background:#9876b7;clip-path:polygon(0 0,3px 0,100% 50%,3px 100%,0 100%,calc(100% - 3px) 50%)}@media(max-width:700px){.lobby-pin-box::before{display:none}}
+
+@media(prefers-reduced-motion:reduce){.final-podium-show .podium-card.is-name-revealed .podium-team{animation:none!important}}

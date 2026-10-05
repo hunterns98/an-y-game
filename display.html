@@ -288,8 +288,8 @@
   .final-podium-show .podium-card.is-name-revealed .podium-points { display:block; opacity:1; transition:opacity .35s ease; }
   .final-podium-show .podium-card.is-name-revealed .podium-avatars { display:flex; }
   .final-podium-show .podium-card.is-name-revealed .podium-team { display:block; }
-  .final-podium-show .podium-card.is-name-revealed .podium-team { animation:podiumNameDance 1.1s ease-in-out infinite alternate; }
-  @keyframes podiumNameDance { 0% { transform:rotate(-1.5deg) translateY(0); } 100% { transform:rotate(1.5deg) translateY(-5px); } }
+  .final-podium-show .podium-card.is-name-revealed .podium-team { animation:podiumNameDance 1.6s ease-in-out infinite; }
+  @keyframes podiumNameDance { 0%,100% { transform:translateY(0) rotate(-3deg) scale(1); } 25% { transform:translateY(-12px) rotate(3deg) scale(1.07); } 50% { transform:translateY(-3px) rotate(-2deg) scale(1.02); } 75% { transform:translateY(-10px) rotate(3deg) scale(1.06); } }
   #screen-ended.finale-dim .ended-content { filter:brightness(.22); transition:filter .45s ease; }
   #screen-ended .ended-content { transition:filter .45s ease; }
   #d-podium-spotlight { position:fixed; inset:0; z-index:2; pointer-events:none; overflow:hidden; opacity:0; }
@@ -1266,11 +1266,7 @@ function renderRoundLeaderboard(game) {
 }
 
 function rankShiftHtml(team) {
-  const change = team.lastRankChange;
-  if (!change || !change.delta) return '';
-  return change.delta > 0
-    ? `<span class="rank-shift up">▲ ${change.delta}</span>`
-    : `<span class="rank-shift down">▼ ${Math.abs(change.delta)}</span>`;
+  return '';
 }
 function streakHtml(team) {
   const streak = team.stats && team.stats.currentStreak;
