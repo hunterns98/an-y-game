@@ -63,8 +63,8 @@ function flyToTeam(name){
 }
 function burst(big){cancelAnimationFrame(fx);const c=$('confetti'),x=c.getContext('2d');c.width=innerWidth;c.height=innerHeight;const particles=Array.from({length:big?100:36},()=>({x:c.width*.4,y:c.height*.42,vx:(Math.random()-.5)*16,vy:-Math.random()*12-2,color:['#ffd778','#ff6aa8','#86f2d4'][Math.floor(Math.random()*3)],rot:Math.random()*6}));const start=performance.now();function tick(now){x.clearRect(0,0,c.width,c.height);particles.forEach(p=>{p.x+=p.vx;p.y+=p.vy;p.vy+=.22;x.save();x.translate(p.x,p.y);x.rotate(p.rot+=.08);x.fillStyle=p.color;x.globalAlpha=Math.max(0,1-(now-start)/1600);x.fillRect(-3,-3,6,9);x.restore();});if(now-start<1600)fx=requestAnimationFrame(tick);else x.clearRect(0,0,c.width,c.height);}fx=requestAnimationFrame(tick);}
 function wait(ms,id){return new Promise(resolve=>setTimeout(()=>resolve(id===token),ms));}
-function spin(name,id){return new Promise(resolve=>{const step=tau/pool.length,position=pool.indexOf(name),target=-Math.PI/2-(position+.5)*step;const delta=((target-angle)%tau+tau)%tau+tau*4,from=angle,start=performance.now(),duration=$('fast').checked?650:4500;nextReelTick=0;function tick(now){if(id!==token){resolve(false);return;}const t=Math.min(1,(now-start)/duration);angle=from+delta*(1-Math.pow(1-t,4));paint();jackpotTick(t,now);if(t<1)raf=requestAnimationFrame(tick);else resolve(true);}raf=requestAnimationFrame(tick);});}
-function finish(){running=false;$('hub-unit').textContent='đội';$('hub-label').textContent='ĐỦ ĐỘI';$('remaining').textContent='8';$('announcement').textContent='Chuẩn bị chan nhau nào!';$('subtitle').textContent='';$('player-preview').textContent='Chào Nhung! Đồng đội của bạn là Thoan. Bây giờ mới hiện đồng đội và quyền đặt tên.';$('start').disabled=true;$('skip').disabled=true;$('fast').disabled=false;renderTeams();$('remaining').textContent='8';}
+function spin(name,id,round=0){return new Promise(resolve=>{const step=tau/pool.length,position=pool.indexOf(name),target=-Math.PI/2-(position+.5)*step;const delta=((target-angle)%tau+tau)%tau+tau*4,from=angle,start=performance.now(),duration=$('fast').checked?650:(round===0?3000:4500);nextReelTick=0;function tick(now){if(id!==token){resolve(false);return;}const t=Math.min(1,(now-start)/duration);angle=from+delta*(1-Math.pow(1-t,4));paint();jackpotTick(t,now);if(t<1)raf=requestAnimationFrame(tick);else resolve(true);}raf=requestAnimationFrame(tick);});}
+function finish(){running=false;$('hub-unit').textContent='đội';$('hub-label').textContent='ĐỦ';$('remaining').textContent='8';$('announcement').textContent='Chuẩn bị chan nhau nào!';$('subtitle').textContent='';$('player-preview').textContent='Chào Nhung! Đồng đội của bạn là Thoan. Bây giờ mới hiện đồng đội và quyền đặt tên.';$('start').disabled=true;$('skip').disabled=true;$('fast').disabled=false;renderTeams();$('remaining').textContent='8';}
 function shuffledTeams(){const ids=pairs.map((_,i)=>i);for(let i=ids.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[ids[i],ids[j]]=[ids[j],ids[i]];}return ids;}
 async function start(){
  if(running||index===16)return;running=true;const id=++token;
@@ -75,24 +75,24 @@ async function start(){
   lastName=null;activeTeam=-1;$('hub-label').textContent='LƯỢT '+(round+1)+' / 2';
   $('subtitle').textContent=round===0?'Lượt 1 · Chọn 8 người cho 8 đội':'Lượt 2 · Tìm đồng đội cho 8 người vừa chọn';
   $('announcement').textContent=round===0?'*Insert nhạc xổ số* ~Tăng tăng tắng tắng tăng~':'Và đó là...';
-  renderTeams();if(!await spin(batch[0].name,id))return;
+  renderTeams();if(!await spin(batch[0].name,id,round))return;
   for(const pick of batch){
    if(id!==token)return;
    lastName=pick.name;activeTeam=-1;paint();
    $('announcement').textContent=pick.name+'…';
-   if(!await wait($('fast').checked?250:2000,id))return;
+   if(!await wait($('fast').checked?250:(round===0?800:2000),id))return;
    index++;revealed.add(pick.name);activeTeam=pick.team;
    pool=pool.filter(n=>n!==pick.name);paint();renderTeams();
    $('announcement').textContent=pick.name+' → Đội '+(pick.team+1)+(round===1?' · Đủ cặp!':'');
    chime(round===1);if(round===1)burst(false);flyToTeam(pick.name);
-   if(!await wait($('fast').checked?180:1500,id))return;
+   if(!await wait($('fast').checked?180:(round===0?700:1500),id))return;
   }
   chime(true);burst(true);
   if(round===0){$('announcement').textContent='Đã có 8 thí sinh đầu tiên. Nửa còn lại gọi tên';if(!await wait($('fast').checked?350:3000,id))return;}
  }
  if(id===token)finish();
 }
-function reset(){token++;cancelAnimationFrame(raf);cancelAnimationFrame(fx);const c=$('confetti');c.getContext('2d').clearRect(0,0,c.width,c.height);running=false;revealed=new Set();lastName=null;activeTeam=-1;firstSlots=pairs.map(()=>0);document.querySelectorAll('.flying-name').forEach(el=>el.remove());$('hub-unit').textContent='chị đẹp';index=0;angle=0;pool=[...order];for(let i=pool.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[pool[i],pool[j]]=[pool[j],pool[i]];}$('start').disabled=false;$('skip').disabled=false;$('fast').disabled=false;$('hub-label').textContent='SẴN SÀNG';$('announcement').textContent='Một tương lai tươi sáng đang chờ đợi chúng ta';$('subtitle').textContent='';$('player-preview').textContent='BTC đang tìm người phù hợp cho bạn. Hãy cầu nguyện đi, đồng đội của bạn sắp xuất hiện rồi!';renderTeams();paint();}
+function reset(){token++;cancelAnimationFrame(raf);cancelAnimationFrame(fx);const c=$('confetti');c.getContext('2d').clearRect(0,0,c.width,c.height);running=false;revealed=new Set();lastName=null;activeTeam=-1;firstSlots=pairs.map(()=>0);document.querySelectorAll('.flying-name').forEach(el=>el.remove());$('hub-unit').textContent='ngoan xinh yêu';index=0;angle=0;pool=[...order];for(let i=pool.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[pool[i],pool[j]]=[pool[j],pool[i]];}$('start').disabled=false;$('skip').disabled=false;$('fast').disabled=false;$('hub-label').textContent='SẴN SÀNG';$('announcement').textContent='Một tương lai tươi sáng đang chờ đợi chúng ta';$('subtitle').textContent='';$('player-preview').textContent='BTC đang tìm người phù hợp cho bạn. Hãy cầu nguyện đi, đồng đội của bạn sắp xuất hiện rồi!';renderTeams();paint();}
 $('start').onclick=start;$('reset').onclick=reset;$('skip').onclick=()=>{token++;cancelAnimationFrame(raf);revealed=new Set(order);lastName=null;index=16;pool=[];paint();finish();chime(true);burst(true);};$('sound').onclick=()=>{muted=!muted;$('sound').textContent='Âm thanh: '+(muted?'Tắt':'Bật');};$('full').onclick=()=>{(document.fullscreenElement?document.exitFullscreen():document.documentElement.requestFullscreen()).catch(()=>{});};document.addEventListener('keydown',e=>{if(e.repeat||e.ctrlKey||e.metaKey||e.altKey||/INPUT|SELECT|TEXTAREA/.test(e.target.tagName))return;if(e.key.toLowerCase()==='m')$('sound').click();if(e.key.toLowerCase()==='f')$('full').click();});reset();
 
 if(new URLSearchParams(location.search).has('live')){
@@ -113,23 +113,23 @@ if(new URLSearchParams(location.search).has('live')){
   if(!liveData)return;
   const {state,sound}=liveData,now=liveData.now+performance.now()-receivedAt;muted=!sound;
   if(liveId!==state.id){liveId=state.id;previous=-1;pairs.splice(0,pairs.length,...Object.values(state.teams).map(t=>[t.player1,t.player2]));order.splice(0,order.length,...pairs.flat());}
-  const elapsed=state.status==='complete'?71000:state.status==='running'?Math.max(0,now-state.startedAt):-1;
-  const sequence=[];state.orders.forEach((keys,round)=>keys.forEach((key,j)=>sequence.push({name:state.teams[key][round?'player2':'player1'],at:(round?35500:0)+4500+j*3500,team:Object.keys(state.teams).indexOf(key)})));
-  const visible=sequence.filter(x=>elapsed>=x.at+2000);
-  const pending=sequence.find(x=>elapsed>=x.at&&elapsed<x.at+2000);index=visible.length;revealed=new Set(visible.map(x=>x.name));pool=order.filter(n=>!revealed.has(n));
+  const elapsed=state.status==='complete'?53000:state.status==='running'?Math.max(0,now-state.startedAt):-1;
+  const sequence=[];state.orders.forEach((keys,round)=>keys.forEach((key,j)=>sequence.push({name:state.teams[key][round?'player2':'player1'],at:(round?18000:0)+(round?4500:3000)+j*(round?3500:1500),hold:round?2000:800,team:Object.keys(state.teams).indexOf(key)})));
+  const visible=sequence.filter(x=>elapsed>=x.at+x.hold);
+  const pending=sequence.find(x=>elapsed>=x.at&&elapsed<x.at+x.hold);index=visible.length;revealed=new Set(visible.map(x=>x.name));pool=order.filter(n=>!revealed.has(n));
   const latest=visible.at(-1);lastName=pending?.name||latest?.name||null;activeTeam=pending?-1:latest?.team??-1;running=state.status==='running';
-  const round=elapsed>=35500?1:0,within=elapsed-(round?35500:0),spinning=elapsed>=0&&within<4500;
+  const round=elapsed>=18000?1:0,within=elapsed-(round?18000:0),spinDuration=round?4500:3000,spinning=elapsed>=0&&within<spinDuration;
   if(spinning){
    lastName=null;
    const winner=state.teams[state.orders[round][0]][round?'player2':'player1'];
    const target=-Math.PI/2-(pool.indexOf(winner)+.5)*tau/pool.length;
    const turn=((target%tau)+tau)%tau+tau*4;
-   angle=turn*(1-Math.pow(1-within/4500,4));
+   angle=turn*(1-Math.pow(1-within/spinDuration,4));
   }else angle=0;
-  paint();if(index!==previous)renderTeams();$('hub-label').textContent=index===16?'ĐỦ ĐỘI':elapsed<0?'SẴN SÀNG':'LƯỢT '+(round+1)+' / 2';$('hub-unit').textContent=index===16?'đội':'chị đẹp';$('remaining').textContent=index===16?'8':pool.length;
+  paint();if(index!==previous)renderTeams();$('hub-label').textContent=index===16?'ĐỦ':elapsed<0?'SẴN SÀNG':'LƯỢT '+(round+1)+' / 2';$('hub-unit').textContent=index===16?'đội':'ngoan xinh yêu';$('remaining').textContent=index===16?'8':pool.length;
   $('announcement').textContent=elapsed<0?'Một tương lai tươi sáng đang chờ đợi chúng ta':spinning?(round===0?'*Insert nhạc xổ số* ~Tăng tăng tắng tắng tăng~':'Và đó là...'):pending?pending.name+'…':index===16?'Chuẩn bị chan nhau nào!':index===8?'Đã có 8 thí sinh đầu tiên. Nửa còn lại gọi tên':latest?latest.name+' → Đội '+(latest.team+1):'';
   if(index!==previous){if(previous>=0&&index>previous&&latest){flyToTeam(latest.name);chime(round===1);burst(round===1);}previous=index;}
-  if(spinning)jackpotTick(within/4500,performance.now());
+  if(spinning)jackpotTick(within/spinDuration,performance.now());
   liveFrame=requestAnimationFrame(liveRender);
  }
 }

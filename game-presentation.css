@@ -35,3 +35,5 @@ button:focus-visible,select:focus-visible{outline:3px solid var(--cyan,#00f5d4);
 .lobby-pin-box{position:relative;border-left:0!important}.lobby-pin-box::before{content:'';position:absolute;left:-20px;top:0;width:22px;height:100%;background:#9876b7;clip-path:polygon(0 0,3px 0,100% 50%,3px 100%,0 100%,calc(100% - 3px) 50%)}@media(max-width:700px){.lobby-pin-box::before{display:none}}
 
 @media(prefers-reduced-motion:reduce){.final-podium-show .podium-card.is-name-revealed .podium-team{animation:none!important}}
+
+#commentator-text{white-space:pre-line}

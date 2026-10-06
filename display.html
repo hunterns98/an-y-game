@@ -412,10 +412,7 @@
       <div class="player-lobby-grid" id="d-player-chips"></div>
       <div id="d-player-count">0 người đã vào</div>
     </div>
-    <div class="waiting-section" id="d-teams-section" style="display:none;">
-      <div class="waiting-section-label">💞 Các cặp đấu</div>
-      <div class="pair-grid" id="d-team-pairs"></div>
-    </div>
+
   </div>
   <!-- ── SCREEN: QUESTION / REVEAL ── -->
   <div class="screen" id="screen-question">
@@ -488,6 +485,7 @@
 // Chỉ được bật ở phòng chờ và lúc các đội đang trả lời.
 // ─────────────────────────────────────────
 const COMMENTS = [
+  'Các cụ: Gừng càng già càng cay\nGenZ: Ferrari cũ thì vẫn là Ferrari',
   'Đủ nắng hoa sẽ nở, đủ rồi dừng lại thôi.',
   'Nếu một ngày giàu có, tôi sẽ ăn sữa chua mà không cần liếm nắp.',
   'Hợp đồng kỳ nghỉ không em?',
@@ -949,14 +947,7 @@ function listenTeams() {
     }
   });
 }
-function renderWaitingTeams() {
-  const list = Object.entries(teamsCache);
-  const section = document.getElementById('d-teams-section');
-  if (!section) return;
-  if (list.length === 0) { section.style.display = 'none'; return; }
-  section.style.display = 'block';
-  document.getElementById('d-team-pairs').innerHTML = `<div class="lobby-team-status">💞 Đã ghép ${list.length} đội · sẵn sàng bắt đầu!</div>`;
-}
+function renderWaitingTeams() {}
 // ─────────────────────────────────────────
 // LẮNG NGHE ĐÁP ÁN (chỉ dùng để đếm tiến độ — KHÔNG hiện nội dung trước khi reveal)
 // ─────────────────────────────────────────

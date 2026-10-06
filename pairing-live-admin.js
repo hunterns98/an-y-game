@@ -6,7 +6,7 @@
  async function update(action){if(busy||!roomCode||!state)return;busy=true;const id=state.id;
  try{await GameLogic.transactRoom(db.ref('rooms/'+roomCode),room=>{
   const p=room?.pairing;if(!p||p.id!==id||p.status==='complete'||['starting','playing','ended'].includes(room.game?.status))return;
-  if(action==='start'){if(p.status!=='ready')return;return {...room,pairing:{...p,status:'running',startedAt:serverNow(),endsAt:serverNow()+71000}};}
+  if(action==='start'){if(p.status!=='ready')return;return {...room,pairing:{...p,status:'running',startedAt:serverNow(),endsAt:serverNow()+53000}};}
   if(action==='finish' && (p.status!=='running'||serverNow()<p.endsAt))return;
   const names=new Set(Object.values(room.players||{}).map(p=>p.name));
   if(!Object.values(p.teams).every(t=>names.has(t.player1)&&names.has(t.player2)))return {...room,pairing:null,pairingCount:Math.max(0,Number(room.pairingCount||1)-1)};

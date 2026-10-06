@@ -3,7 +3,9 @@
  const host=document.getElementById('screen-gift-reveal');if(!host)return;
  const box=document.createElement('div');box.className='gift-kittens';
  box.innerHTML='<canvas aria-label="Ba bé mèo nhảy"></canvas><video loop playsinline preload="none" hidden></video>';
- host.append(box);
+ const scene=document.createElement('div');scene.className='gift-celebration';
+ const photo=side=>{const figure=document.createElement('figure');figure.className='gift-cheer '+side;figure.innerHTML='<img src="assets/hoan-hi.png" alt="Cùng hoan hỉ chúc mừng" loading="lazy"><figcaption>all money<br>back my home</figcaption>';return figure;};
+ scene.append(photo('left'),box,photo('right'));host.append(scene);
  const video=box.querySelector('video'),canvas=box.querySelector('canvas');
  const ctx=canvas.getContext('2d',{willReadFrequently:true});let running=false,frame=0,last=0,attempt=0;
  let demoSound=true;
