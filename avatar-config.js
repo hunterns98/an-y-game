@@ -6,7 +6,7 @@
 
   var PEOPLE = {
     nhung:     { slot: 1,  file: 'nhung.webp' },
-    thuy:      { slot: 2,  file: 'thuy.webp' },
+    thuy:      { slot: 2,  file: 'thuy-20261007.png', position: '50% 0%' },
     an:        { slot: 3,  file: 'an.webp' },
     thoan:     { slot: 4,  file: 'thoan.webp' },
     phuong:    { slot: 5,  file: 'phuong.webp' },
