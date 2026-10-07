@@ -12,7 +12,7 @@
     phuong:    { slot: 5,  file: 'phuong.webp' },
     anh:       { slot: 6,  file: 'anh-20261007.png' },
     giang:     { slot: 7,  file: 'giang.webp' },
-    hanh:      { slot: 8,  file: 'hanh.webp' },
+    hanh:      { slot: 8,  file: 'hanh-20261007.png', position: '50% 0%' },
     le:        { slot: 9,  file: 'le.webp' },
     maianh:    { slot: 10, file: 'mai-anh.webp' },
     linh:      { slot: 11, file: 'linh-20260930.png', position: '50% 40%', zoom: 1.7 },
