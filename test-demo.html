@@ -917,6 +917,19 @@ body:not(.phone) #screen-result.active{min-height:450px}body:not(.phone) .result
             Không trùng với đội khác → <span class="howto-pts great">+3 điểm</span>. b-)<br>
             Không chốt trước khi hết giờ → <span class="howto-pts zero">0 điểm</span>.
           </div><div class="howto-demo-q">💬 Đoán xem cả phòng chọn gì để tránh chọn đáp án trùng! Bật mí là bạn có thể tương tác và lừa đội khác để ghi điểm cao.</div>
+          <div>
+            <div class="howto-demo-label">Thử ngay</div>
+            <div class="howto-demo-q">Món ăn mà bạn sẽ giới thiệu khi khách đến thăm:</div>
+            <div class="howto-demo-grid" aria-label="Chọn món ăn thử" onclick="const chosen=event.target.closest('button');if(!chosen)return;this.querySelectorAll('button').forEach(b=>{b.classList.toggle('picked',b===chosen);b.setAttribute('aria-pressed',String(b===chosen));});">
+              <button type="button" class="howto-demo-btn" aria-pressed="false">Bún đậu mắm tôm</button>
+              <button type="button" class="howto-demo-btn" aria-pressed="false">Cơm tấm</button>
+              <button type="button" class="howto-demo-btn" aria-pressed="false">Bún riêu cua</button>
+              <button type="button" class="howto-demo-btn" aria-pressed="false">Bún chả</button>
+              <button type="button" class="howto-demo-btn" aria-pressed="false">Cơm APS</button>
+              <button type="button" class="howto-demo-btn" aria-pressed="false">Bánh mỳ</button>
+            </div>
+
+          </div>
         </div>
       </div>
     </div>
