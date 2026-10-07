@@ -7,6 +7,24 @@
  const video=box.querySelector('video'),canvas=box.querySelector('canvas');
  const ctx=canvas.getContext('2d',{willReadFrequently:true});let running=false,frame=0,last=0,attempt=0;
  let demoSound=true;
+ // Fit the animation to the space below the card, including display/demo chrome.
+ function fit(){
+  if(!host.classList.contains('active'))return;
+  const parent=host.parentElement;
+  const style=getComputedStyle(parent);
+  const top=parent.getBoundingClientRect().top+window.scrollY+(parseFloat(style.paddingTop)||0);
+  const available=Math.max(0,window.innerHeight-top-Math.max(host.closest('#demo-stage')?64:40,parseFloat(style.paddingBottom)||0));
+  host.style.height=available+'px';
+  const card=host.querySelector('.display-gift-card');
+  const gap=parseFloat(getComputedStyle(host).gap)||12;
+  const width=Math.max(0,Math.min(640,host.clientWidth*.94,(available-card.offsetHeight-gap)/.85));
+  box.style.width=width+'px';box.style.height=(width*.85)+'px';
+ }
+ const layoutObserver=new ResizeObserver(fit);
+ layoutObserver.observe(host.parentElement);
+ layoutObserver.observe(host.querySelector('.display-gift-card'));
+ window.addEventListener('resize',fit);
+ document.fonts?.ready.then(fit);
  function draw(now){
   if(!running)return;
   if(video.readyState>=2 && now-last>=40){
@@ -35,7 +53,7 @@
   const active=host.classList.contains('active')&&!document.hidden;
   if(active===running)return;
   running=active;
-  if(active){play();frame=requestAnimationFrame(draw);}
+  if(active){fit();play();frame=requestAnimationFrame(draw);}
   else{attempt++;video.pause();cancelAnimationFrame(frame);}
  }
  document.addEventListener('keydown',event=>{
