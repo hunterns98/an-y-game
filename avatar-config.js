@@ -18,8 +18,7 @@
     linh:      { slot: 11, file: 'linh-20260930.png', position: '50% 40%', zoom: 1.7 },
     hang:      { slot: 12, file: 'hang.webp', position: '52% 35%', zoom: 1.55 },
     hoa:       { slot: 13, file: 'hoa.webp' },
-    // Ảnh gốc ngang, gương mặt ở lệch về bên phải nên avatar cần crop riêng.
-    trang:     { slot: 14, file: 'trang.webp', position: '80% 38%' },
+    trang:     { slot: 14, file: 'trang-20261007.png', position: '50% 0%' },
     truc:      { slot: 15, file: 'truc.webp', position: '52% 37%', zoom: 1.58 },
     lien:      { slot: 16, file: 'lien.webp' }
   };
