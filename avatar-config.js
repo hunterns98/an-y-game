@@ -10,7 +10,7 @@
     an:        { slot: 3,  file: 'an.webp' },
     thoan:     { slot: 4,  file: 'thoan.webp' },
     phuong:    { slot: 5,  file: 'phuong.webp' },
-    anh:       { slot: 6,  file: 'anh.webp' },
+    anh:       { slot: 6,  file: 'anh-20261007.png' },
     giang:     { slot: 7,  file: 'giang.webp' },
     hanh:      { slot: 8,  file: 'hanh.webp' },
     le:        { slot: 9,  file: 'le.webp' },
