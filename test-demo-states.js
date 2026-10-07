@@ -19,7 +19,7 @@
     const grid=$('team-tags-grid');grid.replaceChildren();let selected=null;
     const submit=$('btn-submit-team-tag');submit.disabled=true;submit.textContent='Chốt đáp án cho cả đội';
     q.tags.forEach(tag=>{const b=document.createElement('button');b.className='btn-team-tag';b.textContent=tag;b.onclick=()=>{selected=tag;grid.querySelectorAll('button').forEach(x=>x.classList.toggle('selected',x===b));submit.disabled=false;};grid.append(b);});
-    submit.onclick=()=>{if(!selected)return;grid.querySelectorAll('button').forEach(b=>b.disabled=true);submit.disabled=true;$('team-tags-wrap').style.display='none';$('status-chosen').style.display='block';$('chosen-label').textContent='Đội đã chốt';$('chosen-display').textContent=selected;$('chosen-sub').textContent='Đáp án chung đã lưu · Chọn trạng thái công bố để xem điểm minh họa';};
+    submit.onclick=()=>{if(!selected)return;grid.querySelectorAll('button').forEach(b=>b.disabled=true);submit.disabled=true;$('team-tags-wrap').style.display='none';$('status-chosen').style.display='block';$('chosen-label').textContent='Đội đã chốt';$('chosen-display').textContent=selected;$('chosen-sub').textContent='Đang chờ các đội còn lại trả lời....';};
   }
   function question(){
     reset();const selected=picker.value;const q=previewQuestions[Number(selected)];
@@ -50,7 +50,7 @@
     if(mode==='question')return;
     if(mode==='unpaired'){toolbar.querySelector('[data-view="lobby"]').click();$('matchmaking-card').style.display='block';$('partner-display').style.display='none';$('team-name-card').style.display='none';$('demo-state').value=mode;return;}
     if(mode==='join'){document.querySelectorAll('.screen').forEach(e=>e.classList.remove('active'));$('screen-join').classList.add('active');return;}
-    if(mode==='waiting'){['answer-grid','btn-submit-choice','who-answer-wrap','answer-text-wrap','team-tags-wrap'].forEach(id=>$(id).style.display='none');$('status-chosen').style.display='block';const q=previewQuestions[Number(picker.value)];$('chosen-display').textContent=q.tags?q.tags[0]:q.a||'Nhung';$('chosen-label').textContent=q.tags?'Đội đã chốt':'Bạn đã chọn';return;}
+    if(mode==='waiting'){['answer-grid','btn-submit-choice','who-answer-wrap','answer-text-wrap','team-tags-wrap'].forEach(id=>$(id).style.display='none');$('status-chosen').style.display='block';const q=previewQuestions[Number(picker.value)];$('chosen-display').textContent=q.tags?q.tags[0]:q.a||'Nhung';$('chosen-label').textContent=q.tags?'Đội đã chốt':'Bạn đã chọn';$('chosen-sub').textContent=q.tags?'Đang chờ các đội còn lại trả lời....':'Đang chờ đồng đội trả lời...';return;}
     if(mode==='level2'||mode==='level3'||mode==='final'){
       document.querySelectorAll('.screen').forEach(e=>e.classList.remove('active'));
       if(mode==='final'){$('final-wait-screen').classList.add('show');return;}

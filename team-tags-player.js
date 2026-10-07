@@ -33,7 +33,7 @@ function lockTeamTags(answer) {
   document.querySelectorAll('#team-tags-wrap button').forEach(b=>b.disabled=true);
   document.getElementById('chosen-label').textContent = 'Đội đã chốt';
   document.getElementById('chosen-display').textContent = answer;
-  document.getElementById('chosen-sub').textContent = 'Đáp án chung đã lưu · Chờ công bố lựa chọn của các đội';
+  document.getElementById('chosen-sub').textContent = 'Đang chờ các đội còn lại trả lời....';
 }
 document.getElementById('btn-submit-team-tag').onclick = async () => {
   if (!selectedTeamTag || hasAnswered || timeIsUp || teamTagSending || !activeGame || activeGame.type !== 'team_tags') return;

@@ -1757,7 +1757,7 @@ function renderQuestion(game, startTimer = true) {
   document.getElementById('status-chosen').style.display = 'none';
   document.getElementById('chosen-emoji').textContent = '✅';
   document.getElementById('chosen-label').textContent = 'Bạn đã chọn';
-  document.getElementById('chosen-sub').textContent = 'Đang chờ đồng đội trả lời...';
+  document.getElementById('chosen-sub').textContent = qType === 'team_tags' ? 'Đang chờ các đội còn lại trả lời....' : 'Đang chờ đồng đội trả lời...';
   // Vẽ lại từ đáp án đã cache. Listener có thể đã nhận đáp án trước khi phần
   // câu hỏi render xong, vì vậy không reset mù về "chưa trả lời".
   if (startTimer) startQuestionTimer(game);
@@ -1918,7 +1918,7 @@ async function submitAnswer(answer) {
 }
 
 function updateChosenWaitingCopy() {
-  if(activeGame && activeGame.type==='team_tags')return;
+  if(activeGame && activeGame.type==='team_tags'){document.getElementById('chosen-sub').textContent='Đang chờ các đội còn lại trả lời....';return;}
   const ready=partnerAnswerCache && partnerAnswerCache.round===currentRound && partnerAnswerCache.answer!==undefined && partnerAnswerCache.answer!=='';
   document.getElementById('chosen-sub').textContent=ready?'✅ Cả hai đã chốt · Hồi hộp chờ xem có cùng tần số không!':'✅ Đáp án đã lưu · Chờ đồng đội chốt nhé!';
 }
