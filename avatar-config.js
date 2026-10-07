@@ -8,10 +8,10 @@
     nhung:     { slot: 1,  file: 'nhung.webp' },
     thuy:      { slot: 2,  file: 'thuy-20261007.png', position: '50% 0%' },
     an:        { slot: 3,  file: 'an.webp' },
-    thoan:     { slot: 4,  file: 'thoan.webp' },
+    thoan:     { slot: 4,  file: 'thoan-20261007.png', position: '50% 0%' },
     phuong:    { slot: 5,  file: 'phuong.webp' },
     anh:       { slot: 6,  file: 'anh-20261007.png' },
-    giang:     { slot: 7,  file: 'giang.webp' },
+    giang:     { slot: 7,  file: 'giang-20261007.png', position: '50% 0%' },
     hanh:      { slot: 8,  file: 'hanh-20261007.png', position: '50% 0%' },
     le:        { slot: 9,  file: 'le-20261007.png', position: '50% 0%' },
     maianh:    { slot: 10, file: 'mai-anh-20261007.png', position: '50% 0%' },
@@ -20,7 +20,7 @@
     hoa:       { slot: 13, file: 'hoa.webp' },
     trang:     { slot: 14, file: 'trang-20261007.png', position: '50% 0%' },
     truc:      { slot: 15, file: 'truc.webp', position: '52% 37%', zoom: 1.58 },
-    lien:      { slot: 16, file: 'lien.webp' }
+    lien:      { slot: 16, file: 'lien-20261007.png', position: '75% 50%' }
   };
 
   function normalizeName(name) {
