@@ -14,7 +14,7 @@
     giang:     { slot: 7,  file: 'giang.webp' },
     hanh:      { slot: 8,  file: 'hanh-20261007.png', position: '50% 0%' },
     le:        { slot: 9,  file: 'le-20261007.png', position: '50% 0%' },
-    maianh:    { slot: 10, file: 'mai-anh.webp' },
+    maianh:    { slot: 10, file: 'mai-anh-20261007.png', position: '50% 0%' },
     linh:      { slot: 11, file: 'linh-20260930.png', position: '50% 40%', zoom: 1.7 },
     hang:      { slot: 12, file: 'hang.webp', position: '52% 35%', zoom: 1.55 },
     hoa:       { slot: 13, file: 'hoa.webp' },
