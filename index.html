@@ -709,6 +709,7 @@
     .q-text { font-size: 1.15rem; }
     .btn-answer { padding: 18px 12px; font-size: 0.88rem; }
   }
+.card-options{display:flex;gap:5px;padding:5px;margin:10px 0 14px;background:#eedfe5;border-radius:14px;clear:both}.card-options button{flex:1;border:0;border-radius:10px;padding:10px 4px;background:transparent;color:#825e75;font:inherit;font-weight:700;cursor:pointer}.card-options button[aria-pressed="true"]{background:white;color:#9a285f;box-shadow:0 2px 6px #72284c20}.card-options small{display:block;font-size:10px;font-weight:400;margin-top:2px}@media(min-width:800px){.card-options{grid-column:2}}
 </style>
 <style id="desktop-layout">
 @media(min-width:850px){
@@ -803,6 +804,7 @@ body #screen-result.active{min-height:450px}body .result-card{max-width:900px;mi
 <div id="personal-card-modal" role="dialog" aria-modal="true" aria-label="Thiệp 20/10 cá nhân">
   <section class="personal-card-dialog">
     <button class="personal-card-close" id="btn-close-personal-card" type="button" aria-label="Đóng thiệp">×</button>
+    <div class="card-options" role="group" aria-label="Chọn mẫu thiệp"><button type="button" data-card-option="1" aria-pressed="true">Option 1<small>Mẫu mặc định</small></button><button type="button" data-card-option="2" aria-pressed="false">Option 2<small>Vintage</small></button></div>
     <img id="personal-card-preview" alt="Thiệp 20/10 cá nhân">
     <button class="personal-card-save" id="btn-save-personal-card" type="button">📥 Lưu thiệp về máy</button>
     <p class="personal-card-hint">Trên iPhone, bạn có thể chọn Chia sẻ → Lưu hình ảnh.</p>
@@ -2102,6 +2104,9 @@ document.getElementById('match-history-modal').addEventListener('click', event =
 // Thiệp được vẽ tại máy người chơi (không tải ảnh lên server), theo tỷ lệ 9:16
 // để lưu story nét trên điện thoại. Ảnh lấy đúng avatar đã gắn với tên trong game.
 let personalCardBlob = null;
+let personalCardOption = 1;
+let personalCardRequest = 0;
+let personalCardUrl = null;
 const PERSONAL_CARD_MESSAGES = {
   nhung: 'luôn rạng rỡ,\nnhiều niềm vui, nhiều deal đẹp\nvà thật nhiều yêu thương.',
   thuy: 'luôn an vui,\ntiền vào cuộn xoay như sóng\nvà mỗi ngày đều thật rực rỡ.',
@@ -2143,30 +2148,46 @@ function drawCoverImage(ctx, img, x, y, w, h) {
   const sx = (img.naturalWidth - sw) / 2, sy = (img.naturalHeight - sh) / 2;
   ctx.drawImage(img, sx, sy, sw, sh, x, y, w, h); return true;
 }
-async function buildPersonalCard() {
+async function buildPersonalCard(option = personalCardOption) {
   // Mỗi người dùng một thiệp PNG hoàn chỉnh đã được thiết kế riêng — không ghép
   // ảnh/chữ lên template khi mở thiệp, nên bố cục luôn giữ nguyên như bản duyệt.
-  const card = await loadCardImage('assets/cards/personal/' + personalCardKey(myName || '') + '.png');
+  const card = await loadCardImage((option === 2 ? 'assets/cards/personal-option2/' : 'assets/cards/personal/') + personalCardKey(myName || '') + '.png');
   if (!card) throw new Error('Thiệp cá nhân chưa sẵn sàng');
   const canvas = document.createElement('canvas'); canvas.width = card.naturalWidth; canvas.height = card.naturalHeight;
   canvas.getContext('2d').drawImage(card, 0, 0);
-  personalCardBlob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
-  return URL.createObjectURL(personalCardBlob);
+  const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
+  return { src: URL.createObjectURL(blob), blob };
 }
-document.getElementById('btn-create-personal-card').addEventListener('click', async () => {
-  const btn = document.getElementById('btn-create-personal-card'); btn.disabled = true; btn.textContent = '⏳ Đang tạo thiệp...';
+async function showPersonalCardOption(option) {
+  const request = ++personalCardRequest;
+  const save = document.getElementById('btn-save-personal-card');
+  save.disabled = true;
+  const previous = personalCardOption;
   try {
-    const src = await buildPersonalCard();
+    const { src, blob } = await buildPersonalCard(option);
+    if (request !== personalCardRequest) { URL.revokeObjectURL(src); return; }
+    if (personalCardUrl) URL.revokeObjectURL(personalCardUrl);
+    personalCardUrl = src;
+    personalCardBlob = blob;
+    personalCardOption = option;
     document.getElementById('personal-card-preview').src = src;
+    document.querySelectorAll('[data-card-option]').forEach(button => button.setAttribute('aria-pressed', Number(button.dataset.cardOption) === option));
     document.getElementById('personal-card-modal').classList.add('show');
-  } catch (error) { toast('❌ Chưa tạo được thiệp, hãy thử lại nhé.'); }
-  finally { btn.disabled = false; btn.textContent = '💌 Xem thiệp của bạn'; }
+  } catch (error) { if (request !== personalCardRequest) return; personalCardOption = previous; toast('❌ Chưa tải được thiệp, hãy thử lại nhé.'); }
+  finally { if (request === personalCardRequest) save.disabled = !personalCardUrl; }
+}
+document.querySelectorAll('[data-card-option]').forEach(button => button.addEventListener('click', () => showPersonalCardOption(Number(button.dataset.cardOption))));
+document.getElementById('btn-create-personal-card').addEventListener('click', async () => {
+  const btn = document.getElementById('btn-create-personal-card'); btn.disabled = true;
+  await showPersonalCardOption(1);
+  btn.disabled = false;
 });
-document.getElementById('btn-close-personal-card').addEventListener('click', () => document.getElementById('personal-card-modal').classList.remove('show'));
-document.getElementById('personal-card-modal').addEventListener('click', event => { if (event.target.id === 'personal-card-modal') event.currentTarget.classList.remove('show'); });
+function closePersonalCard() { ++personalCardRequest; document.getElementById('personal-card-modal').classList.remove('show'); }
+document.getElementById('btn-close-personal-card').addEventListener('click', closePersonalCard);
+document.getElementById('personal-card-modal').addEventListener('click', event => { if (event.target.id === 'personal-card-modal') closePersonalCard(); });
 document.getElementById('btn-save-personal-card').addEventListener('click', async () => {
   if (!personalCardBlob) return;
-  const filename = 'thiep-20-10-' + (myName || 'ban').replace(/[^a-z0-9]+/gi, '-').toLowerCase() + '.png';
+  const filename = 'thiep-20-10-' + (myName || 'ban').replace(/[^a-z0-9]+/gi, '-').toLowerCase() + '-option-' + personalCardOption + '.png';
   const file = new File([personalCardBlob], filename, { type:'image/png' });
   try {
     if (navigator.canShare && navigator.canShare({ files:[file] })) { await navigator.share({ files:[file], title:'Thiệp 20/10' }); return; }
@@ -2288,3 +2309,4 @@ function miniConfetti() {
 </script>
 </body>
 </html>
+
