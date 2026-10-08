@@ -42,6 +42,7 @@
   .commentator-bubble { position:fixed; right:clamp(14px,2.4vw,34px); bottom:clamp(18px,3vw,38px); z-index:8; display:none; max-width:min(390px,calc(100vw - 32px)); padding:12px 17px; border:1px solid rgba(255,214,10,.48); border-radius:18px 18px 4px 18px; background:linear-gradient(135deg,rgba(54,14,97,.94),rgba(27,6,57,.94)); color:#fff4c7; box-shadow:0 12px 30px rgba(0,0,0,.3),0 0 18px rgba(255,45,120,.14); font-size:clamp(.78rem,1.35vw,.96rem); font-weight:800; line-height:1.4; text-align:left; pointer-events:none; animation:commentatorIn .38s cubic-bezier(.2,1.35,.4,1) both; }
   .commentator-bubble::before { content:'Quote vô tri'; display:block; margin-bottom:4px; color:var(--gold); font-size:.64em; font-weight:950; letter-spacing:.12em; text-transform:uppercase; }
   .commentator-bubble.hide { animation:commentatorOut .32s ease-in both; }
+  #commentator-text { white-space:pre-line; }
   .quote-pink-heart { display:inline-block; width:1em; height:1em; vertical-align:-.12em; }
   @keyframes commentatorIn { from{opacity:0;transform:translateY(14px) scale(.94)} to{opacity:1;transform:none} }
   @keyframes commentatorOut { to{opacity:0;transform:translateY(10px) scale(.96)} }
@@ -530,7 +531,10 @@ const COMMENTS = [
   'Em khạc hay anh khạc',
   'Cô ấy xinh đẹp, tài giỏi, nhưng cô ấy không có được tôi',
   'Ngược với môn đăng hộ đối? Nhân đôi hộ đói',
-  'Ngũ hành khuyết hỏa, xin lửa xin lửa'
+  'Ngũ hành khuyết hỏa, xin lửa xin lửa',
+  'Anh thích ăn cá tươi, để làm đám cưới ta',
+  'Anh thích mang nồi\nCái nồi không thể cháy',
+  'Thế giới mong cậu lớn\nCòn tớ mong cậu bình an'
 ];
 let commentBag = [];
 let lastShownCommentIdx = -1;
