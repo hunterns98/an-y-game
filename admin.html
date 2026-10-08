@@ -405,10 +405,11 @@
       <div class="section-label">Điều khiển</div>
       <div class="card">
         <div class="action-bar">
+          <button class="btn btn-cyan" id="btn-pause-round" type="button" disabled>⏸ Tạm dừng</button>
           <button class="btn btn-cyan" id="btn-reveal">🔓 Reveal đáp án</button>
           <button class="btn btn-gold" id="btn-next">➡️ Câu tiếp</button>
         </div>
-        <p style="margin-top:10px;color:var(--muted);font-size:.75rem;font-weight:700;">Tự công bố khi hết 30 giây hoặc tất cả đội đã trả lời. BTC bấm “Câu tiếp” để tiếp tục.<br>Phím tắt: <b>Space</b> công bố sớm · <b>N</b> câu tiếp · <b>F</b> toàn màn hình</p>
+        <p style="margin-top:10px;color:var(--muted);font-size:.75rem;font-weight:700;">Tự công bố khi hết thời gian (Level 1–2: 30 giây; Level 3: 40 giây) hoặc tất cả đội đã trả lời. BTC bấm “Câu tiếp” để tiếp tục.<br>Phím tắt: <b>Space</b> công bố sớm · <b>N</b> câu tiếp · <b>F</b> toàn màn hình</p>
         <div id="demo-tools" style="display:none;margin-top:12px;padding-top:12px;border-top:1px solid var(--border);">
           <div style="font-size:.72rem;color:var(--purple);font-weight:900;letter-spacing:.12em;margin-bottom:8px;">🧪 CÔNG CỤ PHÒNG DEMO</div>
           <div class="action-bar"><button class="btn btn-purple" id="btn-fill-demo">⚡ Điền đáp án mẫu</button><button class="btn btn-ghost" id="btn-demo-final">🏆 Mở chung kết giả lập</button></div>
@@ -445,7 +446,7 @@
 <script src="https://www.gstatic.com/firebasejs/12.14.0/firebase-database-compat.js"></script>
 <script src="firebase.js"></script>
 <script src="avatar-config.js"></script>
-<script src="game-logic.js"></script>
+<script src="game-logic.js?v=20261008-pause"></script>
 <script src="game-presentation.js"></script>
 <script>
 const questions = [
@@ -1393,5 +1394,7 @@ function rankShiftHtml(team) {
     : `<span class="rank-shift down">▼ ${Math.abs(change.delta)}</span>`;
 }
 </script>
-<script src="pairing-live-admin.js"></script></body>
+<script src="pairing-live-admin.js"></script><script src="round-pause.js?v=20261008-pause"></script>
+</body>
 </html>
+

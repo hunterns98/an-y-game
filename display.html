@@ -457,7 +457,7 @@
 <script src="https://www.gstatic.com/firebasejs/12.14.0/firebase-database-compat.js"></script>
 <script src="firebase.js"></script>
 <script src="avatar-config.js"></script>
-<script src="game-logic.js"></script>
+<script src="game-logic.js?v=20261008-pause"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <script src="game-presentation.js"></script>
 <script>
@@ -1291,12 +1291,12 @@ function getTeamJourney(teams) {
 // ─────────────────────────────────────────
 function startDisplayTimer(g) {
   clearInterval(displayTimerInterval);
-  const QUESTION_DURATION = 30;
+  const QUESTION_DURATION = GameLogic.questionDurationSeconds(g);
   const startedAt = g.answerStartsAt || g.startedAt || serverNow();
   const tc = document.getElementById('d-timer-circle');
   const tick = () => {
     const elapsed = Math.max(0, Math.floor((serverNow() - startedAt) / 1000));
-    const remaining = Math.max(0, QUESTION_DURATION - elapsed);
+    const remaining = Math.ceil(GameLogic.remainingQuestionMs(gameCache || g, serverNow()) / 1000);
     tc.textContent = remaining;
     tc.classList.toggle('warning', remaining <= 10 && remaining > 5);
     tc.classList.toggle('urgent', remaining <= 5 && remaining > 0);
@@ -1534,5 +1534,7 @@ function startDisplayConfetti() {
 }
 </script>
 <script src="gift-kittens.js"></script>
-<script src="pairing-live-display.js"></script></body>
+<script src="pairing-live-display.js"></script><script src="round-pause.js?v=20261008-pause"></script>
+</body>
 </html>
+

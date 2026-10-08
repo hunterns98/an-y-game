@@ -1017,7 +1017,7 @@ body #screen-result.active{min-height:450px}body .result-card{max-width:900px;mi
 <script src="https://www.gstatic.com/firebasejs/12.14.0/firebase-database-compat.js"></script>
 <script src="firebase.js"></script>
 <script src="avatar-config.js"></script>
-<script src="game-logic.js"></script>
+<script src="game-logic.js?v=20261008-pause"></script>
 <script src="team-tags-player.js"></script>
 <script src="game-presentation.js"></script>
 <script>
@@ -1767,16 +1767,16 @@ function renderQuestion(game, startTimer = true) {
   renderPartnerAnswerStatus();
 }
 // Timer chỉ chạy khi câu hỏi thật sự được mở. Với câu sau, game có 3 giây
-// countdown trước khi gọi hàm này nên người chơi luôn nhận đủ 30 giây.
+// countdown trước khi gọi hàm này nên người chơi nhận đủ thời gian của level.
 function startQuestionTimer(game) {
   clearInterval(timerInterval);
   timeIsUp = false;
-  const QUESTION_DURATION = 30;
+  const QUESTION_DURATION = GameLogic.questionDurationSeconds(game);
   const startedAt = game.answerStartsAt || game.startedAt || serverNow();
   const tc = document.getElementById('timer-circle');
   const tick = () => {
     const elapsed = Math.max(0, Math.floor((serverNow() - startedAt) / 1000));
-    const remaining = Math.max(0, QUESTION_DURATION - elapsed);
+    const remaining = Math.ceil(GameLogic.remainingQuestionMs(activeGame || game, serverNow()) / 1000);
     tc.textContent = remaining;
     tc.classList.toggle('warning', remaining <= 10 && remaining > 5);
     tc.classList.toggle('urgent', remaining <= 5 && remaining > 0);
@@ -2307,6 +2307,8 @@ function miniConfetti() {
   draw();
 }
 </script>
+<script src="round-pause.js?v=20261008-pause"></script>
 </body>
 </html>
+
 

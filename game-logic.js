@@ -153,13 +153,35 @@
   // A single room transaction mirrors the shared answer into both legacy player
   // slots. Existing progress/history readers remain compatible; two clients
   // cannot commit different answers, and reveal competes on the same location.
+  function isRoundSuspended(game, now) {
+    return !!game && (game.pausedAt != null || Number(game.resumeAt || 0) > now);
+  }
+  function remainingQuestionMs(game, now) {
+    const start = Number(game.answerStartsAt || game.startedAt);
+    const clock = game.pausedAt != null ? game.pausedAt : Math.max(now, Number(game.resumeAt || 0));
+    return Math.max(0, questionDurationSeconds(game)*1000 - Math.max(0, clock-start));
+  }
+  function setRoundPaused(room, round, pause, now) {
+    const g=room && room.game;
+    if(!g || g.round!==round || g.status!=='playing' || g.phase!=='answering' || g.revealed)return null;
+    if(pause) {
+      if(isRoundSuspended(g,now) || now<Number(g.answerStartsAt||g.startedAt) || remainingQuestionMs(g,now)<=0)return null;
+      return {...room,game:{...g,pausedAt:now,resumeAt:null}};
+    }
+    if(g.pausedAt==null)return null;
+    const elapsed=questionDurationSeconds(g)*1000-remainingQuestionMs(g,now);
+    return {...room,game:{...g,pausedAt:null,resumeAt:now+3000,answerStartsAt:now+3000-elapsed}};
+  }
+
+  function questionDurationSeconds(game) { return Number((game || {}).level) === 3 ? 40 : 30; }
+
   function commitTeamTagAnswer(room, request, now) {
     if (!room || !room.game) return null;
     const game = room.game, team = (room.teams || {})[request.teamKey];
     const start = Number(game.answerStartsAt || game.startedAt);
-    if (game.type !== 'team_tags' || game.status !== 'playing' ||
+    if (isRoundSuspended(game, now) || game.type !== 'team_tags' || game.status !== 'playing' ||
         game.round !== request.round || game.revealed || game.phase !== 'answering' ||
-        !Number.isFinite(start) || now < start || now >= start + 30000 ||
+        !Number.isFinite(start) || now < start || now >= start + questionDurationSeconds(game) * 1000 ||
         !team || !team.player1 || !team.player2 ||
         ![team.player1, team.player2].includes(request.player) ||
         !(game.tags || []).includes(request.answer)) return null;
@@ -171,7 +193,7 @@
   }
 
   function finalizeTeamTagRound(room, round, now) {
-    if (!room || !room.game || room.game.status !== 'playing' ||
+    if (!room || !room.game || isRoundSuspended(room.game,now) || room.game.status !== 'playing' ||
         room.game.round !== round || room.game.revealed || room.game.phase !== 'answering') return null;
     const game = {...room.game}, teams = JSON.parse(JSON.stringify(room.teams || {}));
     const answers = Object.fromEntries(Object.entries(room.answers || {}).filter(([,a])=>a && a.round === round));
@@ -200,10 +222,10 @@
 
   function shouldAutoReveal(room, now) {
     const game=room && room.game;
-    if(!game || game.status!=='playing' || game.revealed || game.phase!=='answering')return false;
+    if(!game || isRoundSuspended(game,now) || game.status!=='playing' || game.revealed || game.phase!=='answering')return false;
     const start=Number(game.answerStartsAt||game.startedAt);
     if(!Number.isFinite(start)||now<start)return false;
-    if(now>=start+30000)return true;
+    if(now>=start+questionDurationSeconds(game)*1000)return true;
     const teams=Object.entries(room.teams||{}),answers=room.answers||{};
     return teams.length>0 && teams.every(([key,t])=>{
       if(!t.player1||!t.player2)return false;
@@ -216,9 +238,9 @@
   }
   function commitPlayerAnswer(room, request, now) {
     const game=room && room.game;
-    if(!game || game.status!=='playing' || game.round!==request.round || game.revealed || game.phase!=='answering')return null;
+    if(!game || isRoundSuspended(game,now) || game.status!=='playing' || game.round!==request.round || game.revealed || game.phase!=='answering')return null;
     const start=Number(game.answerStartsAt||game.startedAt);
-    if(!Number.isFinite(start)||now<start||now>=start+30000)return null;
+    if(!Number.isFinite(start)||now<start||now>=start+questionDurationSeconds(game)*1000)return null;
     const team=Object.values(room.teams||{}).find(t=>t.player1===request.player||t.player2===request.player);
     if(!team)return null;
     if((game.type||'choice')==='choice' && !['A','B'].includes(request.answer))return null;
@@ -257,6 +279,8 @@
   }
 
   global.GameLogic = {
+    isRoundSuspended, remainingQuestionMs, setRoundPaused,
+    questionDurationSeconds: questionDurationSeconds,
     escapeHtml: value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])),
     transactRoom: transactRoom,
     shouldAutoReveal: shouldAutoReveal,
