@@ -367,7 +367,7 @@
 <link rel="stylesheet" href="team-tags.css">
 <link rel="stylesheet" href="game-presentation.css">
 <link rel="stylesheet" href="gift-kittens.css">
-<script src="award-music-config.js"></script><link rel="stylesheet" href="podium-characters.css"><script src="podium-characters.js"></script></head>
+<script src="award-music-config.js"></script><link rel="stylesheet" href="podium-characters.css"><script src="podium-characters.js"></script><link rel="stylesheet" href="program-opening.css"><script src="program-opening.js"></script><link rel="stylesheet" href="gift-team-waves.css"></head>
 <body>
 <!-- Nhạc nền theo từng khoảnh khắc trên màn hình lớn. -->
 <audio id="d-music-lobby" loop preload="auto"><source src="assets/audio/lobby.mp3" type="audio/mpeg"></audio>
@@ -440,6 +440,7 @@
     <div class="leader-spotlight" id="d-leader-spotlight"></div>
     <div class="kahoot-leaderboard" id="d-round-leaderboard" style="display:none;"></div>
   </div>
+  <div class="screen" id="screen-opening"><div class="opening-flower">✿ &nbsp; ✧ &nbsp; ✿</div><div class="opening-date">20.10.2026</div><div class="opening-title">ĂN Ý</div><div class="opening-subtitle">Gắn kết yêu thương · Tỏa sáng cùng nhau</div></div>
   <!-- ── SCREEN: ENDED ── -->
   <div class="screen" id="screen-ended">
     <canvas id="d-confetti-canvas"></canvas>
@@ -944,6 +945,7 @@ function renderWaitingPlayers() {
 function listenTeams() {
   db.ref('rooms/' + myRoom + '/teams').on('value', snap => {
     teamsCache = snap.val() || {};
+    if(gameCache?.giftRevealed)window.GiftTeamWaves?.setTeams(Object.values(teamsCache));
     renderWaitingTeams();
     renderProgress();
     if (revealSequenceComplete && gameCache && ((gameCache.phase === 'results') || gameCache.revealed)) {
@@ -999,6 +1001,7 @@ function listenGameDisplay() {
   db.ref('rooms/' + myRoom + '/game').on('value', snap => {
     const g = snap.val();
     gameCache = g;
+    if(g?.programIntro){clearEndedConfetti();clearFinalPodiumSequence();setDisplayMusic('none');setCommentatorVisible(false);showScreen('opening');const host=document.getElementById('screen-opening');if(window.ProgramOpening?.backgroundUrl&&!host.querySelector('img')){const image=new Image();image.src=ProgramOpening.backgroundUrl;image.alt='Chương trình';host.append(image);host.classList.add('has-original');}return;}
     if (!g || g.status !== 'ended') { clearEndedConfetti(); clearFinalPodiumSequence(); }
     if (!g) { setDisplayMusic('lobby'); showScreen('waiting'); return; }
     if (g.status === 'ended') { g.giftRevealed ? showGiftRevealDisplay() : showEnded(); return; }
@@ -1499,6 +1502,7 @@ function showGiftRevealDisplay() {
   clearFinalPodiumSequence();
   document.body.classList.add('floral-finale');
   showScreen('gift-reveal');
+  window.GiftTeamWaves?.setTeams(Object.values(teamsCache));
 }
 // ─────────────────────────────────────────
 // CÁNH HỒNG RƠI (tối ưu: tối đa 90 cánh, tự dừng & dọn sạch để không tích tụ khi để TV chạy lâu)
@@ -1542,7 +1546,9 @@ function startDisplayConfetti() {
 }
 </script>
 <script src="gift-kittens.js"></script>
+<script src="gift-team-waves.js"></script>
 <script src="pairing-live-display.js"></script><script src="round-pause.js?v=20261008-pause"></script>
 </body>
 </html>
+
 

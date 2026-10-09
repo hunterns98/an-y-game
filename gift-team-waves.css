@@ -1,0 +1,5 @@
+#screen-gift-reveal{max-width:1600px;width:100%}
+.gift-team-person{position:absolute;pointer-events:none;object-fit:contain;opacity:0;transition:opacity .4s;width:180px;height:340px;filter:drop-shadow(0 8px 8px #21082466)}
+#screen-gift-reveal.active .gift-team-person.loaded{opacity:1}
+.gift-team-label{position:absolute;bottom:2px;left:0;right:0;text-align:center;color:#ffebad;font-size:clamp(12px,1.4vw,18px);font-weight:700;pointer-events:none}
+@media(prefers-reduced-motion:reduce){.gift-team-person{transition:none}}

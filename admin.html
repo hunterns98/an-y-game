@@ -569,6 +569,7 @@ function createRoom() {
     host: hostName,
     status: 'waiting',
     currentRound: -1,
+    game: {status:'waiting', programIntro:true},
     avatarPool: shuffledAvatarPool()
   }).then(() => {
     loadRoom(code);
@@ -592,7 +593,7 @@ function createDemoRoom(attempt = 0) {
   for (let i = 0; i < 8; i++) {
     teams[`team${i + 1}`] = { teamName:demoTeamLabels[i], player1:demoNames[i * 2], player2:demoNames[i * 2 + 1], score:0 };
   }
-  const payload = { host:'Host Demo', status:'waiting', currentRound:-1, isDemo:true, createdAt:firebase.database.ServerValue.TIMESTAMP, avatarPool:shuffledAvatarPool(), players, nameReservations, teams };
+  const payload = { host:'Host Demo', status:'waiting', currentRound:-1, game:{status:'waiting',programIntro:true}, isDemo:true, createdAt:firebase.database.ServerValue.TIMESTAMP, avatarPool:shuffledAvatarPool(), players, nameReservations, teams };
   db.ref('rooms/' + code).transaction(current => current === null ? payload : undefined, (error, committed) => {
     if (error) { toast('❌ Không thể tạo demo: ' + error.message); return; }
     if (!committed) { createDemoRoom(attempt + 1); return; }
@@ -932,6 +933,8 @@ document.getElementById('btn-make-teams').addEventListener('click',async()=>{
   const original=snapshot.val(),expected=Number(original?.pairingCount||0);
   const candidate=preparePairing(original);
   if(!candidate)throw Error('Cần đủ 16 người trong danh sách và phòng chưa bắt đầu để ghép đội.');
+  if(original.game?.programIntro)throw Error('Bấm Tiếp tục → Mở lobby trước khi ghép cặp.');
+  if(original.isDemo){const labels=demoTeamNames();Object.values(candidate.teams).forEach((team,i)=>{team.teamName=labels[i];});}
   const roster=JSON.stringify(Object.keys(original.players||{}).sort());
   const result=await GameLogic.transactRoom(db.ref('rooms/'+roomCode),room=>{
    if(!room || Number(room.pairingCount||0)!==expected || JSON.stringify(Object.keys(room.players||{}).sort())!==roster || ['starting','playing','ended'].includes(room.game?.status))return;
@@ -945,6 +948,7 @@ document.getElementById('btn-make-teams').addEventListener('click',async()=>{
 });
 // ── START GAME ──
 document.getElementById('btn-start-game').addEventListener('click', () => {
+  if(gameCache?.programIntro){toast('Bấm Tiếp tục → Mở QR lobby trước.');return;}
   if (!roomCode) { toast('⚠️ Chưa có phòng!'); return; }
   const teams = Object.values(teamsCache);
   if (!teams.length) { toast('⚠️ Chưa có đội để bắt đầu!'); return; }
@@ -1348,7 +1352,7 @@ document.getElementById('btn-reset').addEventListener('click', () => {
   if (!roomCode) { toast('⚠️ Chưa có phòng'); return; }
   if (!confirm('Xóa tất cả dữ liệu phòng và bắt đầu lại?')) return;
   db.ref('rooms/' + roomCode).set({
-    host: 'Host', status: 'waiting', currentRound: -1, avatarPool: shuffledAvatarPool()
+    host: 'Host', status: 'waiting', currentRound: -1, game:{status:'waiting',programIntro:true}, avatarPool: shuffledAvatarPool()
   }).then(() => {
     document.getElementById('phase-setup').style.display = 'block';
     document.getElementById('phase-game').style.display = 'none';
@@ -1394,7 +1398,7 @@ function rankShiftHtml(team) {
     : `<span class="rank-shift down">▼ ${Math.abs(change.delta)}</span>`;
 }
 </script>
-<script src="pairing-live-admin.js"></script><script src="round-pause.js?v=20261008-pause"></script>
+<script src="pairing-live-admin.js"></script><script src="round-pause.js?v=20261008-pause"></script><script src="program-opening-admin.js"></script>
 </body>
 </html>
 
