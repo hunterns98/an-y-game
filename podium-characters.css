@@ -1,0 +1,8 @@
+.podium-winner-stage { position:relative; min-height:330px; width:100%; }
+.podium-winner-stage .lb-rest { width:56%; }
+.podium-winner-character { position:absolute; top:0; width:22%; height:330px; object-fit:contain; pointer-events:none; opacity:0; visibility:hidden; transform:translateY(16px); transition:opacity .6s ease,transform .6s ease; filter:drop-shadow(0 8px 8px #19052066); }
+.winner-left { left:0; } .winner-right { right:0; }
+.winners-visible .podium-winner-character { opacity:1; visibility:visible; transform:none; }
+#screen-ended .ended-content { width:100%; }
+@media(max-width:700px) { .podium-winner-stage { min-height:230px; } .podium-winner-character { height:200px; } .podium-winner-stage .lb-rest-row { gap:5px; padding:10px 3px; font-size:.75rem; } }
+@media(prefers-reduced-motion:reduce) { .podium-winner-character { transition:none; transform:none; } }

@@ -367,7 +367,7 @@
 <link rel="stylesheet" href="team-tags.css">
 <link rel="stylesheet" href="game-presentation.css">
 <link rel="stylesheet" href="gift-kittens.css">
-<script src="award-music-config.js"></script></head>
+<script src="award-music-config.js"></script><link rel="stylesheet" href="podium-characters.css"><script src="podium-characters.js"></script></head>
 <body>
 <!-- Nhạc nền theo từng khoảnh khắc trên màn hình lớn. -->
 <audio id="d-music-lobby" loop preload="auto"><source src="assets/audio/lobby.mp3" type="audio/mpeg"></audio>
@@ -1384,6 +1384,7 @@ let endedConfettiInterval;
 let finalPodiumTimers = [];
 let finalPodiumSequenceKey = '';
 function clearFinalPodiumSequence() {
+  window.PodiumCharacters?.clear();
   finalPodiumTimers.forEach(clearTimeout);
   finalPodiumTimers = [];
   finalPodiumSequenceKey = '';
@@ -1452,6 +1453,8 @@ function runFinalPodiumSequence(sorted) {
     if (call) { call.textContent = 'Chúc mừng các đội!'; call.classList.remove('is-champion'); }
   }, 16000);
   finalPodiumLater(() => document.getElementById('d-award-list')?.classList.add('is-revealed'), 17200);
+  // Awards finish their 550ms entrance before the winning pair enters.
+  finalPodiumLater(() => window.PodiumCharacters?.show(), 18200);
 }
 // ── DỌN INTERVAL CONFETTI KHI RỜI MÀN ENDED (chỉ dừng interval, KHÔNG đụng RAF
 // đang chạy dở — burst hiện tại tự kết thúc trong tối đa ~3.2s như thiết kế cũ) ──
@@ -1476,12 +1479,13 @@ function showEnded() {
     const teams = snap.val() || {};
     const withIdx = Object.values(teams).map((t,i) => ({...t, _idx:i}));
     const sorted = withIdx.sort((a,b) => (b.score||0) - (a.score||0));
-    const sequenceKey = sorted.map(team => `${team.teamName || team._idx}:${team.score || 0}`).join('|');
+    const sequenceKey = sorted.map(team => `${team.teamName || team._idx}:${team.player1}:${team.player2}:${team.score || 0}`).join('|');
     if (finalPodiumSequenceKey === sequenceKey) return;
     clearFinalPodiumSequence();
     finalPodiumSequenceKey = sequenceKey;
     setDisplayMusic(gameCache?.ceremonyMusic==='awards' && window.AWARD_MUSIC_URL?'awards':'leaderboard', { restart: true });
     renderPodiumLeaderboard('d-final-leaderboard', sorted, 'final');
+    window.PodiumCharacters?.prepare(sorted[0], document.getElementById('d-final-leaderboard'));
     const awards = document.getElementById('d-award-list');
     awards.classList.remove('is-revealed');
     awards.innerHTML = getAwards(withIdx).map(a => `<span class="award-chip">${a}</span>`).join('');
