@@ -2,19 +2,19 @@
   'use strict';
   const roster = {
     maianh: ['maianh-wave.png', [210,660,1120,1567]],
-    an: ['an-wave-v1.png', [175,642,1128,1609]],
+    an: ['an-wave-v1.png', [182,636,1132,1632]],
     anh: ['anh-wave-v5.png', [190,650,1120,1575]],
     giang: ['giang-wave-v1.png', [220,655,1125,1560]],
-    hang: ['hang-wave-v2.png', [200,650,1120,1570]],
+    hang: ['hang-wave-v2.png', [209,648,1132,1572]],
     hanh: ['hanh-wave-v2.png', [195,670,1155,1640]],
     hoa: ['hoa-wave-v2.png', [170,670,1170,1670]],
     le: ['le-wave-v1.png', [195,665,1130,1600]],
     lien: ['lien-wave-v6.png', [165,645,1135,1620]],
     linh: ['linh-wave-v1.png', [185,665,1145,1630]],
-    nhung: ['nhung-wave-v2.png', [195,645,1120,1590]],
-    phuong: ['phuong-wave-v5.png', [180,650,1140,1630]],
-    thoan: ['thoan-wave-v5.png', [205,650,1110,1560]],
-    thuy: ['thuy-wave-v2.png', [180,660,1135,1610]],
+    nhung: ['nhung-wave-v2.png', [208,656,1140,1613]],
+    phuong: ['phuong-wave-v5.png', [176,652,1151,1648]],
+    thoan: ['thoan-wave-v5.png', [204,660,1146,1612]],
+    thuy: ['thuy-wave-v2.png', [194,680,1170,1642]],
     trang: ['trang-wave-v6.png', [190,645,1130,1595]],
     truc: ['truc-wave-v1.png', [215,680,1175,1670]]
   };
@@ -65,3 +65,4 @@
   }
   global.PodiumCharacters = {prepare, show, clear, roster, normalize};
 })(window);
+

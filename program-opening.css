@@ -4,3 +4,8 @@
 .opening-subtitle{font-size:clamp(20px,3vw,38px);color:#f6ddea}.opening-flower{font-size:48px;color:#e5a6b8}
 #screen-opening.has-original{position:fixed;inset:0;min-height:100vh;background:#100018!important;z-index:20}
 #screen-opening.has-original img{width:100%;height:100vh;object-fit:contain}#screen-opening.has-original>div{display:none}
+#screen-awards{position:fixed;inset:0;max-width:none;width:100%;min-height:100vh;text-align:center;background:radial-gradient(ellipse at 50% 30%,#754312,#160c25 75%);z-index:10;gap:28px}
+#screen-awards .opening-title{font-size:clamp(50px,9vw,120px);color:#ffe4a0}
+#screen-awards.has-original{background:#100018}
+#screen-awards.has-original>div{display:none}
+#screen-awards>img{width:100%;height:100vh;object-fit:contain}

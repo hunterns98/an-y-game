@@ -441,6 +441,7 @@
     <div class="kahoot-leaderboard" id="d-round-leaderboard" style="display:none;"></div>
   </div>
   <div class="screen" id="screen-opening"><div class="opening-flower">✿ &nbsp; ✧ &nbsp; ✿</div><div class="opening-date">20.10.2026</div><div class="opening-title">ĂN Ý</div><div class="opening-subtitle">Gắn kết yêu thương · Tỏa sáng cùng nhau</div></div>
+  <div class="screen" id="screen-awards"><div class="opening-date">20.10.2026</div><div class="opening-title">TRAO GIẢI</div><div class="opening-subtitle">Vinh danh những khoảnh khắc ăn ý</div></div>
   <!-- ── SCREEN: ENDED ── -->
   <div class="screen" id="screen-ended">
     <canvas id="d-confetti-canvas"></canvas>
@@ -1004,7 +1005,7 @@ function listenGameDisplay() {
     if(g?.programIntro){clearEndedConfetti();clearFinalPodiumSequence();setDisplayMusic('none');setCommentatorVisible(false);showScreen('opening');const host=document.getElementById('screen-opening');if(window.ProgramOpening?.backgroundUrl&&!host.querySelector('img')){const image=new Image();image.src=ProgramOpening.backgroundUrl;image.alt='Chương trình';host.append(image);host.classList.add('has-original');}return;}
     if (!g || g.status !== 'ended') { clearEndedConfetti(); clearFinalPodiumSequence(); }
     if (!g) { setDisplayMusic('lobby'); showScreen('waiting'); return; }
-    if (g.status === 'ended') { g.giftRevealed ? showGiftRevealDisplay() : showEnded(); return; }
+    if (g.status === 'ended') { g.giftRevealed ? showGiftRevealDisplay() : g.ceremonyStage==='awards' ? showAwardsDisplay() : showEnded(); return; }
     if (g.status === 'starting') { setDisplayMusic('lobby'); showScreen('waiting'); showStartCountdown(g); return; }
     hideStartCountdown();
     if (g.status !== 'playing') { setDisplayMusic('lobby'); showScreen('waiting'); return; }
@@ -1475,7 +1476,7 @@ function positionGoldSpotlight(){
 window.addEventListener('resize',positionGoldSpotlight);
 function showEnded() {
   setCommentatorVisible(false);
-  setDisplayMusic(gameCache?.ceremonyMusic==='awards' && window.AWARD_MUSIC_URL?'awards':'leaderboard');
+  setDisplayMusic('leaderboard');
   document.body.classList.add('floral-finale');
   showScreen('ended');
   db.ref('rooms/' + myRoom + '/teams').once('value').then(snap => {
@@ -1486,7 +1487,7 @@ function showEnded() {
     if (finalPodiumSequenceKey === sequenceKey) return;
     clearFinalPodiumSequence();
     finalPodiumSequenceKey = sequenceKey;
-    setDisplayMusic(gameCache?.ceremonyMusic==='awards' && window.AWARD_MUSIC_URL?'awards':'leaderboard', { restart: true });
+    setDisplayMusic('leaderboard', { restart: true });
     renderPodiumLeaderboard('d-final-leaderboard', sorted, 'final');
     window.PodiumCharacters?.prepare(sorted[0], document.getElementById('d-final-leaderboard'));
     const awards = document.getElementById('d-award-list');
@@ -1494,6 +1495,17 @@ function showEnded() {
     awards.innerHTML = getAwards(withIdx).map(a => `<span class="award-chip">${a}</span>`).join('');
     runFinalPodiumSequence(sorted);
   });
+}
+function showAwardsDisplay() {
+  setCommentatorVisible(false);
+  clearEndedConfetti();
+  clearFinalPodiumSequence();
+  showScreen('awards');
+  setDisplayMusic(window.AWARD_MUSIC_URL ? 'awards' : 'none');
+  const host=document.getElementById('screen-awards');
+  if(window.AwardsBackground?.backgroundUrl&&!host.querySelector('img')){
+    const image=new Image();image.src=AwardsBackground.backgroundUrl;image.alt='Trao giải';host.append(image);host.classList.add('has-original');
+  }
 }
 function showGiftRevealDisplay() {
   setCommentatorVisible(false);
@@ -1550,5 +1562,6 @@ function startDisplayConfetti() {
 <script src="pairing-live-display.js"></script><script src="round-pause.js?v=20261008-pause"></script>
 </body>
 </html>
+
 
 

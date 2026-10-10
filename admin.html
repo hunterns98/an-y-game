@@ -320,7 +320,7 @@
       <button class="btn btn-purple" id="btn-open-display">📺 Màn hình lớn</button>
       <button class="btn btn-ghost" id="btn-rematch">🔁 Chơi lại</button>
       <button class="btn btn-ghost" id="btn-end-game">🏁 Kết thúc</button>
-      <button class="btn btn-cyan" id="btn-awards-music" style="display:none">🎵 Chuyển nhạc trao giải</button>
+      <button class="btn btn-cyan" id="btn-awards-music" style="display:none">Tiếp tục → Trao giải</button>
       <button class="btn btn-cyan" id="btn-reveal-gift" style="display:none;">🎁 Reveal quà</button>
       <button class="btn btn-red" id="btn-reset">🗑 Reset</button>
     </div>
@@ -1057,8 +1057,8 @@ function applyControlButtonsState(game) {
   const nextBtn = document.getElementById('btn-next');
   const musicBtn=document.getElementById('btn-awards-music');
   musicBtn.style.display=game?.status==='ended'?'inline-block':'none';
-  musicBtn.disabled=!window.AWARD_MUSIC_URL || game?.giftRevealed || game?.ceremonyMusic==='awards';
-  musicBtn.textContent=!window.AWARD_MUSIC_URL?'🎵 Chờ bổ sung nhạc trao giải':game?.ceremonyMusic==='awards'?'✅ Đang phát nhạc trao giải':'🎵 Chuyển nhạc trao giải';
+  musicBtn.disabled=!!game?.giftRevealed || game?.ceremonyStage==='awards';
+  musicBtn.textContent=game?.ceremonyStage==='awards'?'✅ Đang trao giải':'Tiếp tục → Trao giải';
   const giftBtn = document.getElementById('btn-reveal-gift');
   if (giftBtn) {
     const canRevealGift = !!game && game.status === 'ended';
@@ -1313,11 +1313,11 @@ document.getElementById('btn-end-game').addEventListener('click', () => {
   endGame().catch(error=>toast('❌ Chưa kết thúc được: '+error.message));
 });
 document.getElementById('btn-awards-music').addEventListener('click',async()=>{
- if(!roomCode||!window.AWARD_MUSIC_URL)return;
+ if(!roomCode)return;
  try{await GameLogic.transactRoom(db.ref('rooms/'+roomCode),room=>{
   if(!room||room.game?.status!=='ended'||room.game.giftRevealed)return;
-  room.game.ceremonyMusic='awards';return room;
- });}catch(e){toast('❌ Chưa chuyển được nhạc. Hãy thử lại.');}
+  room.game.ceremonyStage='awards';room.game.ceremonyMusic='awards';return room;
+ });}catch(e){toast('❌ Chưa chuyển được màn trao giải. Hãy thử lại.');}
 });
 document.getElementById('btn-reveal-gift').addEventListener('click', () => {
   if (!roomCode || !gameCache || gameCache.status !== 'ended' || gameCache.giftRevealed) return;
@@ -1401,4 +1401,5 @@ function rankShiftHtml(team) {
 <script src="pairing-live-admin.js"></script><script src="round-pause.js?v=20261008-pause"></script><script src="program-opening-admin.js"></script>
 </body>
 </html>
+
 
