@@ -4,7 +4,7 @@
     maianh: ['maianh-wave.png', [210,660,1120,1567]],
     an: ['an-wave-v1.png', [182,636,1132,1632]],
     anh: ['anh-wave-v5.png', [190,650,1120,1575]],
-    giang: ['giang-wave-v1.png', [220,655,1125,1560]],
+    giang: ['giang-wave-v4.png', [357,717,357,1449]],
     hang: ['hang-wave-v2.png', [209,648,1132,1572]],
     hanh: ['hanh-wave-v2.png', [195,670,1155,1640]],
     hoa: ['hoa-wave-v2.png', [170,670,1170,1670]],
@@ -65,4 +65,5 @@
   }
   global.PodiumCharacters = {prepare, show, clear, roster, normalize};
 })(window);
+
 
