@@ -4,5 +4,8 @@
 .winner-left { left:0; } .winner-right { right:0; }
 .winners-visible .podium-winner-character { opacity:1; visibility:visible; transform:none; }
 #screen-ended .ended-content { width:100%; }
+body.podium-fitted { overflow:hidden; }
+body.podium-fitted #screen-ended { position:fixed; inset:0; width:100vw; height:100vh; max-width:none; overflow:hidden; display:flex; align-items:center; justify-content:center; }
+body.podium-fitted #screen-ended .ended-content { flex:none; width:min(1100px,calc(100vw - 32px)); transform-origin:center center; }
 @media(max-width:700px) { .podium-winner-stage { min-height:230px; } .podium-winner-character { height:200px; } .podium-winner-stage .lb-rest-row { gap:5px; padding:10px 3px; font-size:.75rem; } }
 @media(prefers-reduced-motion:reduce) { .podium-winner-character { transition:none; transform:none; } }
