@@ -15,7 +15,7 @@ assert.deepEqual(room.answers.a0,room.answers.b0);
 assert.equal(JSON.stringify(original),originalJSON,'Pure update must not mutate input');
 // Transaction retry after the other member commits: first answer wins.
 assert.equal(G.commitTeamTagAnswer(room,{...req,player:'b0',answer:'Thắng'},2001),null);
-for(const [change,now] of [[{player:'outsider'},2000],[{answer:'invalid'},2000],[{round:15},2000],[{},999],[{},31000]])assert.equal(G.commitTeamTagAnswer(original,{...req,...change},now),null);
+for(const [change,now] of [[{player:'outsider'},2000],[{answer:'invalid'},2000],[{round:15},2000],[{},999],[{},41000]])assert.equal(G.commitTeamTagAnswer(original,{...req,...change},now),null);
 assert.equal(G.commitTeamTagAnswer({...original,game:{...original.game,phase:'results'}},req,2000),null);
 // Distribution: 2, 1, 2, 2, 0 across tags; one team abstains.
 for(const [i,tag] of [[1,'Phúc'],[2,'Thắng'],[3,'Nam'],[4,'Nam'],[5,'Tuấn'],[7,'Tuấn']])room=G.commitTeamTagAnswer(room,{teamKey:'t'+i,player:'a'+i,round:14,answer:tag},2000);

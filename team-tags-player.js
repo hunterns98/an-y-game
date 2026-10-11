@@ -15,7 +15,7 @@ function renderTeamTags(game) {
   (game.tags || []).forEach(tag => {
     const button = document.createElement('button');
     button.type = 'button'; button.className = 'btn-team-tag'; button.textContent = tag;
-    const expired = serverNow() >= Number(game.answerStartsAt || game.startedAt) + 30000;
+    const expired = GameLogic.remainingQuestionMs(game, serverNow()) <= 0;
     button.disabled = !canSubmit || hasAnswered || expired || teamTagSending;
     button.onclick = () => {
       if (!canSubmit || hasAnswered || timeIsUp || teamTagSending) return;

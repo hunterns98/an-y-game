@@ -7,5 +7,5 @@ context.updateChosenWaitingCopy();assert.match(label.textContent,/Chờ đồng 
 context.partnerAnswerCache={round:2,answer:'A'};context.updateChosenWaitingCopy();assert.match(label.textContent,/Chờ đồng đội/);
 context.partnerAnswerCache={round:3,answer:'B'};context.updateChosenWaitingCopy();assert.match(label.textContent,/Cả hai đã chốt/);
 context.partnerAnswerCache={round:3,answer:''};context.updateChosenWaitingCopy();assert.match(label.textContent,/Chờ đồng đội/);
-context.activeGame.type='team_tags';label.textContent='Đáp án chung đã lưu';context.updateChosenWaitingCopy();assert.equal(label.textContent,'Đáp án chung đã lưu');
+context.activeGame.type='team_tags';label.textContent='Đáp án chung đã lưu';context.updateChosenWaitingCopy();assert.equal(label.textContent,'Đang chờ các đội còn lại trả lời....');
 console.log('PASS: waiting feedback ignores stale/empty answers and preserves shared-team feedback.');

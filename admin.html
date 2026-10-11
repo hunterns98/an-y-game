@@ -446,7 +446,7 @@
 <script src="https://www.gstatic.com/firebasejs/12.14.0/firebase-database-compat.js"></script>
 <script src="firebase.js"></script>
 <script src="avatar-config.js"></script>
-<script src="game-logic.js?v=20261008-pause"></script>
+<script src="game-logic.js?v=20261011-audit"></script>
 <script src="game-presentation.js"></script>
 <script>
 const questions = [
@@ -562,19 +562,21 @@ function shuffledAvatarPool() {
 }
 // ── CREATE ROOM ──
 document.getElementById('btn-create').addEventListener('click', createRoom);
-function createRoom() {
-  const hostName = document.getElementById('inp-host-name').value.trim() || 'Host';
-  const code = Math.random().toString(36).substring(2,7).toUpperCase();
-  db.ref('rooms/' + code).set({
-    host: hostName,
-    status: 'waiting',
-    currentRound: -1,
-    game: {status:'waiting', programIntro:true},
-    avatarPool: shuffledAvatarPool()
-  }).then(() => {
-    loadRoom(code);
-    toast('✅ Đã tạo phòng: ' + code);
-  });
+let creatingRoom=false;
+async function createRoom() {
+  if(creatingRoom)return;
+  creatingRoom=true;
+  const hostName=document.getElementById('inp-host-name').value.trim()||'Host';
+  try {
+    for(let attempt=0;attempt<5;attempt++) {
+      const code=Math.random().toString(36).substring(2,7).toUpperCase();
+      const payload={host:hostName,status:'waiting',currentRound:-1,game:{status:'waiting',programIntro:true},avatarPool:shuffledAvatarPool()};
+      const result=await db.ref('rooms/'+code).transaction(current=>current===null?payload:undefined,undefined,false);
+      if(result.committed){loadRoom(code);toast('✅ Đã tạo phòng: '+code);return;}
+    }
+    toast('⚠️ Chưa tạo được mã phòng mới. Hãy thử lại.');
+  } catch(error){toast('❌ Không tạo được phòng. Kiểm tra kết nối và thử lại.');}
+  finally{creatingRoom=false;}
 }
 // ── DEMO ROOM ──
 // Một phòng test thật trên Firebase nhưng được đánh dấu isDemo. Dùng đúng danh
@@ -612,7 +614,20 @@ document.getElementById('btn-load-room').addEventListener('click', () => {
   });
 });
 // ── LOAD ROOM ──
+let adminRoomEpoch=0;
+const adminRoomSubscriptions=[];
+function subscribeAdminRoom(child, callback) {
+  const code=roomCode,epoch=adminRoomEpoch,ref=db.ref('rooms/'+code+'/'+child);
+  const listener=snapshot=>{if(roomCode===code && adminRoomEpoch===epoch)callback(snapshot);};
+  adminRoomSubscriptions.push(()=>ref.off('value',listener));
+  ref.on('value',listener);
+}
 function loadRoom(code) {
+  adminRoomEpoch++;
+  adminRoomSubscriptions.splice(0).forEach(off=>off());
+  clearTimeout(hostStartCountdownTimer); hostStartCountdownTimer=null; hostStartCountdownKey='';
+  clearTimeout(adminLevelTransitionTimer); adminLevelTransitionTimer=null;
+  playersCache={};teamsCache={};answersCache={};gameCache=null;lastKnownRevealed=false;
   roomCode = code;
   answersListenerAttached = false;
   document.getElementById('room-code-top').textContent = code;
@@ -673,7 +688,7 @@ function avatarImg(name, size) {
 }
 // ── LISTEN PLAYERS ──
 function listenPlayers() {
-  db.ref('rooms/' + roomCode + '/players').on('value', snap => {
+  subscribeAdminRoom('players', snap => {
     const players = snap.val() || {};
     playersCache = players;
     const list = Object.values(players);
@@ -734,7 +749,7 @@ function cleanupPlayerFromTeams(name) {
 }
 // ── LISTEN TEAMS ──
 function listenTeams() {
-  db.ref('rooms/' + roomCode + '/teams').on('value', snap => {
+  subscribeAdminRoom('teams', snap => {
     const teams = snap.val() || {};
     teamsCache = teams;
     const list = Object.values(teams);
@@ -761,7 +776,7 @@ function listenTeams() {
 // hay do F5/reload. Tuyệt đối KHÔNG gửi câu hỏi mới, KHÔNG xoá answers, KHÔNG ghi
 // startedAt, KHÔNG cộng điểm, KHÔNG set revealed, KHÔNG tạo round mới.
 function listenGame() {
-  db.ref('rooms/' + roomCode + '/game').on('value', snap => {
+  subscribeAdminRoom('game', snap => {
     const g = snap.val();
     gameCache = g;
     if (!g) {
@@ -880,7 +895,7 @@ function renderTeamStartWarning() {
 }
 // ── LISTEN ANSWERS (realtime) ──
 function listenAnswers() {
-  db.ref('rooms/' + roomCode + '/answers').on('value', snap => {
+  subscribeAdminRoom('answers', snap => {
     const answers = snap.val() || {};
     answersCache = answers;
     const shared = gameCache && gameCache.type === 'team_tags';
@@ -892,7 +907,9 @@ function listenAnswers() {
     // pill ✅/⏳ vô nghĩa nữa.
     if (lastKnownRevealed) return;
     // Show in answer board (hide actual answers until reveal)
+    const epoch=adminRoomEpoch;
     db.ref('rooms/' + roomCode + '/teams').once('value').then(ts => {
+      if(epoch!==adminRoomEpoch || lastKnownRevealed)return;
       const teams = ts.val() || {};
       const board = document.getElementById('answer-board');
       const rows = Object.entries(teams).map(([key, team], i) => {
@@ -1271,16 +1288,20 @@ async function checkAutoReveal() {
 setInterval(checkAutoReveal,500);
 // Tuyệt đối KHÔNG ghi điểm, KHÔNG set game.revealed — chỉ tính lại để hiển thị.
 function renderRevealedReadOnly(game) {
+  const epoch=adminRoomEpoch;
   if (game.finalAnswers) {
     db.ref('rooms/' + roomCode + '/teams').once('value').then(tSnap => {
+      if(epoch!==adminRoomEpoch || gameCache?.round!==game.round)return;
       const { rowsHtml } = computeRevealResults(game, game.finalAnswers, tSnap.val() || {});
       renderRevealBoardHtml(rowsHtml, game);
     });
     return;
   }
   db.ref('rooms/' + roomCode + '/answers').once('value').then(aSnap => {
+    if(epoch!==adminRoomEpoch)return;
     const answers = aSnap.val() || {};
     db.ref('rooms/' + roomCode + '/teams').once('value').then(tSnap => {
+      if(epoch!==adminRoomEpoch || gameCache?.round!==game.round)return;
       const teams = tSnap.val() || {};
       const { rowsHtml } = computeRevealResults(game, answers, teams);
       renderRevealBoardHtml(rowsHtml, game);

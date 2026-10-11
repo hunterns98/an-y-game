@@ -1017,8 +1017,8 @@ body #screen-result.active{min-height:450px}body .result-card{max-width:900px;mi
 <script src="https://www.gstatic.com/firebasejs/12.14.0/firebase-database-compat.js"></script>
 <script src="firebase.js"></script>
 <script src="avatar-config.js"></script>
-<script src="game-logic.js?v=20261008-pause"></script>
-<script src="team-tags-player.js"></script>
+<script src="game-logic.js?v=20261011-audit"></script>
+<script src="team-tags-player.js?v=20261011-audit"></script>
 <script src="game-presentation.js"></script>
 <script>
 // ─────────────────────────────────────────
@@ -1188,7 +1188,9 @@ function floatScore(pts) {
 // ─────────────────────────────────────────
 // COUNTDOWN
 // ─────────────────────────────────────────
+let playerCountdownGeneration = 0;
 function runCountdown(cb) {
+  const generation = ++playerCountdownGeneration;
   const overlay = document.getElementById('countdown-overlay');
   const numEl = document.getElementById('count-num');
   const labelEl = document.getElementById('count-label');
@@ -1196,6 +1198,7 @@ function runCountdown(cb) {
   let n = 3;
   overlay.classList.add('show');
   const tick = () => {
+    if (generation !== playerCountdownGeneration) return;
     numEl.textContent = n;
     numEl.style.animation = 'none';
     requestAnimationFrame(() => { requestAnimationFrame(() => { numEl.style.animation = ''; }); });
@@ -1203,7 +1206,7 @@ function runCountdown(cb) {
     if (n <= 0) {
       numEl.textContent = 'GO!';
       sfxGo();
-      setTimeout(() => { overlay.classList.remove('show'); cb && cb(); }, 700);
+      setTimeout(() => { if (generation !== playerCountdownGeneration) return; overlay.classList.remove('show'); cb && cb(); }, 700);
       return;
     }
     n--;
@@ -1443,33 +1446,20 @@ function joinRoom() {
   });
 
   // ── Luồng JOIN MỚI hoàn toàn (chưa từng có session hợp lệ cho phòng này) — giữ nguyên logic gốc ──
-  function doFreshJoin() {
-    const nameKey = normalizeAnswer(myName);
-    if (!nameKey) { toast('⚠️ Tên không hợp lệ, thử tên khác!'); resetBtn(); return; }
-    // ── Giữ tên theo nguyên tắc "ai gửi trước được trước" ──
-    db.ref('rooms/' + myRoom + '/nameReservations/' + nameKey).transaction(curr => {
-      if (curr === null) return myName; // tên chưa ai dùng -> giữ tên này
-      return; // abort -> tên đã có người dùng, không ghi gì cả
-    }, (error, committed) => {
-      if (error) {
-        toast('❌ Lỗi: ' + error.message);
-        resetBtn();
-        return;
+  async function doFreshJoin() {
+    const name=myName, code=myRoom, sessionId=generateSessionId();
+    const avatar=PlayerAvatars.numberFor(name),fallbackAvatar=PlayerAvatars.randomNumber();
+    try {
+      const result=await GameLogic.transactRoom(db.ref('rooms/'+code),room=>
+        GameLogic.registerPlayer(room,{name,sessionId,avatar,fallbackAvatar}) || undefined);
+      if(!result.committed) {
+        toast('⚠️ Không thể vào phòng: tên đã được dùng hoặc phòng đã bắt đầu.'); resetBtn(); return;
       }
-      if (!committed) {
-        toast('❌ Tên "' + myName + '" đã có người dùng trong phòng này! Hãy chọn tên khác.');
-        resetBtn();
-        return;
-      }
-      // Giữ tên thành công -> rút avatar ngẫu nhiên (không trùng trong phòng) -> đăng ký người chơi + tạo session mới
-      drawAvatar(avatarNum => {
-        const sessionId = generateSessionId();
-        db.ref('rooms/' + myRoom + '/players/' + myName).set({ name:myName, score:0, answer:'', avatar:avatarNum, sessionId });
-        saveLocalSession(myRoom, myName, sessionId);
-        toast(`🎉 Chào ${myName}! Đã vào phòng ${myRoom}`);
-        enterGameAsPlayer(myName, myRoom, avatarNum);
-      });
-    });
+      const player=result.snapshot.val().players[name];
+      saveLocalSession(code,name,sessionId);
+      toast(`🎉 Chào ${name}! Đã vào phòng ${code}`);
+      enterGameAsPlayer(name,code,player.avatar);
+    } catch(error) { toast('❌ Chưa vào được phòng. Kiểm tra kết nối và thử lại.'); resetBtn(); }
   }
 }
 // ─────────────────────────────────────────
@@ -1567,6 +1557,12 @@ function listenGame() {
     if (!game) return;
     activeGame = game;
     if (game.status === 'waiting') {
+      playerCountdownGeneration++;
+      prevRound = -1; prevRevealed = false; hasAnswered = false;
+      clearInterval(timerInterval); clearInterval(gameStartCountdownTimer);
+      gameStartCountdownTimer = null; gameStartCountdownKey = '';
+      clearPlayerRevealSequence();
+      document.getElementById('countdown-overlay').classList.remove('show');
       document.getElementById('winner-screen').classList.remove('show');
       document.getElementById('final-wait-screen').classList.remove('show');
       document.getElementById('winner-screen').classList.remove('poem-open');

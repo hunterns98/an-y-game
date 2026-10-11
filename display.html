@@ -460,7 +460,7 @@
 <script src="https://www.gstatic.com/firebasejs/12.14.0/firebase-database-compat.js"></script>
 <script src="firebase.js"></script>
 <script src="avatar-config.js"></script>
-<script src="game-logic.js?v=20261008-pause"></script>
+<script src="game-logic.js?v=20261011-audit"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <script src="game-presentation.js"></script>
 <script>
@@ -1002,6 +1002,11 @@ function listenGameDisplay() {
   db.ref('rooms/' + myRoom + '/game').on('value', snap => {
     const g = snap.val();
     gameCache = g;
+    if (!g || g.status === 'waiting') {
+      prevDisplayRound = -1; countdownMusicKey = '';
+      clearInterval(displayTimerInterval); clearRevealSequence(); hideStartCountdown();
+      hideDisplayLevelTransition();
+    }
     if(g?.programIntro){clearEndedConfetti();clearFinalPodiumSequence();setDisplayMusic('none');setCommentatorVisible(false);showScreen('opening');const host=document.getElementById('screen-opening');if(window.ProgramOpening?.backgroundUrl&&!host.querySelector('img')){const image=new Image();image.src=ProgramOpening.backgroundUrl;image.alt='Chương trình';host.append(image);host.classList.add('has-original');}return;}
     if (!g || g.status !== 'ended') { clearEndedConfetti(); clearFinalPodiumSequence(); }
     if (!g) { setDisplayMusic('lobby'); showScreen('waiting'); return; }

@@ -278,7 +278,19 @@
     }
   }
 
+  function registerPlayer(room, request) {
+    if (!room || ['starting','playing','ended'].includes(room.game?.status)) return null;
+    const name=String(request.name||'').trim(), key=getNormalizeAnswer()(name);
+    if (!key || /[.#$\[\]\/]/.test(name) || /[.#$\[\]\/]/.test(key)) return null;
+    if (room.nameReservations?.[key] || room.players?.[name]) return null;
+    const pool=Array.isArray(room.avatarPool)?room.avatarPool.slice():[];
+    const avatar=request.avatar || pool.pop() || request.fallbackAvatar;
+    return {...room,avatarPool:pool, nameReservations:{...room.nameReservations,[key]:name},
+      players:{...room.players,[name]:{name,score:0,answer:'',avatar,sessionId:request.sessionId}}};
+  }
+
   global.GameLogic = {
+    registerPlayer,
     isRoundSuspended, remainingQuestionMs, setRoundPaused,
     questionDurationSeconds: questionDurationSeconds,
     escapeHtml: value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])),
