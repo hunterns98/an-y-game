@@ -12,7 +12,7 @@
     lien: ['lien-wave-v6.png', [165,645,1135,1620]],
     linh: ['linh-wave-v1.png', [185,665,1145,1630]],
     nhung: ['nhung-wave-v2.png', [208,656,1140,1613]],
-    phuong: ['phuong-wave-v5.png', [176,652,1151,1648]],
+    phuong: ['phuong-wave-v6.png', [317,701,1085,1470]],
     thoan: ['thoan-wave-v5.png', [204,660,1146,1612]],
     thuy: ['thuy-wave-v2.png', [194,680,1170,1642]],
     trang: ['trang-wave-v6.png', [190,645,1130,1595]],
