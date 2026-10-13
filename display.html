@@ -1003,6 +1003,7 @@ function listenGameDisplay() {
   db.ref('rooms/' + myRoom + '/game').on('value', snap => {
     const g = snap.val();
     gameCache = g;
+    if(window.BirthdayFinale?.render(g))return;
     if (!g || g.status === 'waiting') {
       prevDisplayRound = -1; countdownMusicKey = '';
       clearInterval(displayTimerInterval); clearRevealSequence(); hideStartCountdown();
@@ -1568,8 +1569,9 @@ function startDisplayConfetti() {
 <script src="podium-fit.js"></script>
 <script src="pairing-live-display.js"></script><script src="round-pause.js?v=20261008-pause"></script>
 <script src="reactions.js?v=20261012" data-role="display"></script>
-</body>
+<script src="birthday-finale.js?v=20261013" data-role="display"></script></body>
 </html>
+
 
 
 
