@@ -1,3 +1,2 @@
-// Shared across all rooms. Set backgroundUrl to the supplied original image later.
-window.ProgramOpening = {backgroundUrl: ''};
-window.AwardsBackground = {backgroundUrl: 'assets/backgrounds/awards-placeholder.svg'};
+window.ProgramOpening = {backgroundUrl: 'assets/backgrounds/program-opening-approved.png'};
+window.AwardsBackground = {backgroundUrl: 'assets/backgrounds/awards-approved.png'};

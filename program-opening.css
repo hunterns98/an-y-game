@@ -9,3 +9,8 @@
 #screen-awards.has-original{background:#100018}
 #screen-awards.has-original>div{display:none}
 #screen-awards>img{width:100%;height:100vh;object-fit:contain}
+
+/* Preserve supplied artwork on 4:3, 16:9 and 16:10 projectors. */
+#screen-opening.has-original,#screen-awards.has-original{position:fixed;inset:0;width:100vw;height:100vh;min-height:0;max-width:none;padding:0;margin:0;gap:0;overflow:hidden;background:#f7b7ca!important}
+#screen-opening.has-original img,#screen-awards.has-original img{display:block;position:absolute;inset:0;width:100%;height:100%;object-fit:contain;object-position:center}
+
