@@ -81,7 +81,8 @@
   #screen-question.leaderboard-focus > #d-special-badge,
   #screen-question.leaderboard-focus > .question-display-card { display:none!important; }
   .connection-banner { position:fixed; top:14px; left:50%; z-index:1000; transform:translate(-50%,-140%); transition:transform .3s ease; width:min(90vw,520px); padding:10px 16px; border-radius:12px; text-align:center; font-size:.82rem; font-weight:800; background:rgba(20,4,45,.97); border:1px solid var(--border); box-shadow:0 8px 24px rgba(0,0,0,.35); }
-  .connection-banner.show { transform:translate(-50%,0); }
+  .connection-banner:not(.show) { visibility:hidden; opacity:0; pointer-events:none; }
+.connection-banner.show { transform:translate(-50%,0); visibility:visible; opacity:1; }
   .connection-banner.offline { color:#fca5a5; border-color:rgba(239,68,68,.55); background:rgba(70,8,30,.97); }
   .connection-banner.online { color:var(--cyan); border-color:rgba(0,245,212,.45); }
   @keyframes screenIn { from{opacity:0;transform:translateY(18px);} to{opacity:1;transform:translateY(0);} }
@@ -1571,6 +1572,7 @@ function startDisplayConfetti() {
 <script src="reactions.js?v=20261012" data-role="display"></script>
 <script src="birthday-finale.js?v=20261013-fit3" data-role="display"></script></body>
 </html>
+
 
 
 
