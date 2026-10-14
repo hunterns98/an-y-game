@@ -2,9 +2,15 @@
 (()=>{
  const host=document.getElementById('screen-gift-reveal');if(!host)return;
  const box=document.createElement('div');box.className='gift-kittens';
- box.innerHTML='<canvas aria-label="Ba bé mèo nhảy"></canvas><video loop playsinline preload="none" hidden></video>';
+ box.innerHTML='<canvas aria-label="Meme vui ngẫu nhiên"></canvas><video playsinline preload="auto" hidden></video>';
  host.append(box);
- const video=box.querySelector('video'),canvas=box.querySelector('canvas');
+ let video=box.querySelector('video');const canvas=box.querySelector('canvas');
+ const files=['3 kittens dancing','Cat Hit Another Cat','Chinese Cat','Fat Cat Dancing','Goat Huh Cat','Hitler Cat','Kung Fu Cat','Smile Dog','Talking cat and sad cat','UIA Cat'];
+ let bag=[],previous='',nextVideo=null;
+ function pick(){if(!bag.length){bag=files.slice();for(let i=bag.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[bag[i],bag[j]]=[bag[j],bag[i]];}if(bag[bag.length-1]===previous)[bag[0],bag[bag.length-1]]=[bag[bag.length-1],bag[0]];}previous=bag.pop();return 'assets/'+previous+'.mp4';}
+ function prepare(){nextVideo=document.createElement('video');nextVideo.playsInline=true;nextVideo.preload='auto';nextVideo.src=pick();nextVideo.load();}
+ function advance(){if(!running)return;video.pause();video=nextVideo;video.onended=advance;prepare();play();}
+ video.src=pick();video.onended=advance;prepare();
  const ctx=canvas.getContext('2d',{willReadFrequently:true});let running=false,frame=0,last=0,attempt=0;
  let demoSound=true;
  // Fit the animation to the space below the card, including display/demo chrome.
@@ -43,7 +49,7 @@
  }
  async function play(){
   const token=++attempt;
-  if(!video.src)video.src='assets/3 kittens dancing.mp4';
+  if(video.ended){advance();return;}
   video.muted=!(typeof displaySfxEnabled!=='undefined'?displaySfxEnabled:demoSound);
   try{await video.play();}
   catch{if(token!==attempt || !running)return;video.muted=true;try{await video.play();}catch{}}
@@ -65,3 +71,4 @@
  new MutationObserver(sync).observe(host,{attributes:true,attributeFilter:['class']});
  document.addEventListener('visibilitychange',sync);sync();
 })();
+
