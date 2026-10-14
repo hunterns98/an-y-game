@@ -5,7 +5,7 @@
  box.innerHTML='<canvas aria-label="Meme vui ngẫu nhiên"></canvas><video playsinline preload="auto" hidden></video>';
  host.append(box);
  let video=box.querySelector('video');const canvas=box.querySelector('canvas');
- const files=['3 kittens dancing','Cat Hit Another Cat','Chinese Cat','Fat Cat Dancing','Goat Huh Cat','Hitler Cat','Kung Fu Cat','Laughing Cat','Smile Dog','Talking cat and sad cat','UIA Cat'];
+ const files=['3 kittens dancing','Cat Hit Another Cat','Chinese Cat','Angry Cat','Goat Huh Cat','Hitler Cat','Kung Fu Cat','Laughing Cat','Smile Dog','Talking cat and sad cat','UIA Cat'];
  let bag=[],previous='',nextVideo=null;
  function pick(){if(!bag.length){bag=files.slice();for(let i=bag.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[bag[i],bag[j]]=[bag[j],bag[i]];}if(bag[bag.length-1]===previous)[bag[0],bag[bag.length-1]]=[bag[bag.length-1],bag[0]];}previous=bag.pop();return 'assets/'+previous+'.mp4';}
  function prepare(){nextVideo=document.createElement('video');nextVideo.playsInline=true;nextVideo.preload='auto';nextVideo.src=pick();nextVideo.load();}
@@ -71,5 +71,6 @@
  new MutationObserver(sync).observe(host,{attributes:true,attributeFilter:['class']});
  document.addEventListener('visibilitychange',sync);sync();
 })();
+
 
 
