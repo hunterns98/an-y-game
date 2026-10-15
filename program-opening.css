@@ -17,6 +17,6 @@
 
 #screen-opening.has-original,#screen-awards.has-original{isolation:isolate;animation:none;transform:none}
 #screen-opening.has-original::before,#screen-awards.has-original::before{content:'';position:absolute;inset:-24px;z-index:-1;background-position:center;background-size:cover;filter:blur(18px);transform:scale(1.05)}
-#screen-opening.has-original::before{background-image:url('assets/backgrounds/program-opening-approved.png')}
-#screen-awards.has-original::before{background-image:url('assets/backgrounds/awards-approved.png')}
+#screen-opening.has-original::before{background-image:url('assets/backgrounds/program-opening-approved.png?v=20261015')}
+#screen-awards.has-original::before{background-image:url('assets/backgrounds/awards-approved.png?v=20261015')}
 
