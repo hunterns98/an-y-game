@@ -97,7 +97,7 @@ $('start').onclick=start;$('reset').onclick=reset;$('skip').onclick=()=>{token++
 
 if(new URLSearchParams(location.search).has('live')){
  document.querySelector('nav').hidden=true;document.querySelector('footer').hidden=true;
- document.querySelector('nav').style.display='none';document.querySelector('footer').style.display='none';
+ document.body.classList.add('live-pairing');document.querySelector('nav').style.display='none';document.querySelector('footer').style.display='none';
  let liveId=null,previous=-1,liveData=null,receivedAt=0,liveFrame=0;
  document.addEventListener('keydown',e=>{if(e.repeat)return;const key=e.key.toLowerCase();if(key==='m'||key==='f'){e.preventDefault();e.stopImmediatePropagation();ac=ac||new (window.AudioContext||window.webkitAudioContext)();ac.resume().catch(()=>{});parent.postMessage({kind:key==='m'?'pairing-mute':'pairing-fullscreen'},location.origin);}},true);
  window.addEventListener('message',event=>{

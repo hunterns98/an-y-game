@@ -53,6 +53,8 @@
   @media (prefers-reduced-motion: reduce) { .star { animation: none; } }
   /* ── LAYOUT ── */
   #app { position: relative; z-index: 1; min-height: 100vh; display: flex; flex-direction: column; align-items: center; padding: 0 28px 40px; }
+  /* Center lobby in the full viewport, with balanced footer clearance. */
+  #app:has(#screen-waiting.active){padding-top:20px;padding-bottom:20px}
   /* ── TOP BAR ── */
   #top-bar {
     display: none; width: 100%; max-width: 1100px;
@@ -1567,12 +1569,12 @@ function startDisplayConfetti() {
   draw();
 }
 </script>
-<script src="gift-kittens.js?v=20261014-angry"></script>
+<script src="gift-kittens.js?v=20261015-hd"></script>
 <script src="gift-team-waves.js?v=20261014-memes"></script>
 <script src="podium-fit.js"></script>
-<script src="pairing-live-display.js"></script><script src="round-pause.js?v=20261008-pause"></script>
+<script src="pairing-live-display.js?v=20261015-center"></script><script src="round-pause.js?v=20261008-pause"></script>
 <script src="reactions.js?v=20261012" data-role="display"></script>
-<script src="birthday-finale.js?v=20261014-video1" data-role="display"></script></body>
+<script src="birthday-finale.js?v=20261015-fit" data-role="display"></script></body>
 </html>
 
 

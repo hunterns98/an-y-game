@@ -35,7 +35,7 @@
   if(!running)return;
   if(video.readyState>=2 && now-last>=40){
    last=now;
-   const width=Math.min(360,video.videoWidth),height=Math.round(width*video.videoHeight/video.videoWidth);
+   const width=Math.min(640,video.videoWidth),height=Math.round(width*video.videoHeight/video.videoWidth);
    if(canvas.width!==width || canvas.height!==height){canvas.width=width;canvas.height=height;}
    ctx.drawImage(video,0,0,width,height);
    const image=ctx.getImageData(0,0,width,height),d=image.data;
