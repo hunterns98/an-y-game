@@ -1,0 +1,12 @@
+const fs=require('fs'),vm=require('vm'),assert=require('assert/strict');
+const src=fs.readFileSync('admin-presence.js','utf8');const start=src.indexOf('function state('),end=src.indexOf('\n function render',start);
+const c={connected:true,loaded:true,records:{},key:n=>n,serverNow:()=>100000};vm.createContext(c);vm.runInContext(src.slice(start,end),c);
+const p={name:'An',sessionId:'real'};
+assert.equal(c.state(p).kind,'unknown');assert.equal(c.state({...p,sessionId:'demo-1'}).kind,'demo');
+c.records.An={one:{sessionId:'real',online:true,at:90000}};assert.equal(c.state(p).kind,'online');
+c.records.An.two={sessionId:'real',online:false,at:95000};assert.equal(c.state(p).kind,'online','one open tab keeps player online');
+c.records.An.one.online=false;assert.equal(c.state(p).kind,'offline');
+c.records.An.one={sessionId:'old',online:true,at:100000};assert.equal(c.state(p).kind,'offline','old session cannot mark new player online');
+c.connected=false;assert.equal(c.state(p).kind,'unknown');c.connected=true;
+c.records.An={one:{sessionId:'real',online:true,at:1}};assert.equal(c.state(p).kind,'offline','stale heartbeat expires');
+console.log('PASS presence: unknown, demo, online, multiple tabs, offline, session isolation, admin offline and stale heartbeat');

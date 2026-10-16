@@ -2,7 +2,7 @@
  'use strict';
  const role=document.currentScript.dataset.role,emojis=['❤️','😂','👍','😡','😢'];
  const names=['Thả tim','Haha','Thích','Phẫn nộ','Khóc'];
- const active=g=>!!g&&g.status==='ended'&&!g.giftRevealed;
+ const active=g=>!!g&&g.status==='ended'&&!g.giftRevealed&&((g.ceremonyStage||g.ceremonyMusic)==='awards'||(Number.isFinite(g.endedAt)&&serverNow()>=g.endedAt+14000));
  let code='',enabled=true,connected=false,pending=false,next=0,settingsRef=null,eventsRef=null,since=0;
  const seen=new Map(),timers=new Set();
  const layer=document.createElement('div');layer.className='reaction-effects';layer.setAttribute('aria-hidden','true');
@@ -19,7 +19,10 @@
  function clear(){layer.replaceChildren();timers.forEach(clearTimeout);timers.clear();}
  function receive(snap){const d=snap.val(),now=serverNow();if(!d||!emojis.includes(d.emoji)||!Number.isFinite(d.at)||d.at<since||now-d.at>4000||d.at>now+1000||!active(game())||!enabled||!connected||document.hidden)return;
   if((seen.get(snap.key)||0)>=d.at)return;seen.set(snap.key,d.at);if(seen.size>64)seen.delete(seen.keys().next().value);
-  if(layer.children.length>=20)return;const e=document.createElement('span');e.className='reaction-emoji';e.textContent=d.emoji;e.style[Math.random()<.5?'left':'right']=(2+Math.random()*9)+'%';e.style.setProperty('--drift',(Math.random()*40-20)+'px');layer.append(e);const t=setTimeout(()=>{e.remove();timers.delete(t)},3100);timers.add(t);
+  if(layer.children.length>=20)return;const e=document.createElement('span');e.className='reaction-emoji';
+  let sender='';try{sender=snap.key.split('_').map(c=>String.fromCodePoint(parseInt(c,16))).join('')}catch{}
+  if(sender&&typeof PlayerAvatars!=='undefined'){const frame=document.createElement('span');frame.className='reaction-avatar';const img=document.createElement('img');img.src=PlayerAvatars.srcFor(sender);img.alt=sender;img.style.objectPosition=PlayerAvatars.positionFor(sender);img.style.transform='scale('+PlayerAvatars.zoomFor(sender)+')';img.onerror=()=>{img.onerror=null;img.src=PlayerAvatars.fallbackSrc(17)};frame.append(img);e.append(frame);}
+  const symbol=document.createElement('span');symbol.textContent=d.emoji;e.append(symbol);e.style[Math.random()<.5?'left':'right']=(2+Math.random()*9)+'%';e.style.setProperty('--drift',(Math.random()*40-20)+'px');layer.append(e);const t=setTimeout(()=>{e.remove();timers.delete(t)},3100);timers.add(t);
  }
  function stopEvents(){if(eventsRef){eventsRef.off();eventsRef=null;}clear();seen.clear();}
  function tick(){const current=room();if(current!==code){if(settingsRef)settingsRef.off();stopEvents();code=current;enabled=true;next=0;if(code){settingsRef=db.ref('rooms/'+code+'/reactions/enabled');settingsRef.on('value',s=>{enabled=s.val()!==false;tick()});}}
