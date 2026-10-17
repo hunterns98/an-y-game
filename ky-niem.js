@@ -18,4 +18,28 @@ function renderRanking(sorted){
  [ranked[1],ranked[0],ranked[2]].filter(Boolean).forEach(({t,rank})=>{const card=el('article',undefined,'memory-podium-card place-'+rank);card.append(el('div','HẠNG '+rank,'podium-rank'));const faces=el('div',undefined,'podium-faces');faces.append(avatar(t.player1),avatar(t.player2));card.append(faces,el('div',rank===1?'🥇':rank===2?'🥈':'🥉','podium-medal'),el('h3',label(t)),el('p',t.player1+' & '+t.player2,'podium-players'),el('div',t.score+' điểm','score'));podium.append(card);});
  ranked.slice(3).forEach(({t,rank})=>{const row=el('div',undefined,'rank'),name=el('div');name.append(el('strong',label(t)),el('small',t.player1+' & '+t.player2));row.append(el('span',String(rank),'rank-num'),name,el('span',t.score+' điểm','score'));rest.append(row);});board.append(podium,rest);
 }
-(async()=>{try{const response=await fetch('recap-tsuye.json');if(!response.ok)throw Error('load');const data=await response.json();const sorted=Object.entries(data.teams).sort((a,b)=>b[1].score-a[1].score);renderRanking(sorted);sorted.forEach(([id,t])=>{const option=el('option',t.teamName?label(t)+' — '+t.player1+' & '+t.player2:label(t));option.value=id;$('team-picker').append(option);});$('team-picker').onchange=()=>history(data,$('team-picker').value);history(data,$('team-picker').value);$('load-status').textContent='Đã lưu trọn 19 câu · 8 đội · 16 chị em';}catch{$('load-status').textContent='Chưa tải được kết quả. Bạn tải lại trang để thử lại nhé.';}})();
+(async()=>{try{const response=await fetch('recap-tsuye.json');if(!response.ok)throw Error('load');const data=await response.json();const sorted=Object.entries(data.teams).sort((a,b)=>b[1].score-a[1].score);renderRanking(sorted);setupStats(data);sorted.forEach(([id,t])=>{const option=el('option',t.teamName?label(t)+' — '+t.player1+' & '+t.player2:label(t));option.value=id;$('team-picker').append(option);});$('team-picker').onchange=()=>history(data,$('team-picker').value);history(data,$('team-picker').value);$('load-status').textContent='Đã lưu trọn 19 câu · 8 đội · 16 chị em';if(location.hash==='#thong-ke')requestAnimationFrame(()=>$('thong-ke').scrollIntoView());}catch{$('load-status').textContent='Chưa tải được kết quả. Bạn tải lại trang để thử lại nhé.';}})();
+
+function renderStats(data,roundIndex){
+ const r=data.rounds[roundIndex],stats=RecapStats.summarize(r,data.teams),host=$('round-statistics');host.replaceChildren();
+ host.append(el('h3',r.question.replace(/~~/g,'')),el('p',stats.shared?'Tỷ lệ trên '+stats.total+' đội · Đáp án chung của hai thành viên.':'Tỷ lệ trên '+stats.total+' người · '+stats.matched+'/'+stats.teamCount+' đội ăn ý.','stats-note'));
+ if(stats.shared)host.append(el('p','Vàng: độc nhất +3 · Tím: trùng đội khác +1 · Xám: không ai chọn','stats-legend'));
+ const list=el('div',undefined,'stats-bars');
+ for(const bin of stats.bins){
+  const kind=!bin.count?'empty':stats.shared&&bin.count===1?'unique':'shared';
+  const row=el('div',undefined,'stats-option '+kind),head=el('div',undefined,'stats-head');
+  const pct=new Intl.NumberFormat('vi-VN',{maximumFractionDigits:1}).format(bin.percent);
+  head.append(el('strong',answer(bin.value,r)),el('span',bin.count+'/'+stats.total+' '+(stats.shared?'đội':'người')+' · '+pct+'%'));
+  const track=el('div',undefined,'stats-track'),fill=el('div',undefined,'stats-fill');fill.style.width=bin.percent+'%';track.setAttribute('aria-hidden','true');track.append(fill);row.append(head,track);
+  if(!bin.count)row.append(el('p','Không ai chọn','stats-note'));
+  else{
+   if(stats.shared)row.append(el('p',bin.count===1?'Không trùng đội nào · +3 điểm':'Trùng đội khác · mỗi đội +1 điểm','stats-result'));
+   const people=el('ul',undefined,'stats-members');
+   for(const vote of bin.members){const t=vote.team;const teamName=t.teamName||'Đội '+(t.index+1);people.append(el('li',stats.shared?teamName+' — '+t.player1+' & '+t.player2:vote.player+' · '+teamName));}row.append(people);
+  }
+  list.append(row);
+ }
+ host.append(list);
+ if(stats.missing.length){const missed=el('div',undefined,'stats-missing');missed.append(el('strong',(stats.shared?'Không chốt đáp án: ':'Chưa trả lời: ')+stats.missing.length+'/'+stats.total));for(const v of stats.missing)missed.append(el('p',stats.shared?label(v.team):v.player+' · '+label(v.team)));host.append(missed);}
+}
+function setupStats(data){const picker=$('stats-picker');data.rounds.forEach((r,i)=>{const option=el('option','Câu '+(Number(r.round)+1)+' · Level '+r.level+' — '+r.question.replace(/~~/g,''));option.value=i;picker.append(option);});picker.value=String(Math.max(0,data.rounds.findIndex(r=>r.type==='team_tags')));picker.onchange=()=>renderStats(data,Number(picker.value));renderStats(data,Number(picker.value));}
