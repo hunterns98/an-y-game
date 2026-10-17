@@ -1027,7 +1027,11 @@ function listenGameDisplay() {
     if(g?.programIntro){clearEndedConfetti();clearFinalPodiumSequence();setDisplayMusic('none');setCommentatorVisible(false);showScreen('opening');const host=document.getElementById('screen-opening');if(window.ProgramOpening?.backgroundUrl&&!host.querySelector('img')){const image=new Image();image.src=ProgramOpening.backgroundUrl;image.alt='Chương trình';host.append(image);host.classList.add('has-original');}return;}
     if (!g || g.status !== 'ended') { clearEndedConfetti(); clearFinalPodiumSequence(); }
     if (!g) { setDisplayMusic('lobby'); showScreen('waiting'); return; }
-    if (g.status === 'ended') { g.giftRevealed ? showGiftRevealDisplay() : (g.ceremonyStage||g.ceremonyMusic)==='awards' ? showAwardsDisplay() : showEnded(); return; }
+    if (g.status === 'ended') {
+      const view = g.finaleView || (g.giftRevealed ? 'gift' : (g.ceremonyStage||g.ceremonyMusic)==='awards' ? 'awards' : 'podium');
+      view === 'gift' ? showGiftRevealDisplay() : view === 'awards' ? showAwardsDisplay() : showEnded();
+      return;
+    }
     if (g.status === 'starting') { setDisplayMusic('lobby'); showScreen('waiting'); showStartCountdown(g); return; }
     hideStartCountdown();
     if (g.status !== 'playing') { setDisplayMusic('lobby'); showScreen('waiting'); return; }
