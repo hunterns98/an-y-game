@@ -1,0 +1,1842 @@
+{
+  "room": "TSUYE",
+  "teams": {
+    "team1": {
+      "player1": "Trúc",
+      "player2": "Linh",
+      "teamName": "Chọn a rồi b rồi c",
+      "score": 20
+    },
+    "team2": {
+      "player1": "Nhung",
+      "player2": "Giang",
+      "teamName": "",
+      "score": 18
+    },
+    "team3": {
+      "player1": "Thoan",
+      "player2": "Phượng",
+      "teamName": "Đội khó hiểu",
+      "score": 20
+    },
+    "team4": {
+      "player1": "Trang",
+      "player2": "Hoa",
+      "teamName": "",
+      "score": 19
+    },
+    "team5": {
+      "player1": "Mai Anh",
+      "player2": "Ánh",
+      "teamName": "Đội 5555",
+      "score": 21
+    },
+    "team6": {
+      "player1": "Lệ",
+      "player2": "An",
+      "teamName": "",
+      "score": 22
+    },
+    "team7": {
+      "player1": "Thủy",
+      "player2": "Hằng",
+      "teamName": "AHIHI",
+      "score": 22
+    },
+    "team8": {
+      "player1": "Hạnh",
+      "player2": "Liên",
+      "teamName": "",
+      "score": 20
+    }
+  },
+  "rounds": [
+    {
+      "level": 1,
+      "optionA": "Khóc trên ô tô",
+      "optionB": "Cười trên xe máy",
+      "question": "Khóc trên ô tô hay Cười trên xe máy",
+      "revealedAt": 1792204505519,
+      "round": 0,
+      "special": false,
+      "teams": {
+        "team1": {
+          "answer1": "A",
+          "answer2": "A",
+          "match": true,
+          "player1": "Trúc",
+          "player2": "Linh",
+          "points": 1,
+          "teamName": "Chọn a rồi b rồi c",
+          "unique": false
+        },
+        "team2": {
+          "answer1": "A",
+          "answer2": "A",
+          "match": true,
+          "player1": "Nhung",
+          "player2": "Giang",
+          "points": 1,
+          "teamName": "",
+          "unique": false
+        },
+        "team3": {
+          "answer1": "A",
+          "answer2": "A",
+          "match": true,
+          "player1": "Thoan",
+          "player2": "Phượng",
+          "points": 1,
+          "teamName": "Đội khó hiểu",
+          "unique": false
+        },
+        "team4": {
+          "answer1": "A",
+          "answer2": "A",
+          "match": true,
+          "player1": "Trang",
+          "player2": "Hoa",
+          "points": 1,
+          "teamName": "",
+          "unique": false
+        },
+        "team5": {
+          "answer1": "A",
+          "answer2": "A",
+          "match": true,
+          "player1": "Mai Anh",
+          "player2": "Ánh",
+          "points": 1,
+          "teamName": "Đội 5555",
+          "unique": false
+        },
+        "team6": {
+          "answer1": "A",
+          "answer2": "A",
+          "match": true,
+          "player1": "Lệ",
+          "player2": "An",
+          "points": 1,
+          "teamName": "",
+          "unique": false
+        },
+        "team7": {
+          "answer1": "A",
+          "answer2": "A",
+          "match": true,
+          "player1": "Thủy",
+          "player2": "Hằng",
+          "points": 1,
+          "teamName": "AHIHI",
+          "unique": false
+        },
+        "team8": {
+          "answer1": "A",
+          "answer2": "A",
+          "match": true,
+          "player1": "Hạnh",
+          "player2": "Liên",
+          "points": 1,
+          "teamName": "",
+          "unique": false
+        }
+      },
+      "type": "choice"
+    },
+    {
+      "level": 1,
+      "optionA": "Đẹp nhất phòng",
+      "optionB": "Giàu nhất phòng",
+      "question": "Được chọn một, bạn sẽ chọn",
+      "revealedAt": 1792204528013,
+      "round": 1,
+      "special": false,
+      "teams": {
+        "team1": {
+          "answer1": "B",
+          "answer2": "B",
+          "match": true,
+          "player1": "Trúc",
+          "player2": "Linh",
+          "points": 1,
+          "teamName": "Chọn a rồi b rồi c",
+          "unique": false
+        },
+        "team2": {
+          "answer1": "B",
+          "answer2": "B",
+          "match": true,
+          "player1": "Nhung",
+          "player2": "Giang",
+          "points": 1,
+          "teamName": "",
+          "unique": false
+        },
+        "team3": {
+          "answer1": "B",
+          "answer2": "B",
+          "match": true,
+          "player1": "Thoan",
+          "player2": "Phượng",
+          "points": 1,
+          "teamName": "Đội khó hiểu",
+          "unique": false
+        },
+        "team4": {
+          "answer1": "B",
+          "answer2": "B",
+          "match": true,
+          "player1": "Trang",
+          "player2": "Hoa",
+          "points": 1,
+          "teamName": "",
+          "unique": false
+        },
+        "team5": {
+          "answer1": "B",
+          "answer2": "B",
+          "match": true,
+          "player1": "Mai Anh",
+          "player2": "Ánh",
+          "points": 1,
+          "teamName": "Đội 5555",
+          "unique": false
+        },
+        "team6": {
+          "answer1": "B",
+          "answer2": "B",
+          "match": true,
+          "player1": "Lệ",
+          "player2": "An",
+          "points": 1,
+          "teamName": "",
+          "unique": false
+        },
+        "team7": {
+          "answer1": "B",
+          "answer2": "B",
+          "match": true,
+          "player1": "Thủy",
+          "player2": "Hằng",
+          "points": 1,
+          "teamName": "AHIHI",
+          "unique": false
+        },
+        "team8": {
+          "answer1": "B",
+          "answer2": "B",
+          "match": true,
+          "player1": "Hạnh",
+          "player2": "Liên",
+          "points": 1,
+          "teamName": "",
+          "unique": false
+        }
+      },
+      "type": "choice"
+    },
+    {
+      "level": 1,
+      "optionA": "Menu",
+      "optionB": "Melu",
+      "question": "Đâu là từ đúng theo cách hiểu của bạn",
+      "revealedAt": 1792204553370,
+      "round": 2,
+      "special": false,
+      "teams": {
+        "team1": {
+          "answer1": "A",
+          "answer2": "B",
+          "match": false,
+          "player1": "Trúc",
+          "player2": "Linh",
+          "points": 0,
+          "teamName": "Chọn a rồi b rồi c",
+          "unique": false
+        },
+        "team2": {
+          "answer1": "A",
+          "answer2": "A",
+          "match": true,
+          "player1": "Nhung",
+          "player2": "Giang",
+          "points": 1,
+          "teamName": "",
+          "unique": false
+        },
+        "team3": {
+          "answer1": "A",
+          "answer2": "A",
+          "match": true,
+          "player1": "Thoan",
+          "player2": "Phượng",
+          "points": 1,
+          "teamName": "Đội khó hiểu",
+          "unique": false
+        },
+        "team4": {
+          "answer1": "A",
+          "answer2": "A",
+          "match": true,
+          "player1": "Trang",
+          "player2": "Hoa",
+          "points": 1,
+          "teamName": "",
+          "unique": false
+        },
+        "team5": {
+          "answer1": "B",
+          "answer2": "B",
+          "match": true,
+          "player1": "Mai Anh",
+          "player2": "Ánh",
+          "points": 1,
+          "teamName": "Đội 5555",
+          "unique": false
+        },
+        "team6": {
+          "answer1": "B",
+          "answer2": "B",
+          "match": true,
+          "player1": "Lệ",
+          "player2": "An",
+          "points": 1,
+          "teamName": "",
+          "unique": false
+        },
+        "team7": {
+          "answer1": "A",
+          "answer2": "A",
+          "match": true,
+          "player1": "Thủy",
+          "player2": "Hằng",
+          "points": 1,
+          "teamName": "AHIHI",
+          "unique": false
+        },
+        "team8": {
+          "answer1": "B",
+          "answer2": "B",
+          "match": true,
+          "player1": "Hạnh",
+          "player2": "Liên",
+          "points": 1,
+          "teamName": "",
+          "unique": false
+        }
+      },
+      "type": "choice"
+    },
+    {
+      "level": 1,
+      "optionA": "Giữ đúng lời hứa",
+      "optionB": "Kể một người và cũng dặn thế",
+      "question": "Chị R giấu tên nói “T kể chuyện này nhưng m đừng kể ai”. Bạn sẽ",
+      "revealedAt": 1792204579062,
+      "round": 3,
+      "special": false,
+      "teams": {
+        "team1": {
+          "answer1": "B",
+          "answer2": "B",
+          "match": true,
+          "player1": "Trúc",
+          "player2": "Linh",
+          "points": 1,
+          "teamName": "Chọn a rồi b rồi c",
+          "unique": false
+        },
+        "team2": {
+          "answer1": "A",
+          "answer2": "A",
+          "match": true,
+          "player1": "Nhung",
+          "player2": "Giang",
+          "points": 1,
+          "teamName": "",
+          "unique": false
+        },
+        "team3": {
+          "answer1": "A",
+          "answer2": "A",
+          "match": true,
+          "player1": "Thoan",
+          "player2": "Phượng",
+          "points": 1,
+          "teamName": "Đội khó hiểu",
+          "unique": false
+        },
+        "team4": {
+          "answer1": "B",
+          "answer2": "B",
+          "match": true,
+          "player1": "Trang",
+          "player2": "Hoa",
+          "points": 1,
+          "teamName": "",
+          "unique": false
+        },
+        "team5": {
+          "answer1": "B",
+          "answer2": "B",
+          "match": true,
+          "player1": "Mai Anh",
+          "player2": "Ánh",
+          "points": 1,
+          "teamName": "Đội 5555",
+          "unique": false
+        },
+        "team6": {
+          "answer1": "B",
+          "answer2": "B",
+          "match": true,
+          "player1": "Lệ",
+          "player2": "An",
+          "points": 1,
+          "teamName": "",
+          "unique": false
+        },
+        "team7": {
+          "answer1": "A",
+          "answer2": "A",
+          "match": true,
+          "player1": "Thủy",
+          "player2": "Hằng",
+          "points": 1,
+          "teamName": "AHIHI",
+          "unique": false
+        },
+        "team8": {
+          "answer1": "B",
+          "answer2": "B",
+          "match": true,
+          "player1": "Hạnh",
+          "player2": "Liên",
+          "points": 1,
+          "teamName": "",
+          "unique": false
+        }
+      },
+      "type": "choice"
+    },
+    {
+      "level": 1,
+      "optionA": "\"Màu xanh hy vọng trên răng kìa\"",
+      "optionB": "Chỉ xem và -1điểm thanh lịch",
+      "question": "Thấy đồng nghiệp dính rau vào răng khi đang nói chuyện, bạn sẽ:",
+      "revealedAt": 1792204630552,
+      "round": 4,
+      "special": false,
+      "teams": {
+        "team1": {
+          "answer1": "A",
+          "answer2": "A",
+          "match": true,
+          "player1": "Trúc",
+          "player2": "Linh",
+          "points": 1,
+          "teamName": "Chọn a rồi b rồi c",
+          "unique": false
+        },
+        "team2": {
+          "answer1": "A",
+          "answer2": "A",
+          "match": true,
+          "player1": "Nhung",
+          "player2": "Giang",
+          "points": 1,
+          "teamName": "",
+          "unique": false
+        },
+        "team3": {
+          "answer1": "B",
+          "answer2": "B",
+          "match": true,
+          "player1": "Thoan",
+          "player2": "Phượng",
+          "points": 1,
+          "teamName": "Đội khó hiểu",
+          "unique": false
+        },
+        "team4": {
+          "answer1": "A",
+          "answer2": "A",
+          "match": true,
+          "player1": "Trang",
+          "player2": "Hoa",
+          "points": 1,
+          "teamName": "",
+          "unique": false
+        },
+        "team5": {
+          "answer1": "A",
+          "answer2": "A",
+          "match": true,
+          "player1": "Mai Anh",
+          "player2": "Ánh",
+          "points": 1,
+          "teamName": "Đội 5555",
+          "unique": false
+        },
+        "team6": {
+          "answer1": "A",
+          "answer2": "A",
+          "match": true,
+          "player1": "Lệ",
+          "player2": "An",
+          "points": 1,
+          "teamName": "",
+          "unique": false
+        },
+        "team7": {
+          "answer1": "B",
+          "answer2": "B",
+          "match": true,
+          "player1": "Thủy",
+          "player2": "Hằng",
+          "points": 1,
+          "teamName": "AHIHI",
+          "unique": false
+        },
+        "team8": {
+          "answer1": "A",
+          "answer2": "A",
+          "match": true,
+          "player1": "Hạnh",
+          "player2": "Liên",
+          "points": 1,
+          "teamName": "",
+          "unique": false
+        }
+      },
+      "type": "choice"
+    },
+    {
+      "level": 1,
+      "optionA": "Nhận sai",
+      "optionB": "Cãi tiếp",
+      "question": "Đang cãi rất hăng, nhưng chợt nhận ra mình sai, bạn sẽ",
+      "revealedAt": 1792204654021,
+      "round": 5,
+      "special": false,
+      "teams": {
+        "team1": {
+          "answer1": "B",
+          "answer2": "B",
+          "match": true,
+          "player1": "Trúc",
+          "player2": "Linh",
+          "points": 1,
+          "teamName": "Chọn a rồi b rồi c",
+          "unique": false
+        },
+        "team2": {
+          "answer1": "B",
+          "answer2": "B",
+          "match": true,
+          "player1": "Nhung",
+          "player2": "Giang",
+          "points": 1,
+          "teamName": "",
+          "unique": false
+        },
+        "team3": {
+          "answer1": "B",
+          "answer2": "B",
+          "match": true,
+          "player1": "Thoan",
+          "player2": "Phượng",
+          "points": 1,
+          "teamName": "Đội khó hiểu",
+          "unique": false
+        },
+        "team4": {
+          "answer1": "B",
+          "answer2": "B",
+          "match": true,
+          "player1": "Trang",
+          "player2": "Hoa",
+          "points": 1,
+          "teamName": "",
+          "unique": false
+        },
+        "team5": {
+          "answer1": "B",
+          "answer2": "B",
+          "match": true,
+          "player1": "Mai Anh",
+          "player2": "Ánh",
+          "points": 1,
+          "teamName": "Đội 5555",
+          "unique": false
+        },
+        "team6": {
+          "answer1": "B",
+          "answer2": "B",
+          "match": true,
+          "player1": "Lệ",
+          "player2": "An",
+          "points": 1,
+          "teamName": "",
+          "unique": false
+        },
+        "team7": {
+          "answer1": "A",
+          "answer2": "A",
+          "match": true,
+          "player1": "Thủy",
+          "player2": "Hằng",
+          "points": 1,
+          "teamName": "AHIHI",
+          "unique": false
+        },
+        "team8": {
+          "answer1": "B",
+          "answer2": "B",
+          "match": true,
+          "player1": "Hạnh",
+          "player2": "Liên",
+          "points": 1,
+          "teamName": "",
+          "unique": false
+        }
+      },
+      "type": "choice"
+    },
+    {
+      "level": 1,
+      "optionA": "Về đúng giờ",
+      "optionB": "Ở lại vì trách nhiệm",
+      "question": "Đang hóng chuyện đến đoạn hay thì tới giờ về. Bạn chọn",
+      "revealedAt": 1792204679023,
+      "round": 6,
+      "special": false,
+      "teams": {
+        "team1": {
+          "answer1": "A",
+          "answer2": "A",
+          "match": true,
+          "player1": "Trúc",
+          "player2": "Linh",
+          "points": 1,
+          "teamName": "Chọn a rồi b rồi c",
+          "unique": false
+        },
+        "team2": {
+          "answer1": "B",
+          "answer2": "B",
+          "match": true,
+          "player1": "Nhung",
+          "player2": "Giang",
+          "points": 1,
+          "teamName": "",
+          "unique": false
+        },
+        "team3": {
+          "answer1": "B",
+          "answer2": "B",
+          "match": true,
+          "player1": "Thoan",
+          "player2": "Phượng",
+          "points": 1,
+          "teamName": "Đội khó hiểu",
+          "unique": false
+        },
+        "team4": {
+          "answer1": "B",
+          "answer2": "B",
+          "match": true,
+          "player1": "Trang",
+          "player2": "Hoa",
+          "points": 1,
+          "teamName": "",
+          "unique": false
+        },
+        "team5": {
+          "answer1": "B",
+          "answer2": "B",
+          "match": true,
+          "player1": "Mai Anh",
+          "player2": "Ánh",
+          "points": 1,
+          "teamName": "Đội 5555",
+          "unique": false
+        },
+        "team6": {
+          "answer1": "B",
+          "answer2": "B",
+          "match": true,
+          "player1": "Lệ",
+          "player2": "An",
+          "points": 1,
+          "teamName": "",
+          "unique": false
+        },
+        "team7": {
+          "answer1": "B",
+          "answer2": "B",
+          "match": true,
+          "player1": "Thủy",
+          "player2": "Hằng",
+          "points": 1,
+          "teamName": "AHIHI",
+          "unique": false
+        },
+        "team8": {
+          "answer1": "B",
+          "answer2": "B",
+          "match": true,
+          "player1": "Hạnh",
+          "player2": "Liên",
+          "points": 1,
+          "teamName": "",
+          "unique": false
+        }
+      },
+      "type": "choice"
+    },
+    {
+      "level": 1,
+      "optionA": "LỰA CHỌN B",
+      "optionB": "LỰA CHỌN A",
+      "question": "LỰA CHỌN A là đáp án đúng. Hãy chọn",
+      "revealedAt": 1792204704020,
+      "round": 7,
+      "special": false,
+      "teams": {
+        "team1": {
+          "answer1": "B",
+          "answer2": "B",
+          "match": true,
+          "player1": "Trúc",
+          "player2": "Linh",
+          "points": 1,
+          "teamName": "Chọn a rồi b rồi c",
+          "unique": false
+        },
+        "team2": {
+          "answer1": "B",
+          "answer2": "B",
+          "match": true,
+          "player1": "Nhung",
+          "player2": "Giang",
+          "points": 1,
+          "teamName": "",
+          "unique": false
+        },
+        "team3": {
+          "answer1": "B",
+          "answer2": "B",
+          "match": true,
+          "player1": "Thoan",
+          "player2": "Phượng",
+          "points": 1,
+          "teamName": "Đội khó hiểu",
+          "unique": false
+        },
+        "team4": {
+          "answer1": "B",
+          "answer2": "B",
+          "match": true,
+          "player1": "Trang",
+          "player2": "Hoa",
+          "points": 1,
+          "teamName": "",
+          "unique": false
+        },
+        "team5": {
+          "answer1": "B",
+          "answer2": "B",
+          "match": true,
+          "player1": "Mai Anh",
+          "player2": "Ánh",
+          "points": 1,
+          "teamName": "Đội 5555",
+          "unique": false
+        },
+        "team6": {
+          "answer1": "B",
+          "answer2": "B",
+          "match": true,
+          "player1": "Lệ",
+          "player2": "An",
+          "points": 1,
+          "teamName": "",
+          "unique": false
+        },
+        "team7": {
+          "answer1": "B",
+          "answer2": "B",
+          "match": true,
+          "player1": "Thủy",
+          "player2": "Hằng",
+          "points": 1,
+          "teamName": "AHIHI",
+          "unique": false
+        },
+        "team8": {
+          "answer1": "B",
+          "answer2": "B",
+          "match": true,
+          "player1": "Hạnh",
+          "player2": "Liên",
+          "points": 1,
+          "teamName": "",
+          "unique": false
+        }
+      },
+      "type": "choice"
+    },
+    {
+      "level": 2,
+      "optionA": "",
+      "optionB": "",
+      "question": "Ai là người hát karaoke hay hơn",
+      "revealedAt": 1792204814701,
+      "round": 8,
+      "special": false,
+      "teams": {
+        "team1": {
+          "answer1": "Trúc",
+          "answer2": "Trúc",
+          "match": true,
+          "player1": "Trúc",
+          "player2": "Linh",
+          "points": 1,
+          "teamName": "Chọn a rồi b rồi c",
+          "unique": false
+        },
+        "team2": {
+          "answer1": "Nhung",
+          "answer2": "Giang",
+          "match": false,
+          "player1": "Nhung",
+          "player2": "Giang",
+          "points": 0,
+          "teamName": "",
+          "unique": false
+        },
+        "team3": {
+          "answer1": "Thoan",
+          "answer2": "Phượng",
+          "match": false,
+          "player1": "Thoan",
+          "player2": "Phượng",
+          "points": 0,
+          "teamName": "Đội khó hiểu",
+          "unique": false
+        },
+        "team4": {
+          "answer1": "Trang",
+          "answer2": "Trang",
+          "match": true,
+          "player1": "Trang",
+          "player2": "Hoa",
+          "points": 1,
+          "teamName": "",
+          "unique": false
+        },
+        "team5": {
+          "answer1": "Ánh",
+          "answer2": "Ánh",
+          "match": true,
+          "player1": "Mai Anh",
+          "player2": "Ánh",
+          "points": 1,
+          "teamName": "Đội 5555",
+          "unique": false
+        },
+        "team6": {
+          "answer1": "Lệ",
+          "answer2": "An",
+          "match": false,
+          "player1": "Lệ",
+          "player2": "An",
+          "points": 0,
+          "teamName": "",
+          "unique": false
+        },
+        "team7": {
+          "answer1": "Hằng",
+          "answer2": "Thủy",
+          "match": false,
+          "player1": "Thủy",
+          "player2": "Hằng",
+          "points": 0,
+          "teamName": "AHIHI",
+          "unique": false
+        },
+        "team8": {
+          "answer1": "Hạnh",
+          "answer2": "Hạnh",
+          "match": true,
+          "player1": "Hạnh",
+          "player2": "Liên",
+          "points": 1,
+          "teamName": "",
+          "unique": false
+        }
+      },
+      "type": "who_is"
+    },
+    {
+      "level": 2,
+      "optionA": "",
+      "optionB": "",
+      "question": "Ai là người ~~hám zai~~ có lòng bao dung tỷ lệ thuận với độ đẹp trai của đối phương",
+      "revealedAt": 1792204895541,
+      "round": 9,
+      "special": false,
+      "teams": {
+        "team1": {
+          "answer1": "Linh",
+          "answer2": "Linh",
+          "match": true,
+          "player1": "Trúc",
+          "player2": "Linh",
+          "points": 1,
+          "teamName": "Chọn a rồi b rồi c",
+          "unique": false
+        },
+        "team2": {
+          "answer1": "Nhung",
+          "answer2": "Nhung",
+          "match": true,
+          "player1": "Nhung",
+          "player2": "Giang",
+          "points": 1,
+          "teamName": "",
+          "unique": false
+        },
+        "team3": {
+          "answer1": "Phượng",
+          "answer2": "Phượng",
+          "match": true,
+          "player1": "Thoan",
+          "player2": "Phượng",
+          "points": 1,
+          "teamName": "Đội khó hiểu",
+          "unique": false
+        },
+        "team4": {
+          "answer1": "Trang",
+          "answer2": "Trang",
+          "match": true,
+          "player1": "Trang",
+          "player2": "Hoa",
+          "points": 1,
+          "teamName": "",
+          "unique": false
+        },
+        "team5": {
+          "answer1": "Ánh",
+          "answer2": "Ánh",
+          "match": true,
+          "player1": "Mai Anh",
+          "player2": "Ánh",
+          "points": 1,
+          "teamName": "Đội 5555",
+          "unique": false
+        },
+        "team6": {
+          "answer1": "An",
+          "answer2": "An",
+          "match": true,
+          "player1": "Lệ",
+          "player2": "An",
+          "points": 1,
+          "teamName": "",
+          "unique": false
+        },
+        "team7": {
+          "answer1": "Thủy",
+          "answer2": "Thủy",
+          "match": true,
+          "player1": "Thủy",
+          "player2": "Hằng",
+          "points": 1,
+          "teamName": "AHIHI",
+          "unique": false
+        },
+        "team8": {
+          "answer1": "Liên",
+          "answer2": "",
+          "match": false,
+          "player1": "Hạnh",
+          "player2": "Liên",
+          "points": 0,
+          "teamName": "",
+          "unique": false
+        }
+      },
+      "type": "who_is"
+    },
+    {
+      "level": 2,
+      "optionA": "",
+      "optionB": "",
+      "question": "Nếu 2 bạn dỗi nhau, ai sẽ là người chủ động làm lành trước",
+      "revealedAt": 1792204921555,
+      "round": 10,
+      "special": false,
+      "teams": {
+        "team1": {
+          "answer1": "Trúc",
+          "answer2": "Trúc",
+          "match": true,
+          "player1": "Trúc",
+          "player2": "Linh",
+          "points": 1,
+          "teamName": "Chọn a rồi b rồi c",
+          "unique": false
+        },
+        "team2": {
+          "answer1": "Nhung",
+          "answer2": "Nhung",
+          "match": true,
+          "player1": "Nhung",
+          "player2": "Giang",
+          "points": 1,
+          "teamName": "",
+          "unique": false
+        },
+        "team3": {
+          "answer1": "Phượng",
+          "answer2": "Phượng",
+          "match": true,
+          "player1": "Thoan",
+          "player2": "Phượng",
+          "points": 1,
+          "teamName": "Đội khó hiểu",
+          "unique": false
+        },
+        "team4": {
+          "answer1": "Trang",
+          "answer2": "Trang",
+          "match": true,
+          "player1": "Trang",
+          "player2": "Hoa",
+          "points": 1,
+          "teamName": "",
+          "unique": false
+        },
+        "team5": {
+          "answer1": "Ánh",
+          "answer2": "Ánh",
+          "match": true,
+          "player1": "Mai Anh",
+          "player2": "Ánh",
+          "points": 1,
+          "teamName": "Đội 5555",
+          "unique": false
+        },
+        "team6": {
+          "answer1": "An",
+          "answer2": "An",
+          "match": true,
+          "player1": "Lệ",
+          "player2": "An",
+          "points": 1,
+          "teamName": "",
+          "unique": false
+        },
+        "team7": {
+          "answer1": "Hằng",
+          "answer2": "Hằng",
+          "match": true,
+          "player1": "Thủy",
+          "player2": "Hằng",
+          "points": 1,
+          "teamName": "AHIHI",
+          "unique": false
+        },
+        "team8": {
+          "answer1": "Liên",
+          "answer2": "Hạnh",
+          "match": false,
+          "player1": "Hạnh",
+          "player2": "Liên",
+          "points": 0,
+          "teamName": "",
+          "unique": false
+        }
+      },
+      "type": "who_is"
+    },
+    {
+      "level": 2,
+      "optionA": "",
+      "optionB": "",
+      "question": "Ai là người miệng nói “kệ/bỏ đi” nhưng tối về nằm nghĩ lại từng câu",
+      "revealedAt": 1792204955523,
+      "round": 11,
+      "special": false,
+      "teams": {
+        "team1": {
+          "answer1": "Linh",
+          "answer2": "Linh",
+          "match": true,
+          "player1": "Trúc",
+          "player2": "Linh",
+          "points": 1,
+          "teamName": "Chọn a rồi b rồi c",
+          "unique": false
+        },
+        "team2": {
+          "answer1": "Nhung",
+          "answer2": "Nhung",
+          "match": true,
+          "player1": "Nhung",
+          "player2": "Giang",
+          "points": 1,
+          "teamName": "",
+          "unique": false
+        },
+        "team3": {
+          "answer1": "Phượng",
+          "answer2": "Phượng",
+          "match": true,
+          "player1": "Thoan",
+          "player2": "Phượng",
+          "points": 1,
+          "teamName": "Đội khó hiểu",
+          "unique": false
+        },
+        "team4": {
+          "answer1": "Trang",
+          "answer2": "Trang",
+          "match": true,
+          "player1": "Trang",
+          "player2": "Hoa",
+          "points": 1,
+          "teamName": "",
+          "unique": false
+        },
+        "team5": {
+          "answer1": "Ánh",
+          "answer2": "Ánh",
+          "match": true,
+          "player1": "Mai Anh",
+          "player2": "Ánh",
+          "points": 1,
+          "teamName": "Đội 5555",
+          "unique": false
+        },
+        "team6": {
+          "answer1": "An",
+          "answer2": "An",
+          "match": true,
+          "player1": "Lệ",
+          "player2": "An",
+          "points": 1,
+          "teamName": "",
+          "unique": false
+        },
+        "team7": {
+          "answer1": "Thủy",
+          "answer2": "Thủy",
+          "match": true,
+          "player1": "Thủy",
+          "player2": "Hằng",
+          "points": 1,
+          "teamName": "AHIHI",
+          "unique": false
+        },
+        "team8": {
+          "answer1": "Hạnh",
+          "answer2": "Liên",
+          "match": false,
+          "player1": "Hạnh",
+          "player2": "Liên",
+          "points": 0,
+          "teamName": "",
+          "unique": false
+        }
+      },
+      "type": "who_is"
+    },
+    {
+      "level": 2,
+      "optionA": "",
+      "optionB": "",
+      "question": "Ai là người mỏ hỗn giật giật hơn",
+      "revealedAt": 1792205007151,
+      "round": 12,
+      "special": false,
+      "teams": {
+        "team1": {
+          "answer1": "Trúc",
+          "answer2": "Trúc",
+          "match": true,
+          "player1": "Trúc",
+          "player2": "Linh",
+          "points": 1,
+          "teamName": "Chọn a rồi b rồi c",
+          "unique": false
+        },
+        "team2": {
+          "answer1": "Nhung",
+          "answer2": "Nhung",
+          "match": true,
+          "player1": "Nhung",
+          "player2": "Giang",
+          "points": 1,
+          "teamName": "",
+          "unique": false
+        },
+        "team3": {
+          "answer1": "Phượng",
+          "answer2": "Phượng",
+          "match": true,
+          "player1": "Thoan",
+          "player2": "Phượng",
+          "points": 1,
+          "teamName": "Đội khó hiểu",
+          "unique": false
+        },
+        "team4": {
+          "answer1": "Trang",
+          "answer2": "Trang",
+          "match": true,
+          "player1": "Trang",
+          "player2": "Hoa",
+          "points": 1,
+          "teamName": "",
+          "unique": false
+        },
+        "team5": {
+          "answer1": "Ánh",
+          "answer2": "Ánh",
+          "match": true,
+          "player1": "Mai Anh",
+          "player2": "Ánh",
+          "points": 1,
+          "teamName": "Đội 5555",
+          "unique": false
+        },
+        "team6": {
+          "answer1": "An",
+          "answer2": "An",
+          "match": true,
+          "player1": "Lệ",
+          "player2": "An",
+          "points": 1,
+          "teamName": "",
+          "unique": false
+        },
+        "team7": {
+          "answer1": "Thủy",
+          "answer2": "Thủy",
+          "match": true,
+          "player1": "Thủy",
+          "player2": "Hằng",
+          "points": 1,
+          "teamName": "AHIHI",
+          "unique": false
+        },
+        "team8": {
+          "answer1": "Liên",
+          "answer2": "Liên",
+          "match": true,
+          "player1": "Hạnh",
+          "player2": "Liên",
+          "points": 1,
+          "teamName": "",
+          "unique": false
+        }
+      },
+      "type": "who_is"
+    },
+    {
+      "level": 2,
+      "optionA": "",
+      "optionB": "",
+      "question": "Ai là người khen đồng đội xinh nhưng vẫn thấy mình xinh hơn",
+      "revealedAt": 1792205035519,
+      "round": 13,
+      "special": false,
+      "teams": {
+        "team1": {
+          "answer1": "Linh",
+          "answer2": "Linh",
+          "match": true,
+          "player1": "Trúc",
+          "player2": "Linh",
+          "points": 1,
+          "teamName": "Chọn a rồi b rồi c",
+          "unique": false
+        },
+        "team2": {
+          "answer1": "Nhung",
+          "answer2": "Nhung",
+          "match": true,
+          "player1": "Nhung",
+          "player2": "Giang",
+          "points": 1,
+          "teamName": "",
+          "unique": false
+        },
+        "team3": {
+          "answer1": "Phượng",
+          "answer2": "Phượng",
+          "match": true,
+          "player1": "Thoan",
+          "player2": "Phượng",
+          "points": 1,
+          "teamName": "Đội khó hiểu",
+          "unique": false
+        },
+        "team4": {
+          "answer1": "Trang",
+          "answer2": "Trang",
+          "match": true,
+          "player1": "Trang",
+          "player2": "Hoa",
+          "points": 1,
+          "teamName": "",
+          "unique": false
+        },
+        "team5": {
+          "answer1": "Ánh",
+          "answer2": "Ánh",
+          "match": true,
+          "player1": "Mai Anh",
+          "player2": "Ánh",
+          "points": 1,
+          "teamName": "Đội 5555",
+          "unique": false
+        },
+        "team6": {
+          "answer1": "An",
+          "answer2": "An",
+          "match": true,
+          "player1": "Lệ",
+          "player2": "An",
+          "points": 1,
+          "teamName": "",
+          "unique": false
+        },
+        "team7": {
+          "answer1": "Thủy",
+          "answer2": "Thủy",
+          "match": true,
+          "player1": "Thủy",
+          "player2": "Hằng",
+          "points": 1,
+          "teamName": "AHIHI",
+          "unique": false
+        },
+        "team8": {
+          "answer1": "Hạnh",
+          "answer2": "Hạnh",
+          "match": true,
+          "player1": "Hạnh",
+          "player2": "Liên",
+          "points": 1,
+          "teamName": "",
+          "unique": false
+        }
+      },
+      "type": "who_is"
+    },
+    {
+      "level": 3,
+      "optionA": "",
+      "optionB": "",
+      "question": "Bạn được bầu cử để lựa chọn địa điểm đi du lịch của phòng, chi phí không phải lăn tăn (chị Rít không nói thế). Bạn sẽ chọn",
+      "revealedAt": 1792205159067,
+      "round": 14,
+      "special": false,
+      "tags": [
+        "Hà Nội",
+        "Đà Nẵng",
+        "Ninh Bình",
+        "Nhà Trang",
+        "Phú Quốc",
+        "Côn Sơn"
+      ],
+      "teams": {
+        "team1": {
+          "answer1": "Phú Quốc",
+          "answer2": "Phú Quốc",
+          "match": true,
+          "player1": "Trúc",
+          "player2": "Linh",
+          "points": 1,
+          "teamName": "Chọn a rồi b rồi c",
+          "unique": false
+        },
+        "team2": {
+          "answer1": "Côn Sơn",
+          "answer2": "Côn Sơn",
+          "match": true,
+          "player1": "Nhung",
+          "player2": "Giang",
+          "points": 1,
+          "teamName": "",
+          "unique": false
+        },
+        "team3": {
+          "answer1": "Ninh Bình",
+          "answer2": "Ninh Bình",
+          "match": true,
+          "player1": "Thoan",
+          "player2": "Phượng",
+          "points": 1,
+          "teamName": "Đội khó hiểu",
+          "unique": false
+        },
+        "team4": {
+          "answer1": "Ninh Bình",
+          "answer2": "Ninh Bình",
+          "match": true,
+          "player1": "Trang",
+          "player2": "Hoa",
+          "points": 1,
+          "teamName": "",
+          "unique": false
+        },
+        "team5": {
+          "answer1": "Côn Sơn",
+          "answer2": "Côn Sơn",
+          "match": true,
+          "player1": "Mai Anh",
+          "player2": "Ánh",
+          "points": 1,
+          "teamName": "Đội 5555",
+          "unique": false
+        },
+        "team6": {
+          "answer1": "Côn Sơn",
+          "answer2": "Côn Sơn",
+          "match": true,
+          "player1": "Lệ",
+          "player2": "An",
+          "points": 1,
+          "teamName": "",
+          "unique": false
+        },
+        "team7": {
+          "answer1": "Phú Quốc",
+          "answer2": "Phú Quốc",
+          "match": true,
+          "player1": "Thủy",
+          "player2": "Hằng",
+          "points": 1,
+          "teamName": "AHIHI",
+          "unique": false
+        },
+        "team8": {
+          "answer1": "Đà Nẵng",
+          "answer2": "Đà Nẵng",
+          "match": true,
+          "player1": "Hạnh",
+          "player2": "Liên",
+          "points": 3,
+          "teamName": "",
+          "unique": true
+        }
+      },
+      "type": "team_tags"
+    },
+    {
+      "level": 3,
+      "optionA": "",
+      "optionB": "",
+      "question": "1 ly nữa thôi là Huệ ơi. Người dưới đây 1 ly nữa cũng Huệ à. Lại còn trước mặt các sếp và đồng nghiệp. Bạn có thể chọn để họ Huệ thay, dù đớn trong lòng nhưng bạn chọn",
+      "revealedAt": 1792205223615,
+      "round": 15,
+      "special": false,
+      "tags": [
+        "Đức",
+        "Phúc",
+        "Tuấn",
+        "Nam",
+        "Thắng",
+        "Long"
+      ],
+      "teams": {
+        "team1": {
+          "answer1": "Tuấn",
+          "answer2": "Tuấn",
+          "match": true,
+          "player1": "Trúc",
+          "player2": "Linh",
+          "points": 1,
+          "teamName": "Chọn a rồi b rồi c",
+          "unique": false
+        },
+        "team2": {
+          "answer1": "Đức",
+          "answer2": "Đức",
+          "match": true,
+          "player1": "Nhung",
+          "player2": "Giang",
+          "points": 1,
+          "teamName": "",
+          "unique": false
+        },
+        "team3": {
+          "answer1": "Nam",
+          "answer2": "Nam",
+          "match": true,
+          "player1": "Thoan",
+          "player2": "Phượng",
+          "points": 1,
+          "teamName": "Đội khó hiểu",
+          "unique": false
+        },
+        "team4": {
+          "answer1": "Đức",
+          "answer2": "Đức",
+          "match": true,
+          "player1": "Trang",
+          "player2": "Hoa",
+          "points": 1,
+          "teamName": "",
+          "unique": false
+        },
+        "team5": {
+          "answer1": "Tuấn",
+          "answer2": "Tuấn",
+          "match": true,
+          "player1": "Mai Anh",
+          "player2": "Ánh",
+          "points": 1,
+          "teamName": "Đội 5555",
+          "unique": false
+        },
+        "team6": {
+          "answer1": "Đức",
+          "answer2": "Đức",
+          "match": true,
+          "player1": "Lệ",
+          "player2": "An",
+          "points": 1,
+          "teamName": "",
+          "unique": false
+        },
+        "team7": {
+          "answer1": "Long",
+          "answer2": "Long",
+          "match": true,
+          "player1": "Thủy",
+          "player2": "Hằng",
+          "points": 3,
+          "teamName": "AHIHI",
+          "unique": true
+        },
+        "team8": {
+          "answer1": "Nam",
+          "answer2": "Nam",
+          "match": true,
+          "player1": "Hạnh",
+          "player2": "Liên",
+          "points": 1,
+          "teamName": "",
+          "unique": false
+        }
+      },
+      "type": "team_tags"
+    },
+    {
+      "level": 3,
+      "optionA": "",
+      "optionB": "",
+      "question": "Ôi không, đơn hàng của bạn đang căng quá! Các anh dưới đây đều xin giãn hạn giao. Bạn chọn “hỗ trợ xin” cho:",
+      "revealedAt": 1792205298614,
+      "round": 16,
+      "special": false,
+      "tags": [
+        "Cảnh",
+        "Đô",
+        "Hồng",
+        "Huy",
+        "Khoát",
+        "Đức Anh"
+      ],
+      "teams": {
+        "team1": {
+          "answer1": "Đức Anh",
+          "answer2": "Đức Anh",
+          "match": true,
+          "player1": "Trúc",
+          "player2": "Linh",
+          "points": 1,
+          "teamName": "Chọn a rồi b rồi c",
+          "unique": false
+        },
+        "team2": {
+          "answer1": "Đức Anh",
+          "answer2": "Đức Anh",
+          "match": true,
+          "player1": "Nhung",
+          "player2": "Giang",
+          "points": 1,
+          "teamName": "",
+          "unique": false
+        },
+        "team3": {
+          "answer1": "Hồng",
+          "answer2": "Hồng",
+          "match": true,
+          "player1": "Thoan",
+          "player2": "Phượng",
+          "points": 3,
+          "teamName": "Đội khó hiểu",
+          "unique": true
+        },
+        "team4": {
+          "answer1": "Huy",
+          "answer2": "Huy",
+          "match": true,
+          "player1": "Trang",
+          "player2": "Hoa",
+          "points": 1,
+          "teamName": "",
+          "unique": false
+        },
+        "team5": {
+          "answer1": "Đức Anh",
+          "answer2": "Đức Anh",
+          "match": true,
+          "player1": "Mai Anh",
+          "player2": "Ánh",
+          "points": 1,
+          "teamName": "Đội 5555",
+          "unique": false
+        },
+        "team6": {
+          "answer1": "Đô",
+          "answer2": "Đô",
+          "match": true,
+          "player1": "Lệ",
+          "player2": "An",
+          "points": 3,
+          "teamName": "",
+          "unique": true
+        },
+        "team7": {
+          "answer1": "Đức Anh",
+          "answer2": "Đức Anh",
+          "match": true,
+          "player1": "Thủy",
+          "player2": "Hằng",
+          "points": 1,
+          "teamName": "AHIHI",
+          "unique": false
+        },
+        "team8": {
+          "answer1": "Huy",
+          "answer2": "Huy",
+          "match": true,
+          "player1": "Hạnh",
+          "player2": "Liên",
+          "points": 1,
+          "teamName": "",
+          "unique": false
+        }
+      },
+      "type": "team_tags"
+    },
+    {
+      "level": 3,
+      "optionA": "",
+      "optionB": "",
+      "question": "Chọn một người để song ca \"Cơn mưa tình yêu\"",
+      "revealedAt": 1792205373527,
+      "round": 17,
+      "special": false,
+      "tags": [
+        "Xuân Cờ",
+        "Kim Dương",
+        "Xuân Bách",
+        "Văn Hiệu",
+        "Đức Thăng",
+        "Tú Tài Tử"
+      ],
+      "teams": {
+        "team1": {
+          "answer1": "Xuân Cờ",
+          "answer2": "Xuân Cờ",
+          "match": true,
+          "player1": "Trúc",
+          "player2": "Linh",
+          "points": 1,
+          "teamName": "Chọn a rồi b rồi c",
+          "unique": false
+        },
+        "team2": {
+          "answer1": "Xuân Cờ",
+          "answer2": "Xuân Cờ",
+          "match": true,
+          "player1": "Nhung",
+          "player2": "Giang",
+          "points": 1,
+          "teamName": "",
+          "unique": false
+        },
+        "team3": {
+          "answer1": "Văn Hiệu",
+          "answer2": "Văn Hiệu",
+          "match": true,
+          "player1": "Thoan",
+          "player2": "Phượng",
+          "points": 1,
+          "teamName": "Đội khó hiểu",
+          "unique": false
+        },
+        "team4": {
+          "answer1": "Văn Hiệu",
+          "answer2": "Văn Hiệu",
+          "match": true,
+          "player1": "Trang",
+          "player2": "Hoa",
+          "points": 1,
+          "teamName": "",
+          "unique": false
+        },
+        "team5": {
+          "answer1": "Tú Tài Tử",
+          "answer2": "Tú Tài Tử",
+          "match": true,
+          "player1": "Mai Anh",
+          "player2": "Ánh",
+          "points": 3,
+          "teamName": "Đội 5555",
+          "unique": true
+        },
+        "team6": {
+          "answer1": "Kim Dương",
+          "answer2": "Kim Dương",
+          "match": true,
+          "player1": "Lệ",
+          "player2": "An",
+          "points": 3,
+          "teamName": "",
+          "unique": true
+        },
+        "team7": {
+          "answer1": "Xuân Cờ",
+          "answer2": "Xuân Cờ",
+          "match": true,
+          "player1": "Thủy",
+          "player2": "Hằng",
+          "points": 1,
+          "teamName": "AHIHI",
+          "unique": false
+        },
+        "team8": {
+          "answer1": "Xuân Bách",
+          "answer2": "Xuân Bách",
+          "match": true,
+          "player1": "Hạnh",
+          "player2": "Liên",
+          "points": 3,
+          "teamName": "",
+          "unique": true
+        }
+      },
+      "type": "team_tags"
+    },
+    {
+      "level": 3,
+      "optionA": "",
+      "optionB": "",
+      "question": "Vòng hồi sinh đã đến! Bạn có một suất đưa một nam đồng nghiệp từng làm phòng Sales trở lại (chị Rít cũng không nói thế). Bạn chọn:",
+      "revealedAt": 1792205436588,
+      "round": 18,
+      "special": false,
+      "tags": [
+        "Jack Sơn",
+        "Quinn Quân",
+        "Harry Nam",
+        "Charlie Chính",
+        "Năng Khiên"
+      ],
+      "teams": {
+        "team1": {
+          "answer1": "Harry Nam",
+          "answer2": "Harry Nam",
+          "match": true,
+          "player1": "Trúc",
+          "player2": "Linh",
+          "points": 3,
+          "teamName": "Chọn a rồi b rồi c",
+          "unique": true
+        },
+        "team2": {
+          "answer1": "Quinn Quân",
+          "answer2": "Quinn Quân",
+          "match": true,
+          "player1": "Nhung",
+          "player2": "Giang",
+          "points": 1,
+          "teamName": "",
+          "unique": false
+        },
+        "team3": {
+          "answer1": "Quinn Quân",
+          "answer2": "Quinn Quân",
+          "match": true,
+          "player1": "Thoan",
+          "player2": "Phượng",
+          "points": 1,
+          "teamName": "Đội khó hiểu",
+          "unique": false
+        },
+        "team4": {
+          "answer1": "Quinn Quân",
+          "answer2": "Quinn Quân",
+          "match": true,
+          "player1": "Trang",
+          "player2": "Hoa",
+          "points": 1,
+          "teamName": "",
+          "unique": false
+        },
+        "team5": {
+          "answer1": "Quinn Quân",
+          "answer2": "Quinn Quân",
+          "match": true,
+          "player1": "Mai Anh",
+          "player2": "Ánh",
+          "points": 1,
+          "teamName": "Đội 5555",
+          "unique": false
+        },
+        "team6": {
+          "answer1": "Jack Sơn",
+          "answer2": "Jack Sơn",
+          "match": true,
+          "player1": "Lệ",
+          "player2": "An",
+          "points": 1,
+          "teamName": "",
+          "unique": false
+        },
+        "team7": {
+          "answer1": "Năng Khiên",
+          "answer2": "Năng Khiên",
+          "match": true,
+          "player1": "Thủy",
+          "player2": "Hằng",
+          "points": 3,
+          "teamName": "AHIHI",
+          "unique": true
+        },
+        "team8": {
+          "answer1": "Jack Sơn",
+          "answer2": "Jack Sơn",
+          "match": true,
+          "player1": "Hạnh",
+          "player2": "Liên",
+          "points": 1,
+          "teamName": "",
+          "unique": false
+        }
+      },
+      "type": "team_tags"
+    }
+  ]
+}
